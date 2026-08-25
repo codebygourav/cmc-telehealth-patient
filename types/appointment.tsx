@@ -106,7 +106,12 @@ export interface PaginationInfo {
 }
 
 export type AppointmentListResponse = {
-    status: boolean;
+    status?: boolean;
+    success?: boolean;
+    message?: string;
+    filter?: string;
+    path?: string;
+    timestamp?: string;
     data: AppointmentResponse[];
-    pagination: PaginationInfo;
+    pagination?: PaginationInfo;
 };

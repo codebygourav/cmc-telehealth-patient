@@ -3,7 +3,7 @@ import { useState } from 'react';
 import UpcomingAppointmentCard from '@/components/pages/appointments/UpcomingAppointmentCard';
 import PastAppointmentCard from '@/components/pages/appointments/PastAppointmentCard';
 import CustomTabs from '@/components/custom/CustomTabs';
-import PaginationControls from '@/components/ui/PaginationControls';
+import { CustomPagination } from '@/components/custom/CustomPagination';
 import { useAppointments } from '@/queries/useAppointments';
 import { Loader2, Calendar } from 'lucide-react';
 import { AppointmentResponse } from '@/types/appointment';
@@ -17,7 +17,7 @@ const AppointmentsPage = () => {
     const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
 
     // Fetch appointments based on active tab and page
-    const { data, isLoading, isError, error, refetch } = useAppointments(activeTab, currentPage);
+    const { data, isLoading, isError, error } = useAppointments(activeTab, currentPage);
     const router = useRouter();
 
     const handleManageAppointment = (appointmentId: string) => {
@@ -30,8 +30,7 @@ const AppointmentsPage = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // Refetch data when page changes
-        refetch();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // Transform API response to match component props
@@ -147,14 +146,19 @@ const AppointmentsPage = () => {
                     })}
                 </div>
 
-                {pagination && pagination.last_page > 1 && (
-                    <PaginationControls
-                        currentPage={pagination.current_page}
-                        totalPages={pagination.last_page}
-                        totalItems={pagination.total}
-                        itemsPerPage={pagination.per_page}
-                        onPageChange={handlePageChange}
-                    />
+                {pagination && pagination.total > 0 && (
+                    <div className="flex flex-col items-center gap-4 py-8">
+                        <CustomPagination
+                            currentPage={pagination.current_page || currentPage}
+                            totalPages={pagination.last_page || 1}
+                            onPageChange={handlePageChange}
+                        />
+                        <p className="text-xs text-muted-foreground font-medium">
+                            Showing <span className="text-foreground">{(currentPage - 1) * (pagination.per_page || 10) + 1}</span> to{" "}
+                            <span className="text-foreground">{Math.min(currentPage * (pagination.per_page || 10), pagination.total)}</span> of{" "}
+                            <span className="text-foreground">{pagination.total}</span> appointments
+                        </p>
+                    </div>
                 )}
             </div>
         );
@@ -174,7 +178,7 @@ const AppointmentsPage = () => {
         }
 
         return (
-            <>
+            <div className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3 mt-3">
                     {pastApps.map((app: AppointmentResponse) => {
                         const transformedApp = transformToAppointment(app);
@@ -193,16 +197,21 @@ const AppointmentsPage = () => {
                     })}
                 </div>
 
-                {pagination && pagination.last_page > 1 && (
-                    <PaginationControls
-                        currentPage={pagination.current_page}
-                        totalPages={pagination.last_page}
-                        totalItems={pagination.total}
-                        itemsPerPage={pagination.per_page}
-                        onPageChange={handlePageChange}
-                    />
+                {pagination && pagination.total > 0 && (
+                    <div className="flex flex-col items-center gap-4 py-8">
+                        <CustomPagination
+                            currentPage={pagination.current_page || currentPage}
+                            totalPages={pagination.last_page || 1}
+                            onPageChange={handlePageChange}
+                        />
+                        <p className="text-xs text-muted-foreground font-medium">
+                            Showing <span className="text-foreground">{(currentPage - 1) * (pagination.per_page || 10) + 1}</span> to{" "}
+                            <span className="text-foreground">{Math.min(currentPage * (pagination.per_page || 10), pagination.total)}</span> of{" "}
+                            <span className="text-foreground">{pagination.total}</span> appointments
+                        </p>
+                    </div>
                 )}
-            </>
+            </div>
         );
     };
 
