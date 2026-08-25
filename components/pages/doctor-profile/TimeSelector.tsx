@@ -37,7 +37,11 @@ const TimeSelector = ({ slots, selectedSlot, onSelectSlot }: TimeSelectorProps) 
     };
 
     const isSlotAvailable = (slot: DoctorAvailabilitySlot) => {
-        return slot.available && slot.booked_count < slot.capacity;
+        if (slot.available === false) return false;
+        if (typeof slot.capacity === 'number' && typeof slot.booked_count === 'number') {
+            return slot.booked_count < slot.capacity;
+        }
+        return true;
     };
 
     return (

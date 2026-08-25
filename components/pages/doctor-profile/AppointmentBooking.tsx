@@ -13,9 +13,43 @@ interface AppointmentBookingProps {
     onBookingError: (error: string) => void;
 }
 
-const AppointmentBooking = ({ doctor, onBookingSuccess, onBookingError }: AppointmentBookingProps) => {
+const matchConsultationType = (slot: DoctorAvailabilitySlot, type: 'in_person' | 'video'): boolean => {
+    if (!slot) return false;
 
-    // console.log("doctor", doctor);
+    const cType = (slot.consultation_type || '').toLowerCase().trim();
+    const cLabel = (slot.consultation_type_label || '').toLowerCase().trim();
+
+    if (!cType && !cLabel) return true;
+
+    const combined = `${cType} ${cLabel}`.replace(/[-_]/g, ' ');
+
+    if (type === 'in_person') {
+        return (
+            combined.includes('in person') ||
+            combined.includes('in clinic') ||
+            combined.includes('inperson') ||
+            combined.includes('inclinic') ||
+            combined.includes('clinic') ||
+            combined.includes('physical') ||
+            cType === 'both' ||
+            cType === 'all'
+        );
+    }
+
+    if (type === 'video') {
+        return (
+            combined.includes('video') ||
+            combined.includes('online') ||
+            combined.includes('tele') ||
+            cType === 'both' ||
+            cType === 'all'
+        );
+    }
+
+    return true;
+};
+
+const AppointmentBooking = ({ doctor, onBookingSuccess, onBookingError }: AppointmentBookingProps) => {
 
     const [appointmentType, setAppointmentType] = useState<'in_person' | 'video' | null>(null);
     const [selectedSlot, setSelectedSlot] = useState<DoctorAvailabilitySlot | null>(null);
@@ -23,22 +57,56 @@ const AppointmentBooking = ({ doctor, onBookingSuccess, onBookingError }: Appoin
 
     const { mutate: bookAppointment, isPending: isBooking } = useBookAppointment();
 
-    // Set default appointment type: video first, then clinic
-    useEffect(() => {
-        if (doctor.appointment_types?.video) {
-            setAppointmentType('video');
-        } else if (doctor.appointment_types?.in_person) {
-            setAppointmentType('in_person');
+    const availableSlots = (doctor.availability || []).flatMap(item => {
+        if (item && Array.isArray(item.slots)) {
+            return item.slots;
         }
-    }, [doctor.appointment_types]);
+        if (item && typeof item === 'object' && 'date' in item && 'start_time' in item) {
+            return [item as unknown as DoctorAvailabilitySlot];
+        }
+        return [];
+    });
 
-    const availableSlots = doctor.availability?.flatMap(day => day.slots) || [];
+    const hasInPersonSlots = availableSlots.some(s => matchConsultationType(s, 'in_person'));
+    const hasVideoSlots = availableSlots.some(s => matchConsultationType(s, 'video'));
+
+    const inPersonAvailable = (doctor.appointment_types?.in_person ?? false) || hasInPersonSlots;
+    const videoAvailable = (doctor.appointment_types?.video ?? false) || hasVideoSlots;
+
+    useEffect(() => {
+        if (appointmentType === null) {
+            if (inPersonAvailable) {
+                setAppointmentType('in_person');
+            } else if (videoAvailable) {
+                setAppointmentType('video');
+            }
+        }
+    }, [doctor, appointmentType, inPersonAvailable, videoAvailable]);
 
     const filteredSlots = availableSlots.filter(slot => {
-        if (appointmentType === 'in_person') return slot.consultation_type === 'in_person';
-        if (appointmentType === 'video') return slot.consultation_type === 'video';
+        if (appointmentType === 'in_person') return matchConsultationType(slot, 'in_person');
+        if (appointmentType === 'video') return matchConsultationType(slot, 'video');
         return true;
     });
+
+    useEffect(() => {
+        if (filteredSlots.length > 0) {
+            const currentSelectedDate = selectedDateSlot?.date;
+            const matchingSlot = currentSelectedDate
+                ? filteredSlots.find(slot => slot.date === currentSelectedDate)
+                : null;
+
+            if (matchingSlot) {
+                setSelectedDateSlot(matchingSlot);
+            } else {
+                setSelectedDateSlot(filteredSlots[0]);
+            }
+            setSelectedSlot(null);
+        } else {
+            setSelectedDateSlot(null);
+            setSelectedSlot(null);
+        }
+    }, [appointmentType, availableSlots.length]);
 
     // Get slots for selected date
     const slotsForSelectedDate = selectedDateSlot
@@ -98,8 +166,8 @@ const AppointmentBooking = ({ doctor, onBookingSuccess, onBookingError }: Appoin
             <AppointmentTypeSelector
                 value={appointmentType}
                 onChange={setAppointmentType}
-                inPersonAvailable={doctor.appointment_types?.in_person}
-                videoAvailable={doctor.appointment_types?.video}
+                inPersonAvailable={inPersonAvailable}
+                videoAvailable={videoAvailable}
             />
 
             {appointmentType && (

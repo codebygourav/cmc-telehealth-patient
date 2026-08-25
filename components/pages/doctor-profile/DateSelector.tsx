@@ -22,6 +22,19 @@ const DateSelector = ({ slots, selectedSlot, onSelectSlot }: DateSelectorProps) 
         };
     };
 
+    if (uniqueDates.length === 0) {
+        return (
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-[#1F1E1E] text-lg font-semibold">Schedules</h3>
+                </div>
+                <div className="p-5 rounded-lg border border-dashed border-[#E7E8EB] bg-[#F5F6F8] text-center">
+                    <p className="text-[#4D4D4D] text-sm font-medium">No available dates for this appointment type.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4">
 
