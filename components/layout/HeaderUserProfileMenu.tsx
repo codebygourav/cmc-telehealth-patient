@@ -30,9 +30,6 @@ export function HeaderUserProfileMenu({
     onLogout,
 }: HeaderUserProfileMenuProps) {
 
-    console.log("new user profile" , user);
-    
-
     return (
         <div className="flex items-center gap-3 justify-end">
             <div className="hidden text-right md:flex md:flex-col">

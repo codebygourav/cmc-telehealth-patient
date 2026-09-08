@@ -33,7 +33,6 @@ function InfoBadges({ schedule }: { schedule: AppointmentSchedule }) {
   );
 }
 const ScheduleDetails = ({ schedule, status, statusLabel }: ScheduleDetailsProps) => {
-  console.log("scheduleadsad dataasdasdasd", schedule);
 
   return (
     <Card className="w-full p-0 g-border global-radius-10">

@@ -9,6 +9,8 @@ interface PaymentSummaryProps {
 
 const PaymentSummary = ({ payment }: PaymentSummaryProps) => {
 
+  console.log("PaymentSummary payment:", payment);
+
   return (
     <Card className="p-0 global-radius-10 g-border">
       <CardContent className="p-0">

@@ -115,8 +115,9 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
       const options = {
         key: razorpayKeyId,
         amount: doctor.payment.total, // already in paise
-        currency: "INR",
-        name: "Telehealth Deploymeta",
+        // currency: "INR",
+        currency: doctor.payment.currency,
+        name: "Cmc Telehealth",
         description: doctor?.doctor?.name,
         order_id: razorpayOrderId,
 

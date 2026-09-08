@@ -52,6 +52,7 @@ export interface DoctorAvailabilitySlot {
   capacity: number;
   booked_count: number;
   available: boolean;
+  currency_symbol: string;
   consultation_fee: number;
   doctor_room: string | null;
   recurring_start_date: string;

@@ -195,7 +195,7 @@ const AppointmentBooking = ({ doctor, onBookingSuccess, onBookingError }: Appoin
                 size="lg"
                 className="w-full py-3 rounded-md font-semibold transition-all"
             >
-                {isBooking ? "Booking..." : `Book Appointment (₹${selectedSlot?.consultation_fee || 0}.00)`}
+                {isBooking ? "Booking..." : `Book Appointment (${selectedSlot?.currency_symbol ? selectedSlot?.currency_symbol : ''}${selectedSlot?.consultation_fee || 0}.00)`}
                 <ChevronRight size={14} color='#fff' strokeWidth={3} />
             </Button>
         </div>
