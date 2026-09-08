@@ -74,11 +74,11 @@ function AuthForm<T extends Record<string, any>>({
   // Add password match validation
   const finalSchema = fields.some((f) => f.name === "confirmPassword")
     ? z
-        .object(schemaObj)
-        .refine((data) => data.password === data.confirmPassword, {
-          message: "Passwords do not match",
-          path: ["confirmPassword"],
-        })
+      .object(schemaObj)
+      .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      })
     : z.object(schemaObj);
 
   type FormValues = z.infer<typeof finalSchema>;
@@ -134,7 +134,7 @@ function AuthForm<T extends Record<string, any>>({
         )}
 
         {fields.map((field) => (
-          <div key={field.name} className="relative">
+          <div key={field.name} className="relative mb-0 mt-5">
             {/* ✅ Using your custom InputField */}
             <InputField
               name={field.name}
@@ -150,7 +150,7 @@ function AuthForm<T extends Record<string, any>>({
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility(field.name)}
-                className="absolute right-3 top-9.5 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-11 text-muted-foreground hover:text-foreground transition-colors"
                 tabIndex={-1}
               >
                 {showPasswords[field.name] ? (
@@ -165,10 +165,10 @@ function AuthForm<T extends Record<string, any>>({
 
         {/* Forgot Password Link */}
         {showForgotPassword && (
-          <div className="text-right">
+          <div className="text-right mt-2">
             <Link
               href="/auth/forgot-password"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
+              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               Forgot password?
             </Link>
@@ -179,7 +179,7 @@ function AuthForm<T extends Record<string, any>>({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium py-2.5 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-2.5 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center gap-2">
@@ -212,15 +212,24 @@ function AuthForm<T extends Record<string, any>>({
 
         {/* Alternate Link */}
         {alternateLink && (
-          <p className="text-center text-sm text-muted-foreground">
-            {alternateLink.text}{" "}
-            <Link
-              href={alternateLink.href}
-              className="text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              {alternateLink.linkText}
-            </Link>
-          </p>
+          <div className="space-y-6 pt-3">
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-border/80 w-4/5"></div>
+              <span className="bg-background px-4 text-sm text-muted-foreground font-medium absolute">
+                or
+              </span>
+            </div>
+
+            <p className="text-center text-sm text-muted-foreground pt-1">
+              {alternateLink.text}{" "}
+              <Link
+                href={alternateLink.href}
+                className="text-primary font-semibold hover:text-primary/80 transition-colors"
+              >
+                {alternateLink.linkText}
+              </Link>
+            </p>
+          </div>
         )}
       </form>
     </FormProvider>

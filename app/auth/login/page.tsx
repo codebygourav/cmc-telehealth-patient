@@ -145,7 +145,7 @@ const LoginPage = () => {
     return (
         <AuthLayout title="" subtitle="" bannerImage="/assets/images/login-banner.png">
 
-            <div className="mb-10 text-center">
+            <div className="mb-5 text-center">
                 <div className="mb-4 flex justify-center">
                     {mounted && (
                         <Image
@@ -158,6 +158,11 @@ const LoginPage = () => {
                             unoptimized
                         />
                     )}
+                </div>
+
+                <div className="mt-8">
+                    <p className="text-2xl font-bold">Welcome Back</p>
+                    <p className="text-sm mt-1">Sign in to continue to your account</p>
                 </div>
 
                 {isError && !verifiedLink && (

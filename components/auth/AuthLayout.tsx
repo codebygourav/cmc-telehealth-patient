@@ -22,6 +22,7 @@ const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps)
                             fill
                             className="object-cover object-center"
                             priority
+                            unoptimized
                         />
                     </div>
 

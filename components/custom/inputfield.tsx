@@ -57,7 +57,7 @@ const InputField: React.FC<InputFieldProps> = ({
                 placeholder={placeholder}
                 disabled={disabled}
                 aria-invalid={!!errorMessage}
-                className={`font-source-sans ${inputClassName || 'bg-accent/30 text-foreground border'} ${errorMessage ? "border-destructive" : inputClassName ? '' : "border-border"
+                className={`h-10 font-source-sans ${inputClassName || 'bg-accent/30 text-foreground border'} ${errorMessage ? "border-destructive" : inputClassName ? '' : "border-border"
                     } focus:ring-1 focus:ring-primary focus:border-transparent ${type === 'password' ? 'pr-10' : ''}`}
             />
 
