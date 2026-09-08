@@ -44,12 +44,17 @@ export interface CompleteProfilePayload {
   gender: string;
   date_of_birth: string;
   mobile_no: string;
+  country_code?: string;
+  country_iso?: string;
+  current_location?: string;
   referralCode?: string;
   expo_push_token?: string;
   device_type?: string;
   device_name?: string;
   app_version?: string;
   is_underPrimary?: boolean;
+  is_existing_patient?: number;
+  existing_patient_id?: string;
 }
 
 export interface CompleteProfileResponse {

@@ -5,6 +5,7 @@ interface LoginPayload {
     email: string;
     password: string;
     remember?: boolean;
+    current_location?: string;
 }
 
 interface Address {

@@ -133,7 +133,7 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
                                     Consultation Fee
                                 </p>
                                 <p className="text-xs font-semibold text-black md:mt-1.5">
-                                    ₹{doctor.consultation_fee}
+                                    {doctor.consultation_fee}
                                 </p>
                             </div>
 

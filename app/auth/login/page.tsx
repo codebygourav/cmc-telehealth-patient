@@ -11,6 +11,7 @@ import { useAuth } from "@/context/userContext"
 import { User, UserRole } from "@/types/user-context"
 import { log } from "console"
 import { useSettings } from "@/context/settingsContext";
+import { getUserCountry } from "@/lib/location";
 
 import Logo from "@/public/assets/icon/logo-green.png"
 
@@ -59,9 +60,15 @@ const LoginPage = () => {
         },
     ]
 
-    const handleLogin = (formData: LoginFormData): Promise<void> => {
+    const handleLogin = async (formData: LoginFormData): Promise<void> => {
+        const currentLocation = await getUserCountry();
+        const payload = {
+            ...formData,
+            current_location: currentLocation,
+        };
+
         return new Promise((resolve) => {
-            signIn(formData, {
+            signIn(payload, {
                 onSuccess: async (responseData) => {
 
                     // The actual payload might be deeply nested depending on API variations.
@@ -136,7 +143,7 @@ const LoginPage = () => {
     };
 
     return (
-        <AuthLayout title="" subtitle="">
+        <AuthLayout title="" subtitle="" bannerImage="/assets/images/login-banner.png">
 
             <div className="mb-10 text-center">
                 <div className="mb-4 flex justify-center">
