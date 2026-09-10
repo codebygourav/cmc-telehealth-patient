@@ -58,7 +58,7 @@ const ConsultationContent = () => {
 
             {/* Custom buttons — shown only after joining */}
             {joined && (
-                <div className={`absolute bottom-1 left-1/2  flex gap-3 z-50 transition-all duration-300 ${chatOpen ? "-translate-x-[450%]" : "-translate-x-[422%]"}`}>
+                <div className={`absolute bottom-1 left-5 flex gap-3 z-50 transition-all duration-300`}>
 
                     <button
                         onClick={() => setPrescribeModal(true)}
