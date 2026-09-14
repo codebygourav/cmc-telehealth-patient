@@ -49,7 +49,10 @@ export const PrescribeMedicineDialog = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl sm:max-w-2xl p-0 gap-0 global-radius overflow-hidden border-none shadow-2xl">
+            <DialogContent
+                className="max-w-2xl sm:max-w-2xl p-0 gap-0 global-radius overflow-hidden border-none shadow-2xl"
+                closeButtonClassName="text-white hover:text-white hover:bg-white/20 top-6 right-6"
+            >
                 <DialogHeader className="p-8 bg-[#013220] text-white">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
@@ -86,11 +89,7 @@ export const PrescribeMedicineDialog = ({
                                 <MedicineCard
                                     key={prescription.appointment_id}
                                     prescription={prescription}
-                                    status="current"
-                                    onViewDetail={(id) => {
-                                        // Optional: Handle detail view within consultation or external link
-                                        window.open(`/my-medicines/${id}`, "_blank");
-                                    }}
+                                    showViewDetail={false}
                                 />
                             ))}
                         </div>
