@@ -103,7 +103,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: var(--primary);
+  /* Fallback until the admin theme colour loads (settingsContext sets the real one on <html>). */
+  --primary: #073827;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: var(--primary);
@@ -277,7 +278,7 @@
   /* Global button styles */
   .btn-primary {
     border-radius: var(--global-radius);
-    @apply font-bold transition-colors bg-primary text-primary-foreground hover:bg-primary/95;
+    @apply font-bold transition-all bg-primary text-primary-foreground hover:bg-primary/85 hover:shadow-md disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed;
   }
 
   /* Full-width primary CTA button used across cards/forms */
@@ -286,22 +287,20 @@
     border-radius: var(--global-radius);
     font-weight: bold !important;
     height: 39px !important;
-    @apply text-base !font-bold transition-colors bg-primary text-primary-foreground hover:bg-primary/95 py-3.5 px-5;
+    @apply text-base !font-bold transition-all bg-primary text-primary-foreground hover:bg-primary/85 hover:shadow-md py-3.5 px-5;
   }
 
+  /* Outline version: white with green text, fills green with white text on hover. */
   .btn-primary-cta-outline {
     border-radius: var(--global-radius);
     font-weight: bold !important;
     height: 39px !important;
-    @apply text-base !font-bold transition-colors bg-primary text-primary-foreground hover:bg-primary/95 py-3.5 px-5;
-    border: 1px solid #E7E8EB;
-    background: #FFFFFF;
-    color: var(--primary);
+    @apply text-base !font-bold transition-all py-3.5 px-5 border border-primary bg-white text-primary hover:bg-primary hover:text-primary-foreground hover:shadow-md;
   }
 
   .btn-primary-without-transition {
     border-radius: var(--global-radius);
-    @apply mt-5 text-base font-bold transition-colors bg-primary text-primary-foreground hover:bg-primary/95;
+    @apply mt-5 text-base font-bold transition-all bg-primary text-primary-foreground hover:bg-primary/85 hover:shadow-md;
   }
 
 

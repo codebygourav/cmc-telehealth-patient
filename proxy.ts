@@ -10,6 +10,13 @@ const authRoutes = [
   "/register",
 ];
 
+// Browsable without login: doctors list, doctor details and legal pages.
+// The dashboard, booking and everything personal need login.
+const publicRoutes = ["/find-doctors", "/privacy-policy", "/terms-conditions"];
+
+const isPublicRoute = (path: string) =>
+  publicRoutes.some((route) => path === route || path.startsWith(`${route}/`));
+
 export function proxy(request: NextRequest) {
   const token = request.cookies.get("patient_token")?.value;
   const role = request.cookies.get("patient_role")?.value;
@@ -17,9 +24,20 @@ export function proxy(request: NextRequest) {
 
   const isAuthRoute = authRoutes.some((route) => path.startsWith(route));
 
-  // 🔒 1. If NOT logged in → redirect
+  // 🔒 1. If NOT logged in → public pages are fine, anything else goes to login (and comes back after)
   if (!token && !isAuthRoute) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (isPublicRoute(path)) {
+      return NextResponse.next();
+    }
+
+    // Guests only get the doctor search, so the home page opens it.
+    if (path === "/") {
+      return NextResponse.redirect(new URL("/find-doctors", request.url));
+    }
+
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("redirect", path + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
   }
 
   // 🔒 2. Patient-only routes

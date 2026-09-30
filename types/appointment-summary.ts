@@ -102,6 +102,13 @@ export interface AppointmentDetailData {
   medical_reports: AppointmentMedicalReport[];
   prescriptions: AppointmentPrescription | null;
   notes: string | null;
+  // Who the visit is for, new/old patient and hospital Unit ID (C Number)
+  booking_for?: "self" | "family";
+  patient_type?: "new" | "old";
+  patient_uid?: string | null;
+  booked_by?: { name: string | null; email: string | null; phone: string | null } | null;
+  booked_by_name?: string | null;
+  booked_for?: { name: string; uid: string | null; gender: string | null; age: number | null; phone: string | null } | null;
 }
 
 export interface AppointmentDetailResponse {

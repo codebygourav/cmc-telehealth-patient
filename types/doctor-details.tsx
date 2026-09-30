@@ -2,7 +2,10 @@ export interface DoctorProfileInfo {
   name: string;
   avatar: string;
   department: string;
-  years_experience: number;
+  years_experience: number | null;
+  career_start_year?: string | number | null;
+  // Qualifications line, e.g. "MBBS, MS (Orthopaedics)"
+  sub_title?: string | null;
 }
 
 export interface DoctorAboutInfo {
@@ -13,8 +16,25 @@ export interface DoctorAboutInfo {
 export interface DoctorEducationItem {
   degree: string;
   institution: string;
-  start_date: string;
-  end_date: string;
+  completion_year?: string | null;
+}
+
+// One profile section saved in admin (Availability Notes, Memberships, Education, ...).
+// The API only sends sections that have content.
+export interface DoctorProfileSectionItem {
+  title: string | null;
+  subtitle: string | null;
+  meta: string | null;
+  description: string | null;
+}
+
+export type DoctorProfileSection =
+  | { key: string; title: string; type: "html"; html: string }
+  | { key: string; title: string; type: "list"; items: DoctorProfileSectionItem[] };
+
+export interface DoctorConsultationFee {
+  min: number;
+  max: number;
 }
 
 export interface DoctorAppointmentTypes {
@@ -57,6 +77,17 @@ export interface DoctorAvailabilitySlot {
   doctor_room: string | null;
   recurring_start_date: string;
   recurring_end_date: string;
+  // Booking state from the API
+  opd_type?: string | null;
+  available_slots?: number;
+  is_full?: boolean;
+  // OPD session is over
+  is_past?: boolean;
+  // Online booking closed (X before the slot's start or end time, set in admin)
+  is_booking_closed?: boolean;
+  booking_closes_at?: string | null;
+  is_child_only?: boolean;
+  child_age?: number | null;
 }
 
 export interface DoctorAvailabilityItem {
@@ -71,6 +102,8 @@ export interface DoctorReviewSummary {
 
 export interface DoctorDetailData {
   id: string;
+  // How many months (this month + next) patients can browse — admin setting
+  availability_months?: number;
   slug: string;
   user_id: string;
   status: string;
@@ -78,6 +111,9 @@ export interface DoctorDetailData {
   about: DoctorAboutInfo;
   education: DoctorEducationItem[];
   languages: string[];
+  profile_sections?: DoctorProfileSection[];
+  social_links?: Record<string, string> | null;
+  consultation_fee?: DoctorConsultationFee | null;
   appointment_types: DoctorAppointmentTypes;
   doctor_reviews: DoctorReviewItem[];
   availability: DoctorAvailabilityItem[];

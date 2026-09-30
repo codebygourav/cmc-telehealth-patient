@@ -7,6 +7,8 @@ import { Button } from "@base-ui/react/button";
 interface CustomDialogProps {
     open: boolean;
     onClose: () => void;
+    // Optional second action (shown next to confirm), e.g. "Register" in the sign-in prompt.
+    onCancel?: () => void;
     icon?: ReactNode;
     title: string;
     description?: string;
@@ -20,6 +22,7 @@ interface CustomDialogProps {
 export default function CustomDialog({
     open,
     onClose,
+    onCancel,
     icon,
     title,
     description,
@@ -66,10 +69,18 @@ export default function CustomDialog({
 
                 {/* Buttons */}
                 <div className="flex gap-4 mt-6">
-                    {type === "danger" && (
+                    {type === "danger" && !onCancel && (
                         <Button
                             onClick={onClose}
                             className="flex-1 text-xs font-medium btn-primary-cta"
+                        >
+                            {cancelText}
+                        </Button>
+                    )}
+                    {onCancel && (
+                        <Button
+                            onClick={onCancel}
+                            className="flex-1 rounded-lg py-2 text-xs font-medium btn-primary-cta-outline"
                         >
                             {cancelText}
                         </Button>

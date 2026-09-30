@@ -1,6 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ReactNode } from 'react';
+import { ArrowLeft } from 'lucide-react';
+
+// Guests can browse without an account, so every auth screen links back home.
+const BackToHome = () => (
+    <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+    >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Home
+    </Link>
+);
 
 interface AuthLayoutProps {
     title?: string;
@@ -14,8 +26,13 @@ const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps)
         return (
             <div className="min-h-screen bg-linear-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 sm:p-6 lg:p-8">
                 <div className="w-full max-w-5xl bg-card shadow-2xl rounded-2xl border border-border overflow-hidden grid grid-cols-1 md:grid-cols-2 min-h-[650px] lg:min-h-[700px] my-auto">
-                    {/* Left 50%: Banner Image */}
-                    <div className="relative hidden md:block w-full h-full min-h-[650px] lg:min-h-[700px] bg-slate-50">
+                    {/* Left 50%: Banner Image (links to the home page) */}
+                    <Link
+                        href="/"
+                        aria-label="Go to home page"
+                        title="Home"
+                        className="relative hidden md:block w-full h-full min-h-[650px] lg:min-h-[700px] bg-slate-50"
+                    >
                         <Image
                             src={bannerImage}
                             alt="Auth Banner"
@@ -24,10 +41,13 @@ const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps)
                             priority
                             unoptimized
                         />
-                    </div>
+                    </Link>
 
                     {/* Right 50%: Form Container */}
                     <div className="flex flex-col justify-center py-8 px-6 sm:px-10 lg:px-12 w-full">
+                        <div className="mb-4">
+                            <BackToHome />
+                        </div>
                         {title && (
                             <div className="mb-6 text-center">
                                 <h2 className="text-2xl font-bold text-foreground">{title}</h2>
@@ -47,6 +67,7 @@ const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps)
         <div className="min-h-screen bg-linear-to-br from-primary/5 via-background to-secondary/5">
             <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
                 <div className="w-full max-w-xl">
+                    <BackToHome />
 
                     {/* Card Container */}
                     <div className="mt-8 bg-card py-8 px-6 shadow-xl rounded-xl border border-border sm:px-10">

@@ -3,6 +3,7 @@ import { Calendar, Clock, Star, Video, ChevronRight, Phone, Calendar as Calendar
 import { Doctor, Appointment } from '@/types/appointment';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
+import { getStatusColor } from '@/src/utils/getStatusColor';
 
 interface UpcomingAppointmentCardProps {
     appointment: Appointment;
@@ -12,6 +13,9 @@ interface UpcomingAppointmentCardProps {
     fee?: string;
     joinUrl?: string;
     call_now?: boolean;
+    status?: string;
+    statusLabel?: string;
+    bookedForName?: string | null;
 }
 
 const UpcomingAppointmentCard = ({
@@ -21,7 +25,10 @@ const UpcomingAppointmentCard = ({
     consultationType = "Video",
     fee = "0",
     joinUrl,
-    call_now
+    call_now,
+    status,
+    statusLabel,
+    bookedForName,
 }: UpcomingAppointmentCardProps) => {
 
     const router = useRouter();
@@ -53,6 +60,18 @@ const UpcomingAppointmentCard = ({
                             <p className="text-sm text-[#4D4D4D] font-medium">
                                 {doctor?.specialty} ({doctor?.experience})
                             </p>
+                            {(statusLabel || bookedForName) && (
+                                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                    {statusLabel && (
+                                        <span className={`px-2.5 py-1 rounded text-[11px] font-semibold ${getStatusColor("appointment", status)}`}>
+                                            {statusLabel}
+                                        </span>
+                                    )}
+                                    {bookedForName && (
+                                        <span className="text-xs text-[#4D4D4D]">For {bookedForName}</span>
+                                    )}
+                                </div>
+                            )}
                             <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mt-1.5 sm:mt-2">
                                 <div className="flex items-center gap-1.5 text-[#4D4D4D] text-xs font-medium">
                                     <Calendar size={14} color='#4D4D4D' />

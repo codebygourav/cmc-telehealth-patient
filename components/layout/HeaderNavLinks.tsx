@@ -22,6 +22,8 @@ interface HeaderNavLinksProps {
     setMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
     isActivePath: (href: string) => boolean;
     onLogout: () => Promise<void>;
+    // Guest (not logged in): no notifications / logout, show Sign In & Register instead.
+    isGuest?: boolean;
 }
 
 export function HeaderNavLinks({
@@ -31,6 +33,7 @@ export function HeaderNavLinks({
     setMobileMenuOpen,
     isActivePath,
     onLogout,
+    isGuest = false,
 }: HeaderNavLinksProps) {
     return (
 
@@ -47,8 +50,8 @@ export function HeaderNavLinks({
                                 className={cn(
                                     "inline-flex items-center gap-2 global-radius px-4 py-2 text-sm font-bold transition-all duration-200 ",
                                     isActive
-                                        ? "bg-primary text-primary-foreground shadow-sm"
-                                        : "text-primary hover:bg-primary border border-primary hover:text-white transition-all bg-primary-100 duration-100",
+                                        ? "border border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary/85"
+                                        : "border border-primary bg-white text-primary hover:bg-primary hover:text-primary-foreground",
                                 )}
                             >
                                 {item.icon}
@@ -122,6 +125,25 @@ export function HeaderNavLinks({
                                 );
                             })}
 
+                            {isGuest ? (
+                                <div className="mt-2 grid grid-cols-2 gap-2">
+                                    <Link
+                                        href="/auth/login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center justify-center global-radius border border-border/70 px-4 py-3 text-sm font-bold text-foreground hover:bg-muted"
+                                    >
+                                        Sign In
+                                    </Link>
+                                    <Link
+                                        href="/auth/register"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center justify-center global-radius bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+                                    >
+                                        Register
+                                    </Link>
+                                </div>
+                            ) : (
+                            <>
                             <Link
                                 href="/notifications"
                                 onClick={() => setMobileMenuOpen(false)}
@@ -147,6 +169,8 @@ export function HeaderNavLinks({
                                 <LogOut className="w-4 h-4" />
                                 <span className="flex-1 text-left">Log out</span>
                             </button>
+                            </>
+                            )}
                         </div>
                     </SheetContent>
                 </Sheet>

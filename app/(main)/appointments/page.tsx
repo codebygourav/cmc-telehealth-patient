@@ -1,5 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
+import CustomDialog from '@/components/custom/Dialogboxs';
+import PendingPaymentCard from '@/components/pages/appointments/PendingPaymentCard';
+import { deleteUnpaidAppointment } from '@/api/appointments';
 import UpcomingAppointmentCard from '@/components/pages/appointments/UpcomingAppointmentCard';
 import PastAppointmentCard from '@/components/pages/appointments/PastAppointmentCard';
 import CustomTabs from '@/components/custom/CustomTabs';
@@ -12,7 +18,34 @@ import HeroSection from '@/components/hero-section';
 
 const AppointmentsPage = () => {
 
-    const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'pending_payment'>('upcoming');
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const queryClient = useQueryClient();
+
+    // Open a tab from the URL, e.g. /appointments?tab=pending_payment
+    useEffect(() => {
+        const tab = new URLSearchParams(window.location.search).get('tab');
+        if (tab === 'pending_payment' || tab === 'past' || tab === 'upcoming') {
+            setActiveTab(tab);
+        }
+    }, []);
+
+    const handleDeleteUnpaid = async () => {
+        if (!deleteId) return;
+        try {
+            setDeleting(true);
+            await deleteUnpaidAppointment(deleteId);
+            toast.success('Booking deleted.');
+            await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        } catch (err: any) {
+            const errors = err?.response?.data?.errors;
+            toast.error(errors?.message || err?.response?.data?.message || 'Could not delete the booking.');
+        } finally {
+            setDeleting(false);
+            setDeleteId(null);
+        }
+    };
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
 
@@ -141,6 +174,9 @@ const AppointmentsPage = () => {
                                 fee={app.fee_amount}
                                 joinUrl={app.join_url || app.video_consultation?.join_url}
                                 call_now={app.call_now}
+                                status={app.status}
+                                statusLabel={(app as any).status_label}
+                                bookedForName={(app as any).booked_for?.name}
                             />
                         );
                     })}
@@ -215,9 +251,44 @@ const AppointmentsPage = () => {
         );
     };
 
+    // Unpaid bookings: complete payment on the Review Appointment page, or delete.
+    const PendingPaymentContent = () => {
+        if (isLoading) return <LoadingState />;
+        if (isError) return <ErrorState />;
+
+        const pendingApps = data?.data || [];
+
+        if (pendingApps.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Calendar className="w-12 h-12 text-muted-foreground/40 mb-3" />
+                    <p className="font-semibold text-foreground">No pending payments</p>
+                    <p className="text-sm text-muted-foreground">Bookings waiting for payment will show here.</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3 mt-3">
+                {pendingApps.map((app: AppointmentResponse) => (
+                    <PendingPaymentCard
+                        key={app.appointment_id}
+                        appointment={transformToAppointment(app)}
+                        specialty={transformToDoctor(app)?.specialty}
+                        consultationType={app.consultation_type_label || app.schedule?.consultation_type_label}
+                        fee={app.fee_amount}
+                        bookedForName={(app as any).booked_for?.name}
+                        onComplete={(id) => router.push(`/appointments/${id}`)}
+                        onDelete={(id) => setDeleteId(id)}
+                    />
+                ))}
+            </div>
+        );
+    };
+
     // Reset to page 1 when tab changes
     const handleTabChange = (value: string) => {
-        setActiveTab(value as 'upcoming' | 'past');
+        setActiveTab(value as 'upcoming' | 'past' | 'pending_payment');
         setCurrentPage(1);
     };
 
@@ -227,6 +298,11 @@ const AppointmentsPage = () => {
             key: 'upcoming',
             label: 'Upcoming',
             content: <UpcomingContent />,
+        },
+        {
+            key: 'pending_payment',
+            label: 'Pending Payment',
+            content: <PendingPaymentContent />,
         },
         {
             key: 'past',
@@ -250,9 +326,22 @@ const AppointmentsPage = () => {
                     defaultTab="upcoming"
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
-                    tabsListClassName="max-w-md"
+                    tabsListClassName="max-w-xl"
                 />
             </div>
+
+            <CustomDialog
+                open={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                type="danger"
+                icon={<AlertCircle className="h-6 w-6 text-destructive" />}
+                title="Delete this booking?"
+                description="The unpaid booking will be removed and the slot released. This cannot be undone."
+                confirmText={deleting ? 'Deleting...' : 'Yes, Delete'}
+                cancelText="Keep"
+                onConfirm={handleDeleteUnpaid}
+                loading={deleting}
+            />
         </>
     );
 };

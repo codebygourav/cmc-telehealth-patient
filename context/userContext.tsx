@@ -110,13 +110,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      // Guests browsing public pages have no session to expire: never force them to the login page.
+      if (!getCookieValue(TOKEN_COOKIE) && !localStorage.getItem(TOKEN_KEY)) {
+        return;
+      }
+
       setUser(null);
       setToken(null);
       setAuthToken(null);
       clearPersistedAuth();
 
       if (window.location.pathname !== LOGIN_PATH) {
-        window.location.href = LOGIN_PATH;
+        const back = window.location.pathname + window.location.search;
+        window.location.href = `${LOGIN_PATH}?redirect=${encodeURIComponent(back)}`;
       }
     };
 

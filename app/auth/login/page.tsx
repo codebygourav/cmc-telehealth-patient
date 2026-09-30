@@ -14,6 +14,7 @@ import { useSettings } from "@/context/settingsContext";
 import { getUserCountry } from "@/lib/location";
 
 import Logo from "@/public/assets/icon/logo-green.png"
+import { consumePostAuthRedirect, rememberPostAuthRedirect } from "@/lib/authRedirect"
 
 interface LoginFormData {
     email: string
@@ -33,6 +34,8 @@ const LoginPage = () => {
 
     useEffect(() => {
         setMounted(true)
+        // Keep "?redirect=" across Register → Complete profile → Login.
+        rememberPostAuthRedirect(new URLSearchParams(window.location.search).get("redirect"))
     }, [])
 
     const fields = [
@@ -111,7 +114,8 @@ const LoginPage = () => {
 
                     await login(userData, token || "");
 
-                    window.location.href = "/";
+                    // Back to where the patient was (e.g. the doctor they wanted to book), else the dashboard.
+                    window.location.href = consumePostAuthRedirect();
 
                     resolve();
                 },
@@ -148,15 +152,17 @@ const LoginPage = () => {
             <div className="mb-5 text-center">
                 <div className="mb-4 flex justify-center">
                     {mounted && (
-                        <Image
-                            src={settings.logoUrl || Logo}
-                            alt={settings.appName || "Logo"}
-                            width={180}
-                            height={32}
-                            className="w-28 sm:w-32 md:w-44 h-auto"
-                            priority
-                            unoptimized
-                        />
+                        <Link href="/" aria-label="Go to home page" title="Home">
+                            <Image
+                                src={settings.logoUrl || Logo}
+                                alt={settings.appName || "Logo"}
+                                width={180}
+                                height={32}
+                                className="w-28 sm:w-32 md:w-44 h-auto"
+                                priority
+                                unoptimized
+                            />
+                        </Link>
                     )}
                 </div>
 

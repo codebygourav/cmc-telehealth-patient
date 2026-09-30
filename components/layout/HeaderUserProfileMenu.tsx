@@ -32,14 +32,17 @@ export function HeaderUserProfileMenu({
 
     return (
         <div className="flex items-center gap-3 justify-end">
-            <div className="hidden text-right md:flex md:flex-col">
-                <span className="truncate text-sm font-semibold text-foreground">
-                    {initializing ? "Loading user" : name}
-                </span>
-                <span className="truncate text-xs text-muted-foreground">
-                    {initializing ? "Loading email" : user?.email || "patient@telehealth.test"}
-                </span>
-            </div>
+            {initializing ? (
+                <div className="hidden animate-pulse flex-col items-end gap-1.5 md:flex" aria-label="Loading account">
+                    <span className="h-3.5 w-24 rounded bg-gray-200" />
+                    <span className="h-2.5 w-32 rounded bg-gray-200" />
+                </div>
+            ) : (
+                <div className="hidden text-right md:flex md:flex-col">
+                    <span className="truncate text-sm font-semibold text-foreground">{name}</span>
+                    {user?.email && <span className="truncate text-xs text-muted-foreground">{user.email}</span>}
+                </div>
+            )}
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>

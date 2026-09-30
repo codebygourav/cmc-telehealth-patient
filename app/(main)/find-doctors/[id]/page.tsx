@@ -5,9 +5,8 @@ import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDoctorDetail } from '@/queries/useDoctorDetail';
 import DoctorHeader from '@/components/pages/doctor-profile/DoctorHeader';
-import DoctorStats from '@/components/pages/doctor-profile/DoctorStats';
 import DoctorAbout from '@/components/pages/doctor-profile/DoctorAbout';
-import DoctorEducation from '@/components/pages/doctor-profile/DoctorEducation';
+import DoctorProfileSections from '@/components/pages/doctor-profile/DoctorProfileSections';
 import AppointmentBooking from '@/components/pages/doctor-profile/AppointmentBooking';
 import ReviewSection from '@/components/pages/doctor-profile/ReviewSection';
 import LoadingSkeleton from '@/components/pages/doctor-profile/LoadingSkeleton';
@@ -41,15 +40,16 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
         description: '',
     });
 
-    const { data, error, isLoading, refetch } = useDoctorDetail(id);
+    // isPending (not isLoading): keep the loader until data or a real error, so no error flash on reload.
+    const { data, error, isPending: isLoading, refetch } = useDoctorDetail(id);
     const doctor = data?.data;
 
     const handleBookingSuccess = (appointmentId: string) => {
         setDialogState({
             open: true,
             type: 'success',
-            title: 'Appointment Booked!',
-            description: 'Your appointment has been successfully scheduled. Check your email for details.',
+            title: 'Slot Reserved',
+            description: 'Review your booking and complete the payment. The doctor will then confirm your appointment and you will get an email.',
         });
         setAppointmentId(appointmentId);
     };
@@ -72,12 +72,15 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
             <div className="text-center py-12">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
                 <p className="text-destructive mb-4">Failed to load doctor details. Please try again.</p>
-                <Button onClick={() => refetch()} variant="default">
+                <Button onClick={() => refetch()} variant="default" className="btn-primary-cta px-6">
                     Retry
                 </Button>
             </div>
         );
     }
+
+    const totalReviews = Number(doctor.review_summary?.total_reviews) || 0;
+    const hasReviews = totalReviews > 0 && (doctor.doctor_reviews?.length ?? 0) > 0;
 
     return (
         <>
@@ -90,66 +93,44 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
             <div className="container-max-width w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 {/* Left Column - Doctor Info */}
-                <div className="lg:col-span-8 space-y-8">
+                <div className="lg:col-span-7 space-y-8">
 
                     <DoctorHeader doctor={doctor} />
 
                     <div className="space-y-6">
 
-                        {/* Tabs Container - Centered on all devices */}
-                        <div className="flex justify-center md:justify-start">
-                            <div className="flex gap-2.5 overflow-x-auto no-scrollbar p-1.5 border border-[#E7E8EB] bg-[#F5F6F8] rounded-md">
-                                <button
-                                    onClick={() => setActiveTab('overview')}
-                                    className={`
-                                                transition-all 
-                                                whitespace-nowrap
-                                                text-sm font-semibold py-2 px-7 rounded-md
-                                                ${activeTab === 'overview'
-                                            ? 'text-white bg-primary'
-                                            : 'text-[#4D4D4D]'
-                                        }
-                                     `}
-                                >
-                                    Overview
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('reviews')}
-                                    className={`
-                                            transition-all 
-                                                whitespace-nowrap
-                                                text-sm font-semibold py-2 px-7 rounded-md
-                                                ${activeTab === 'reviews'
-                                            ? 'text-white bg-primary'
-                                            : 'text-[#4D4D4D]'
-                                        }
-                                `}
-                                >
-                                    Reviews ({doctor.review_summary?.total_reviews || 0})
-                                </button>
+                        {/* Reviews tab only when the doctor has reviews */}
+                        {hasReviews && (
+                            <div className="flex justify-center md:justify-start">
+                                <div className="flex gap-2.5 overflow-x-auto no-scrollbar p-1.5 border border-[#E7E8EB] bg-[#F5F6F8] rounded-md">
+                                    {(['overview', 'reviews'] as const).map((tab) => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveTab(tab)}
+                                            className={`transition-all whitespace-nowrap text-sm font-semibold py-2 px-7 rounded-md ${activeTab === tab ? 'text-white bg-primary' : 'text-[#4D4D4D]'}`}
+                                        >
+                                            {tab === 'overview' ? 'Overview' : `Reviews (${totalReviews})`}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Content Sections */}
-                        {activeTab === 'overview' && (
+                        {(activeTab === 'overview' || !hasReviews) && (
                             <>
-                                <DoctorAbout about={doctor.about} className="md:col-span-2" />
-                                <DoctorEducation education={doctor.education} />
-                                <DoctorStats
-                                    patientsHelped={5000}
-                                    experience={doctor.profile.years_experience}
-                                />
+                                <DoctorAbout about={doctor.about} />
+                                <DoctorProfileSections sections={doctor.profile_sections} />
                             </>
                         )}
 
-                        {activeTab === 'reviews' && (
+                        {hasReviews && activeTab === 'reviews' && (
                             <ReviewSection reviews={doctor.doctor_reviews || []} />
                         )}
                     </div>
                 </div>
 
                 {/* Right Column - Booking */}
-                <div className="lg:col-span-4 sticky top-28">
+                <div className="lg:col-span-5 sticky top-28">
                     <AppointmentBooking
                         doctor={doctor}
                         onBookingSuccess={handleBookingSuccess}

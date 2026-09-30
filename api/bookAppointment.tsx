@@ -20,6 +20,21 @@ export const bookAppointment = async (
     formData.append("notes", payload.notes);
   }
 
+  // Optional "booked by / booked for" details
+  const bookingFor = {
+    booked_by_name: payload.booked_by_name,
+    booked_for_name: payload.booked_for_name,
+    booked_for_uid: payload.booked_for_uid,
+    booked_for_gender: payload.booked_for_gender,
+    booked_for_age: payload.booked_for_age,
+    booked_for_phone: payload.booked_for_phone,
+  };
+  Object.entries(bookingFor).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      formData.append(key, String(value).trim());
+    }
+  });
+
   const response = await axiosInstance.post<BookAppointmentResponse>(
     "/book-appointment",
     formData,

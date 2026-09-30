@@ -6,6 +6,13 @@ export interface BookAppointmentPayload {
   consultation_type: string;
   opd_type: string;
   notes?: string;
+  // Who booked + who the appointment is for (a family member gets their own patient profile).
+  booked_by_name?: string;
+  booked_for_name?: string;
+  booked_for_uid?: string;
+  booked_for_gender?: "male" | "female" | "other";
+  booked_for_age?: number;
+  booked_for_phone?: string;
 }
 
 export interface BookAppointmentData {

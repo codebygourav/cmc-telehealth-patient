@@ -6,6 +6,7 @@ import RegisterStep from "@/components/auth/registration/RegisterStep";
 import VerifyOtpStep from "@/components/auth/registration/VerifyOtpStep";
 import CompleteProfileStep from "@/components/auth/registration/CompleteProfileStep";
 import { useRouter } from "next/navigation";
+import { rememberPostAuthRedirect } from "@/lib/authRedirect";
 
 type Step = "register" | "verify" | "complete";
 
@@ -13,6 +14,11 @@ const RegisterPage = () => {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState<Step>("register");
     const [email, setEmail] = useState<string>("");
+
+    // Came from "Register to book": return to that doctor after logging in.
+    React.useEffect(() => {
+        rememberPostAuthRedirect(new URLSearchParams(window.location.search).get("redirect"));
+    }, []);
 
     const handleRegisterSuccess = (submittedEmail: string, isVerified?: boolean) => {
         setEmail(submittedEmail);

@@ -20,8 +20,10 @@ import { useRouter } from "next/navigation";
 
 export default function Home() {
 
-	const { user } = useAuth();
-	const { data, isLoading, isError } = usePatientHome();
+	const { user, initializing } = useAuth();
+	const isGuest = !initializing && !user;
+	// isPending (not isLoading): keep the loader until data or a real error, so no error flash on reload.
+	const { data, isPending: isLoading, isError } = usePatientHome();
 	const homeData = data?.data;
 	const router = useRouter();
 	const appointments = useMemo(() => mapHomeScreenAppointments(homeData), [homeData]);
@@ -52,17 +54,30 @@ export default function Home() {
 
 				{/* Left Content */}
 				<div>
-					<h1 className="font-bold sm:text-2xl text-base tracking-tight text-foreground">
-						Welcome back{user?.first_name || user?.last_name ? "," : ""}{" "}
-						{user?.first_name ?? ""} {user?.last_name ?? ""}
-					</h1>
+					{isGuest ? (
+						<>
+							<h1 className="font-bold sm:text-2xl text-base tracking-tight text-foreground">
+								Welcome
+							</h1>
+							<p className="!font-normal text-span-16 g-text-muted">
+								Browse our doctors and book a consultation. Sign in or register when you are ready to book.
+							</p>
+						</>
+					) : (
+						<>
+							<h1 className="font-bold sm:text-2xl text-base tracking-tight text-foreground">
+								Welcome back{user?.first_name || user?.last_name ? "," : ""}{" "}
+								{user?.first_name ?? ""} {user?.last_name ?? ""}
+							</h1>
 
-					<p className="!font-normal text-span-16 g-text-muted">
-						Your health summary is looking stable today.
-					</p>
+							<p className="!font-normal text-span-16 g-text-muted">
+								Your health summary is looking stable today.
+							</p>
+						</>
+					)}
 				</div>
 
-				{appointments.length > 0 && (
+				{(isGuest || appointments.length > 0) && (
 					// Right Action
 					<Button
 						onClick={() => {
@@ -80,12 +95,29 @@ export default function Home() {
 
 				{/* Left - 40% */}
 				<div className="w-full lg:basis-[40%]">
-					<UpcomingAppointments
-						appointments={appointments}
-						onViewAll={() => router.push("/appointments")}
-						onStartCall={() => { }}
-						onBookFirst={() => router.push("/find-doctors")}
-					/>
+					{isGuest ? (
+						<div className="flex h-full flex-col items-start justify-center gap-3 p-5 bg-white global-radius shadow-card-lg">
+							<h2 className="text-base font-bold text-foreground">Your Appointments</h2>
+							<p className="text-sm g-text-muted">
+								Sign in to see your upcoming appointments, reports and prescriptions.
+							</p>
+							<div className="flex gap-2">
+								<Button onClick={() => router.push("/auth/login")} variant="outline" className="global-radius">
+									Sign In
+								</Button>
+								<Button onClick={() => router.push("/auth/register")} className="global-radius bg-primary text-white hover:bg-primary/90">
+									Register
+								</Button>
+							</div>
+						</div>
+					) : (
+						<UpcomingAppointments
+							appointments={appointments}
+							onViewAll={() => router.push("/appointments")}
+							onStartCall={() => { }}
+							onBookFirst={() => router.push("/find-doctors")}
+						/>
+					)}
 				</div>
 
 				{/* Right - 60% */}

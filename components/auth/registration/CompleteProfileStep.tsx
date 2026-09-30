@@ -11,6 +11,9 @@ import { useCompleteProfile, CompleteProfileResponse, CompleteProfilePayload } f
 import { COUNTRIES } from "@/constants/countries";
 import { getUserCountry, getCountryIsoFromName } from "@/lib/location";
 import { toast } from "sonner";
+import { useAuth } from "@/context/userContext";
+import { consumePostAuthRedirect } from "@/lib/authRedirect";
+import type { User } from "@/types/user-context";
 
 const profileSchema = z
   .object({
@@ -47,6 +50,7 @@ interface CompleteProfileStepProps {
 const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
   const router = useRouter();
   const { mutate: completeProfile, isPending } = useCompleteProfile();
+  const { login } = useAuth();
 
   const methods = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
@@ -109,10 +113,47 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
     };
 
     completeProfile(payload, {
-      onSuccess: (response: CompleteProfileResponse) => {
+      onSuccess: async (response: CompleteProfileResponse) => {
         if (response.success) {
           toast.success(response.message || "Profile completed successfully!");
-          router.push("/dashboard");
+
+          // The API returns a login token: sign the patient in straight away (no second login),
+          // then go back to where they were (e.g. the doctor they wanted to book).
+          const raw = response as any;
+          const token: string | undefined = raw?.token || raw?.data?.token;
+          const profile = raw?.data?.user ? { ...raw.data.user, ...raw.data } : raw?.data;
+
+          if (token && profile) {
+            const userData: User = {
+              id: profile.id || "",
+              first_name: profile.first_name || "",
+              last_name: profile.last_name || "",
+              email: profile.email || "",
+              role: "patient",
+              gender: profile.gender ?? "",
+              date_of_birth: profile.date_of_birth ?? "",
+              mobile_no: profile.phone ?? "",
+              patient_id: profile.patient_id,
+              status: profile.status ?? "",
+              avatar: profile.avatar,
+              address: {
+                address: profile.address?.address,
+                area: profile.address?.area,
+                city: profile.address?.city,
+                landmark: profile.address?.landmark,
+                pincode: profile.address?.pincode,
+                state: profile.address?.state,
+                bio: profile.address?.bio,
+              },
+            };
+
+            await login(userData, token);
+            window.location.href = consumePostAuthRedirect();
+            return;
+          }
+
+          // No token returned: fall back to the login page (redirect is remembered).
+          router.push("/auth/login");
         } else {
           toast.error(response?.errors?.message || response.message || "Failed to complete profile.");
         }

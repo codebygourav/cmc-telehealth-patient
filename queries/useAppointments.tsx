@@ -2,7 +2,7 @@ import { fetchAppointments } from "@/api/appointments";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 export const useAppointments = (
-    filter: "upcoming" | "past",
+    filter: "upcoming" | "past" | "pending_payment",
     page: number = 1
 ) => {
     return useQuery({

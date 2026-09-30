@@ -1,265 +1,176 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Camera, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { updatePatientPersonalInfo } from "@/mutations/profile-update";
 import { useAuth } from "@/context/userContext";
-import CustomDialog from "@/components/custom/Dialogboxs";
+import { savedUnitIdKey } from "@/queries/useSavedUnitId";
+import { cn } from "@/lib/utils";
 
 interface PersonalInfoFormProps {
-    user: any;
+    user: { id: string; first_name?: string; last_name?: string; email?: string };
 }
 
+type FormState = { first_name: string; last_name: string; existing_patient_id: string; bio: string };
+type FieldErrors = Partial<Record<keyof FormState, string>>;
+
+const BIO_MAX = 2000;
+const profileKey = (userId: string) => ["patient-profile", "personal_information", userId] as const;
+
+// Only the details a patient manages here: name, Unit ID (C Number) and a short bio.
 export default function PersonalInfoForm({ user }: PersonalInfoFormProps) {
     const { updateUser } = useAuth();
+    const queryClient = useQueryClient();
+    const [form, setForm] = useState<FormState>({ first_name: "", last_name: "", existing_patient_id: "", bio: "" });
+    const [errors, setErrors] = useState<FieldErrors>({});
+    const [saving, setSaving] = useState(false);
 
-    const [formData, setFormData] = useState({
-        first_name: user?.first_name || "",
-        last_name: user?.last_name || "",
-        email: user?.email || "",
-        mobile_no: String(user?.mobile_no || ""),
-        date_of_birth: user?.date_of_birth || "",
-        bio: user?.bio || "",
+    // Saved values come from the profile API (the stored login user may not have the Unit ID / bio).
+    const { data: profile, isPending } = useQuery({
+        queryKey: profileKey(user.id),
+        queryFn: async () => {
+            const response = await api.get(`/patient/${user.id}/profile`, { params: { group: "personal_information" } });
+            return response.data?.data ?? {};
+        },
+        enabled: !!user.id,
     });
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [dialogMessage, setDialogMessage] = useState("");
-    const [dialogType, setDialogType] = useState<"success" | "danger">("success");
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            setFormData({
-                first_name: user.first_name || "",
-                last_name: user.last_name || "",
-                email: user.email || "",
-                mobile_no: user.mobile_no || "",
-                date_of_birth: user.date_of_birth || "",
-                bio: user.bio || "",
-            });
-        }
-    }, [user]);
+        if (!profile) return;
+        setForm({
+            first_name: profile.first_name ?? user.first_name ?? "",
+            last_name: profile.last_name ?? user.last_name ?? "",
+            existing_patient_id: profile.existing_patient_id ?? "",
+            bio: profile.bio ?? "",
+        });
+    }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setAvatarFile(e.target.files[0]);
-        }
+    const set = (field: keyof FormState, value: string) => {
+        setForm((current) => ({ ...current, [field]: value }));
+        setErrors((current) => ({ ...current, [field]: undefined }));
     };
 
-    const handleChange = (field: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
+    const validate = (): FieldErrors => {
+        const next: FieldErrors = {};
+        if (!form.first_name.trim()) next.first_name = "Please enter your first name.";
+        if (!form.last_name.trim()) next.last_name = "Please enter your last name.";
+        if (form.bio.length > BIO_MAX) next.bio = `Please keep your bio under ${BIO_MAX} characters.`;
+        return next;
     };
 
-    const formatDate = (date: string) => {
-        if (!date) return "";
-        if (date.includes("-") && date.split("-")[0].length === 4) {
-            return date;
-        }
-        const [day, month, year] = date.split("-");
-        return `${year}-${month}-${day}`;
-    };
+    const handleSave = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const found = validate();
+        setErrors(found);
+        if (Object.keys(found).length) return;
 
-    const handleSave = async () => {
         try {
-            setLoading(true);
-
-            const payload: any = {
+            setSaving(true);
+            const saved = await updatePatientPersonalInfo(user.id, {
                 group: "personal_information",
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                mobile_no: String(formData.mobile_no),
-                date_of_birth: formatDate(formData.date_of_birth),
-            };
-
-            if (formData.bio && formData.bio.trim() !== "") {
-                payload.bio = formData.bio;
-            }
-
-            if (avatarFile instanceof File) {
-                payload.avatar = avatarFile;
-            }
-
-            const response = await updatePatientPersonalInfo(user.id, payload);
-
-            await updateUser({
-                ...user,
-                ...response,
+                first_name: form.first_name.trim(),
+                last_name: form.last_name.trim(),
+                existing_patient_id: form.existing_patient_id.trim(),
+                bio: form.bio.trim(),
             });
 
-            setDialogType("success");
-            setDialogMessage("Profile updated successfully");
-            setDialogOpen(true);
-
-        } catch (err: any) {
-            console.error("Error:", err);
-            const errorMsg =
-                err?.response?.data?.errors?.message ||
-                err?.response?.data?.message ||
-                "Something went wrong";
-
-            setDialogType("danger");
-            setDialogMessage(errorMsg);
-            setDialogOpen(true);
+            await updateUser({ first_name: saved?.first_name, last_name: saved?.last_name });
+            queryClient.setQueryData(profileKey(user.id), saved);
+            queryClient.invalidateQueries({ queryKey: savedUnitIdKey(user.id) });
+            toast.success("Profile updated");
+        } catch (err: unknown) {
+            const apiError = err as { response?: { data?: { errors?: Record<string, string[] | string>; message?: string } } };
+            const apiErrors = apiError.response?.data?.errors ?? {};
+            const fieldErrors: FieldErrors = {};
+            (Object.keys(form) as (keyof FormState)[]).forEach((field) => {
+                const value = apiErrors[field];
+                if (value) fieldErrors[field] = Array.isArray(value) ? value[0] : value;
+            });
+            setErrors(fieldErrors);
+            toast.error(
+                Object.values(fieldErrors)[0] ||
+                (typeof apiErrors.message === "string" ? apiErrors.message : undefined) ||
+                apiError.response?.data?.message ||
+                "Could not save your profile. Please try again.",
+            );
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
+
+    if (isPending) {
+        return (
+            <div className="space-y-5 animate-pulse" aria-busy="true">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div className="h-16 rounded-md bg-gray-100" />
+                    <div className="h-16 rounded-md bg-gray-100" />
+                </div>
+                <div className="h-16 rounded-md bg-gray-100" />
+                <div className="h-28 rounded-md bg-gray-100" />
+            </div>
+        );
+    }
+
+    const fieldClass = (field: keyof FormState) =>
+        cn("h-11 global-radius-10 border-slate-200 focus-visible:border-primary", errors[field] && "border-destructive");
 
     return (
-        <form className="space-y-8 animate-in fade-in duration-500" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-8">
-                {/* Profile Section */}
-                <div className="flex items-center gap-6">
-                    <div className="relative">
-                        <img
-                            src={
-                                avatarFile
-                                    ? URL.createObjectURL(avatarFile)
-                                    : user?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-                            }
-                            alt="Profile"
-                            className="w-[105px] h-[105px] rounded-full object-cover shrink-0"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => document.getElementById("avatarInput")?.click()}
-                            className="absolute bottom-3 right-0 p-1.5 bg-white dark:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
-                        >
-                            <Camera className="w-4 h-4 text-primary" />
-                        </button>
-                    </div>
-
-                    <div className="space-y-1">
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Profile Picture</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            PNG, JPG or GIF. Max size of 1MB.
-                        </p>
-                        <div className="flex gap-4 mt-2">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAvatarChange}
-                                className="hidden"
-                                id="avatarInput"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => document.getElementById("avatarInput")?.click()}
-                                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors bg-slate-100 dark:bg-slate-800 px-3 py-1.5 global-radius border border-slate-200 dark:border-slate-700"
-                            >
-                                Select Image
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setAvatarFile(null)}
-                                className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    </div>
+        <form className="space-y-5" onSubmit={handleSave} noValidate>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                    <Label htmlFor="profile-first-name" className="text-sm font-semibold text-[#1F1E1E]">
+                        First Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input id="profile-first-name" value={form.first_name} maxLength={255}
+                        onChange={(e) => set("first_name", e.target.value)} className={fieldClass("first_name")} placeholder="Enter first name" />
+                    {errors.first_name && <p className="text-xs font-medium text-destructive">{errors.first_name}</p>}
                 </div>
-
-                {/* Form Fields - Row 1 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name</Label>
-                        <Input
-                            value={formData.first_name}
-                            onChange={(e) => handleChange("first_name", e.target.value)}
-                            className="h-11 global-radius-10 border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter first name"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name</Label>
-                        <Input
-                            value={formData.last_name}
-                            onChange={(e) => handleChange("last_name", e.target.value)}
-                            className="h-11 global-radius-10 border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter last name"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</Label>
-                        <Input
-                            type="email"
-                            value={formData.email}
-                            disabled
-                            className="h-11 global-radius-10 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500 cursor-not-allowed"
-                        />
-                    </div>
-                </div>
-
-                {/* Form Fields - Row 2 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</Label>
-                        <Input
-                            type="tel"
-                            value={formData.mobile_no}
-                            disabled
-                            className="h-11 global-radius-10 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500 cursor-not-allowed"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</Label>
-                        <div className="relative">
-                            <Input
-                                type="date"
-                                value={formData.date_of_birth}
-                                disabled
-                                className="h-11 global-radius-10 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500 cursor-not-allowed pr-10"
-                            />
-                            <Calendar className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Short Bio */}
-                <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Short Bio</Label>
-                    <Textarea
-                        rows={4}
-                        value={formData.bio}
-                        onChange={(e) => handleChange("bio", e.target.value)}
-                        className="global-radius-10 border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                        placeholder="Tell us a little bit about yourself"
-                    />
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-end pt-4">
-                    <Button
-                        className="btn-primary-cta"
-                        onClick={handleSave}
-                        disabled={loading}
-                    >
-                        {loading ? "Saving..." : "Save"}
-                    </Button>
+                <div className="space-y-1.5">
+                    <Label htmlFor="profile-last-name" className="text-sm font-semibold text-[#1F1E1E]">
+                        Last Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input id="profile-last-name" value={form.last_name} maxLength={255}
+                        onChange={(e) => set("last_name", e.target.value)} className={fieldClass("last_name")} placeholder="Enter last name" />
+                    {errors.last_name && <p className="text-xs font-medium text-destructive">{errors.last_name}</p>}
                 </div>
             </div>
 
-            <CustomDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                icon={
-                    dialogType === "success" ? (
-                        <CheckCircle className="text-green-600 w-6 h-6" />
-                    ) : (
-                        <XCircle className="text-red-600 w-6 h-6" />
-                    )
-                }
-                title={dialogType === "success" ? "Success" : "Error"}
-                description={dialogMessage}
-                confirmText="OK"
-                onConfirm={() => setDialogOpen(false)}
-                type={dialogType}
-            />
+            <div className="space-y-1.5">
+                <Label htmlFor="profile-unit-id" className="text-sm font-semibold text-[#1F1E1E]">Unit ID (C Number)</Label>
+                <Input id="profile-unit-id" value={form.existing_patient_id} maxLength={255}
+                    onChange={(e) => set("existing_patient_id", e.target.value)} className={fieldClass("existing_patient_id")} placeholder="e.g. C-123456" />
+                {errors.existing_patient_id
+                    ? <p className="text-xs font-medium text-destructive">{errors.existing_patient_id}</p>
+                    : <p className="text-xs text-muted-foreground">Your hospital Unit ID, if you have visited before. It is filled in for you when you book as an old patient.</p>}
+            </div>
+
+            <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between gap-2">
+                    <Label htmlFor="profile-bio" className="text-sm font-semibold text-[#1F1E1E]">Short Bio</Label>
+                    <span className={cn("text-xs", form.bio.length > BIO_MAX ? "text-destructive" : "text-muted-foreground")}>
+                        {form.bio.length}/{BIO_MAX}
+                    </span>
+                </div>
+                <Textarea id="profile-bio" rows={4} value={form.bio}
+                    onChange={(e) => set("bio", e.target.value)}
+                    className={cn("global-radius-10 border-slate-200 resize-none focus-visible:border-primary", errors.bio && "border-destructive")}
+                    placeholder="Anything you would like your doctor to know (optional)" />
+                {errors.bio && <p className="text-xs font-medium text-destructive">{errors.bio}</p>}
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                {user.email && <p className="text-xs text-muted-foreground">Signed in as {user.email}</p>}
+                <Button type="submit" className="btn-primary-cta w-full sm:w-auto sm:min-w-40" disabled={saving}>
+                    {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : "Save Changes"}
+                </Button>
+            </div>
         </form>
     );
 }

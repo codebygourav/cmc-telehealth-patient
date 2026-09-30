@@ -11,6 +11,10 @@ export const STATUS_STYLES = {
       "bg-yellow-100 text-gray-700 border border-gray-200",
     pending:
       "bg-amber-100 text-amber-700 border border-amber-200",
+    awaiting_confirmation:
+      "bg-orange-100 text-orange-700 border border-orange-200",
+    no_show:
+      "bg-gray-100 text-gray-600 border border-gray-200",
     cancelled:
       "bg-red-100 text-red-700 border border-red-200",
     default:

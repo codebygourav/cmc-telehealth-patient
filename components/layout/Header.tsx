@@ -74,6 +74,13 @@ export function Header() {
     },
   ];
 
+  // Guests only get "Find Doctors"; the rest appears once a signed-in user is confirmed
+  // (so the full menu doesn't flash while the session is still being checked).
+  const isGuest = !initializing && !user;
+  const visibleNavItems = user
+    ? navItems
+    : navItems.filter((item) => item.href === "/find-doctors");
+
   const isActivePath = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -92,7 +99,7 @@ export function Header() {
       )}
     >
       <div className="mx-auto flex h-18 container-max-width items-center gap-4 justify-between">
-        <Link href="/" className="flex items-center shrink-0">
+        <Link href={user ? "/" : "/find-doctors"} className="flex items-center shrink-0">
           <Image
             src={settings.logoUrl || logo}
             alt={settings.appName || "Telehealth"}
@@ -105,7 +112,8 @@ export function Header() {
         </Link>
 
         <HeaderNavLinks
-          items={navItems}
+          items={visibleNavItems}
+          isGuest={isGuest}
           pathname={pathname}
           mobileMenuOpen={mobileMenuOpen}
           setMobileMenuOpen={setMobileMenuOpen}
@@ -114,6 +122,7 @@ export function Header() {
         />
 
         <div className="hidden lg:flex items-center gap-3 ml-auto sm:gap-4">
+          {!isGuest && (
           <Link href="/notifications" className="relative">
             <Button
               variant="outline"
@@ -132,6 +141,7 @@ export function Header() {
               <span className="absolute right-2.5 top-4.5 h-1.5 w-1.5 rounded-full bg-red-500" />
             )}
           </Link>
+          )}
 
           {user || initializing ? (
             <HeaderUserProfileMenu
@@ -141,12 +151,20 @@ export function Header() {
               onLogout={handleLogout}
             />
           ) : (
-            <Link
-              href="/auth/login"
-              className="px-4 py-2 text-sm font-semibold transition-colors border rounded-2xl border-border/70 text-foreground hover:bg-muted"
-            >
-              Sign In
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/auth/login"
+                className="px-4 py-2 text-sm font-semibold transition-colors border rounded-2xl border-border/70 text-foreground hover:bg-muted"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/register"
+                className="px-4 py-2 text-sm font-semibold transition-colors rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Register
+              </Link>
+            </div>
           )}
         </div>
       </div>

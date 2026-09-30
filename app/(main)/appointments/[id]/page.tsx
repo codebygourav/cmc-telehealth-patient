@@ -2,13 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { use } from "react";
-import DoctorInfoCard from "@/components/pages/appointment-summary/DoctorInfoCard";
-import PatientInfoCard from "@/components/pages/appointment-summary/PatientInfoCard";
+import BookingOverviewCard from "@/components/pages/appointment-summary/BookingOverviewCard";
+import PatientDetailsCard from "@/components/pages/appointment-summary/PatientDetailsCard";
+import NextStepsCard from "@/components/pages/appointment-summary/NextStepsCard";
 import ConfirmButton from "@/components/pages/appointment-summary/ConfirmButton";
 import LoadingSkeleton from "@/components/pages/appointment-summary/LoadingSkeleton";
 import CustomDialog from "@/components/custom/Dialogboxs";
 import { AlertCircle, CheckCircle2, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   appointmentDetailKeys,
   useAppointmentDetail,
@@ -21,10 +22,12 @@ import type {
 } from "@/types/appointment-summary";
 import { useVerifyPayment } from "@/mutations/useVerifyPayment";
 import { useQueryClient } from "@tanstack/react-query";
-import HeroSection from "@/components/hero-section";
-import ScheduleDetails from "@/components/pages/appointment-summary/ScheduleDetails";
 import PaymentSummary from "@/components/pages/appointment-summary/PaymentSummary";
 import { Button } from "@base-ui/react/button";
+import { deleteUnpaidAppointment } from "@/api/appointments";
+import BookingConfirmationModal, { type BookingConfirmationDetails } from "@/components/pages/appointment-summary/BookingConfirmationModal";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface PageProps {
   params: Promise<{
@@ -49,6 +52,27 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
     patientGender: searchParams.get("patientGender") || "",
   };
   const [isConfirming, setIsConfirming] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState<BookingConfirmationDetails | null>(null);
+  // Set once payment succeeds on this page, so the "already paid" redirect below does not run.
+  const justPaidRef = useRef(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Patient changed their mind: remove the unpaid booking (and release the slot).
+  const handleDeleteBooking = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteUnpaidAppointment(AppointmentId);
+      toast.success("Booking deleted.");
+      router.push("/appointments?tab=pending_payment");
+    } catch (err: any) {
+      const errors = err?.response?.data?.errors;
+      toast.error(errors?.message || err?.response?.data?.message || "Could not delete the booking.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteOpen(false);
+    }
+  };
   const [dialogState, setDialogState] = useState<{
     open: boolean;
     type: "danger" | "success";
@@ -63,15 +87,82 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
   const { data, isLoading, error, refetch } =
     useAppointmentDetail(AppointmentId);
-  console.log("appointment data", data?.data);
   const doctor = data?.data;
-  const patient = data?.data?.patient;
+  // Booked for a family member: show their details instead of the account holder's.
+  const bookedFor = (data?.data as any)?.booked_for;
+  const patient = bookedFor
+    ? {
+      ...data?.data?.patient,
+      name: bookedFor.name,
+      first_name: bookedFor.name,
+      last_name: "",
+      age: bookedFor.age,
+      age_formatted: bookedFor.age != null ? `${bookedFor.age} Years` : "",
+      gender: bookedFor.gender,
+      gender_formatted: bookedFor.gender ? bookedFor.gender.charAt(0).toUpperCase() + bookedFor.gender.slice(1) : "",
+      phone: bookedFor.phone || data?.data?.patient?.phone,
+    }
+    : data?.data?.patient;
   const Data: AppointmentDetailData | undefined = data?.data;
   const schedule = data?.data?.schedule;
   const status = data?.data?.status;
   const statusLabel = data?.data?.status_label;
 
   const queryClient = useQueryClient();
+
+  // Booked for a family member: their appointment is not in the booker's lists.
+  const isFamilyBooking = !!(data?.data as any)?.booked_for;
+  const afterBookingPath = isFamilyBooking ? "/" : "/appointments";
+  const isPaid = data?.data?.payment?.status === "paid";
+
+  // The Review page is only for unpaid bookings. Already paid:
+  // - own booking -> Manage Appointment
+  // - family member's booking -> just show the booking details (no review page)
+  useEffect(() => {
+    if (!data?.data || !isPaid || justPaidRef.current) return;
+    if (isFamilyBooking) {
+      setConfirmation((current) => current ?? buildConfirmation());
+    } else {
+      router.replace(`/appointments/manage-appointment/${AppointmentId}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.data, isPaid, isFamilyBooking]);
+
+  // Close the booking details: leave the Review page once the booking is paid.
+  const closeConfirmation = () => {
+    setConfirmation(null);
+    if (isPaid || justPaidRef.current) {
+      router.replace(afterBookingPath);
+    }
+  };
+
+  // Everything the patient needs after booking (shown in the modal, PDF and print).
+  const buildConfirmation = (overrides: { status?: string; paymentId?: string | null } = {}): BookingConfirmationDetails | null => {
+    const d: any = data?.data;
+    if (!d) return null;
+    const bookingStatus = overrides.status || d.status;
+    const confirmed = bookingStatus === "confirmed" || bookingStatus === "rescheduled";
+    const p: any = patient || {};
+    const ageGender = [p.age_formatted, p.gender_formatted].filter(Boolean).join(" / ");
+    return {
+      confirmed,
+      statusLabel: confirmed ? "Confirmed" : "Awaiting Doctor Confirmation",
+      bookingId: String(d.appointment_id || AppointmentId),
+      patientName: p.name || "",
+      patientAgeGender: ageGender,
+      patientPhone: p.phone,
+      patientUid: d.booked_for?.uid,
+      bookedBy: d.booked_by_name && d.booked_by_name !== p.name ? d.booked_by_name : null,
+      email: p.email,
+      doctorName: d.doctor?.name || "",
+      department: d.doctor?.department,
+      date: d.schedule?.date_formatted || d.schedule?.date || "",
+      time: d.schedule?.time_formatted || d.schedule?.time || "",
+      consultationType: d.schedule?.consultation_type_label || d.schedule?.booking_type,
+      amount: d.payment?.total_formatted || (d.payment?.consultation_fee_formatted ?? undefined),
+      paymentId: overrides.paymentId ?? d.payment?.payment_id ?? d.payment?.transaction_id,
+    };
+  };
   const { mutate: verifyPayment } = useVerifyPayment();
 
   const loadRazorpayScript = () => {
@@ -144,13 +235,16 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
                 refetch();
 
-                setDialogState({
-                  open: true,
-                  type: "success",
-                  title: "Payment Successful",
-                  description:
-                    "Your appointment is confirmed. You will receive a confirmation email shortly.",
-                });
+                justPaidRef.current = true;
+
+                // Show every booking detail with Download PDF / Print.
+                // New bookings go to the doctor for confirmation first (status from the API).
+                setConfirmation(
+                  buildConfirmation({
+                    status: res?.data?.appointment_status || "awaiting_confirmation",
+                    paymentId: response.razorpay_payment_id,
+                  }),
+                );
               },
               onError: () => {
                 setDialogState({
@@ -218,35 +312,49 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
   return (
     <>
-      <div>
-        <HeroSection
-          title="Review Appointment"
-          description="Please confirm your session details"
-        />
+      {/* Paid booking for a family member: only the booking details, not the review page. */}
+      <div className={isPaid && isFamilyBooking ? "hidden" : undefined}>
+        <div className="container-max-width mx-auto mb-5 w-full rounded-2xl border border-primary/10  px-5 py-7 sm:px-8 sm:py-9">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">Almost there</p>
+          <h1 className="text-2xl font-bold text-[#1F1E1E] sm:text-3xl">Review Appointment</h1>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">Confirm the doctor, patient, schedule, and payment details before booking.</p>
+        </div>
 
-        <div className="container-max-width w-full mx-auto grid items-start grid-cols-1 gap-5 lg:grid-cols-12">
-          <div className="space-y-8 lg:col-span-7">
-            <div className="space-y-8">
-              <DoctorInfoCard doctor={doctor.doctor} />
-            </div>
-            <div className="grid items-start grid-cols-1 gap-5 lg:grid-cols-12">
-              <div className="space-y-8 lg:col-span-6">
-                <PatientInfoCard patient={patient as AppointmentPatient} />
-              </div>
-              <div className="space-y-8 lg:col-span-6">
-                <ScheduleDetails schedule={schedule as AppointmentSchedule} />
-              </div>
-            </div>
+        <div className="container-max-width mx-auto grid w-full items-start grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="space-y-5 lg:col-span-8">
+            <BookingOverviewCard doctor={doctor.doctor} schedule={schedule as AppointmentSchedule} />
+            <PatientDetailsCard appointment={doctor} />
+            {!isPaid && <NextStepsCard />}
           </div>
 
-          {/* Right Column: Booking Ticket */}
-          <div className="space-y-8 lg:col-span-5">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:col-span-4">
             <PaymentSummary payment={doctor.payment as AppointmentPayment} />
             {doctor.payment.status !== "paid" && (
-              <ConfirmButton
-                onClick={handleConfirmBooking}
-                isLoading={isConfirming}
-              />
+              <>
+                <ConfirmButton
+                  onClick={handleConfirmBooking}
+                  isLoading={isConfirming}
+                />
+                {["pending", "failed"].includes(String(status)) && (
+                  <button
+                    type="button"
+                    onClick={() => setDeleteOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 rounded-md border border-red-200 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <Trash2 size={16} />
+                    Delete Booking
+                  </button>
+                )}
+              </>
+            )}
+            {doctor.payment.status === "paid" && (
+              <button
+                type="button"
+                onClick={() => setConfirmation(buildConfirmation())}
+                className="w-full flex items-center justify-center gap-2 rounded-md border border-primary py-3 text-sm font-semibold text-primary hover:bg-primary/5"
+              >
+                View / Download Booking Details
+              </button>
             )}
             {doctor.payment.status === "paid" && (
               <Button
@@ -264,6 +372,27 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
           </div>
         </div>
       </div>
+
+      <CustomDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        type="danger"
+        icon={<AlertCircle className="w-6 h-6 text-destructive" />}
+        title="Delete this booking?"
+        description="The unpaid booking will be removed and the slot released. This cannot be undone."
+        confirmText={isDeleting ? "Deleting..." : "Yes, Delete"}
+        cancelText="Keep"
+        onConfirm={handleDeleteBooking}
+        loading={isDeleting}
+      />
+
+      <BookingConfirmationModal
+        open={!!confirmation}
+        details={confirmation}
+        onClose={closeConfirmation}
+        onViewAppointments={() => router.replace(afterBookingPath)}
+        viewAppointmentsLabel={isFamilyBooking ? "Back to Dashboard" : "Go to My Appointments"}
+      />
 
       {/* Custom Dialog */}
       <CustomDialog
