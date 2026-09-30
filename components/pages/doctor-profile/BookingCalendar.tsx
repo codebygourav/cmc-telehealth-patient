@@ -130,7 +130,7 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                             aria-label={`${key} ${state === "available" ? "available" : state === "full" ? "fully booked" : state === "past" ? "past date" : "not available"}`}
                             title={state === "full" ? "Fully booked" : state === "unavailable" ? "Not available" : undefined}
                             className={cn(
-                                "h-9 rounded-md text-sm font-semibold transition-all",
+                                "h-12 rounded-md text-sm font-semibold transition-all",
                                 selected && "bg-primary text-white shadow-md",
                                 !selected && state === "available" && "border border-primary/60 bg-white text-primary hover:bg-primary/10 cursor-pointer",
                                 state === "full" && "bg-red-500 text-white cursor-not-allowed",
