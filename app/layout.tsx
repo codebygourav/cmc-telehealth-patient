@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     title: "Deploymeta Telehealth - Patients",
     description: "A Progressive Web App for Patients in Deploymeta Telehealth",
     manifest: "/manifest.webmanifest",
+    icons: {
+        icon: "/icons/icon-192x192.png",
+        apple: "/icons/icon-192x192.png",
+    },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
