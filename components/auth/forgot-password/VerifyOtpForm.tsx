@@ -17,7 +17,7 @@ type VerifyOtpFormData = z.infer<typeof verifyOtpSchema>;
 
 interface VerifyOtpFormProps {
   email: string;
-  onSuccess: (resetToken: string) => void;
+  onSuccess: (resetToken: string, isManaged?: boolean, holderName?: string | null) => void;
   onBack?: () => void;
 }
 
@@ -44,7 +44,7 @@ const VerifyOtpForm: React.FC<VerifyOtpFormProps> = ({
           toast.success(response.message || "OTP verified successfully");
           const resetToken = response.data?.reset_token;
           if (resetToken) {
-            onSuccess(resetToken);
+            onSuccess(resetToken, response.data?.is_managed, response.data?.holder_name);
           } else {
             toast.error("No reset token returned from API");
           }

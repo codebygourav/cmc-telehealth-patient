@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types/header";
 import { Bell, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
+import ProfileSwitcherList from "./ProfileSwitcherList";
 import type { Dispatch, SetStateAction } from "react";
 
 interface HeaderNavLinksProps {
@@ -144,6 +145,9 @@ export function HeaderNavLinks({
                                 </div>
                             ) : (
                             <>
+                            <div className="mt-3 rounded-xl border border-[#E7E8EB] p-2">
+                                <ProfileSwitcherList onDone={() => setMobileMenuOpen(false)} />
+                            </div>
                             <Link
                                 href="/notifications"
                                 onClick={() => setMobileMenuOpen(false)}

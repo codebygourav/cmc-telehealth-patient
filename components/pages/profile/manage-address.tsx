@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
+import { useActiveProfile } from "@/context/activeProfileContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +18,13 @@ interface ManageAddressFormProps {
 
 export default function ManageAddressForm({ user }: ManageAddressFormProps) {
     const { updateUser } = useAuth();
+    // Viewing a family member: their address comes from (and is saved on) their profile.
+    const { activeProfile, isFamilyView } = useActiveProfile();
+    const { data: savedAddress } = useQuery({
+        queryKey: ["patient-profile", "address", user?.id, activeProfile?.patient_id ?? "own"],
+        queryFn: async () => (await api.get(`/patient/${user.id}/profile`, { params: { group: "address" } })).data?.data ?? {},
+        enabled: Boolean(user?.id),
+    });
 
     const [formData, setFormData] = useState({
         address: "",
@@ -31,17 +41,18 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
     const [dialogType, setDialogType] = useState<"success" | "danger">("success");
 
     useEffect(() => {
-        if (user?.address) {
+        const address = savedAddress && Object.keys(savedAddress).length ? savedAddress : isFamilyView ? {} : user?.address;
+        if (address) {
             setFormData({
-                address: user.address.address || "",
-                area: user.address.area || "",
-                landmark: user.address.landmark || "",
-                city: user.address.city || "",
-                state: user.address.state || "",
-                pincode: user.address.pincode || "",
+                address: address.address || "",
+                area: address.area || "",
+                landmark: address.landmark || "",
+                city: address.city || "",
+                state: address.state || "",
+                pincode: address.pincode || "",
             });
         }
-    }, [user]);
+    }, [user, savedAddress, isFamilyView]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -63,7 +74,8 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
 
             const response = await updatePatientPersonalInfo(user.id, payload);
 
-            updateUser({
+            // Only my own address is kept on the signed-in user.
+            if (!isFamilyView) updateUser({
                 ...user,
                 address: {
                     ...user?.address,

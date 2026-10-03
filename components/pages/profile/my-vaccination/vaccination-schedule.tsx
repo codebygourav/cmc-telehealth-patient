@@ -268,13 +268,13 @@ function VaccineRow({
                 </td>
             </tr>
             {open && canUsePortal && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div
                         className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                         onClick={() => setOpen(false)}
                     />
 
-                    <Card className="relative w-full max-w-2xl rounded-lg overflow-hidden flex flex-col max-h-[90vh]">
+                    <Card className="sheet-panel relative w-full max-w-2xl rounded-lg overflow-hidden flex flex-col max-h-[90vh]">
                         {/* Header */}
                         <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b">
                             <div className="flex items-start gap-3">

@@ -14,6 +14,10 @@ export interface HomeScreenAppointment {
   type: string;
   typeLabel: string;
   joinUrl?: string;
+  canJoin?: boolean;
+  status?: string;
+  statusLabel?: string;
+  isTestDoctor?: boolean;
   doctor?: HomeScreenAppointmentDoctor;
 }
 

@@ -3,17 +3,18 @@ import { getDoctorAvailableSlots } from "@/api/slots";
 
 export const doctorSlotKeys = {
   all: ["doctor-available-slots"] as const,
-  detail: (doctorId: string) =>
-    [...doctorSlotKeys.all, doctorId] as const,
+  detail: (doctorId: string, appointmentId?: string) =>
+    [...doctorSlotKeys.all, doctorId, appointmentId ?? null] as const,
 };
 
 export const useDoctorAvailableSlots = (
   doctorId: string,
-  enabled: boolean
+  enabled: boolean,
+  appointmentId?: string
 ) => {
   return useQuery({
-    queryKey: doctorSlotKeys.detail(doctorId),
-    queryFn: () => getDoctorAvailableSlots(doctorId),
+    queryKey: doctorSlotKeys.detail(doctorId, appointmentId),
+    queryFn: () => getDoctorAvailableSlots(doctorId, appointmentId),
     enabled: !!doctorId && enabled,
   });
 };

@@ -38,10 +38,10 @@ export default function CustomDialog({
     
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
 
             {/* Box */}
-            <div className="relative w-full max-w-md p-6 text-center bg-white shadow-xl rounded-2xl">
+            <div className="sheet-panel relative w-full max-w-md p-6 text-center bg-white shadow-xl rounded-2xl">
 
                 {/* Close Button */}
                 <Button

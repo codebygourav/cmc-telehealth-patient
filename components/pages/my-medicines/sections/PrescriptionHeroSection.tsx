@@ -14,8 +14,8 @@ export const PrescriptionHeroSection = ({
     return (
         <>
             <HeroSection
-                title="Medicine Details"
-                description="Detailed information about your prescription."
+                title="Prescription"
+                description="Medicines and notes from your doctor for this visit."
             />
             <Button onClick={onBack} className="bg-light-gray g-border rounded-full text-primary h-10 w-10">
                 <ChevronLeft className="size-6" />

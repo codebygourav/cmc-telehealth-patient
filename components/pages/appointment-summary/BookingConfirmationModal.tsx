@@ -61,9 +61,12 @@ export default function BookingConfirmationModal({ open, details, onClose, onVie
 
     const rows = rowsFor(details);
     const title = details.confirmed ? "Appointment Confirmed" : "Booking Received";
+    const isVideo = /video/i.test(details.consultationType || "");
     const note = details.confirmed
-        ? "Your appointment is confirmed. Please reach the clinic at least 45 minutes before your appointment."
-        : "Your booking is awaiting the doctor's confirmation. You will receive an email as soon as it is confirmed.";
+        ? isVideo
+            ? "Your video consultation is confirmed. Join from My Appointments; the link opens 1 hour before the call."
+            : "Your appointment is confirmed. Please reach the clinic at least 45 minutes before your appointment."
+        : "Your booking is awaiting the doctor's confirmation. The doctor will set the call time and you will receive an email.";
 
     const downloadPdf = () => {
         const doc = new jsPDF();
@@ -109,8 +112,8 @@ th{width:34%;background:#f9fafb;color:#4d4d4d}p{font-size:13px;color:#4d4d4d;mar
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
-            <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
+        <div className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
+            <div className="sheet-panel relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
                 <button onClick={onClose} aria-label="Close" className="absolute right-3 top-3 text-gray-500 hover:text-gray-700">
                     <X className="h-5 w-5" />
                 </button>

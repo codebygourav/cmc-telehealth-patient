@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AlertCircle, ChevronRight, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import CustomDialog from '@/components/custom/Dialogboxs';
 import { useAuth } from '@/context/userContext';
 import { loginUrlWithRedirect } from '@/lib/authRedirect';
 import BookingPatientDetails, {
+    BOOKING_NEW_MEMBER_DRAFT,
+    bookingTargetProfile,
     emptyBookingPatientDetails,
     validateBookingPatientDetails,
     type BookingPatientDetailsValue,
@@ -16,7 +18,10 @@ import BookingCalendar, { dayStateFor, isSlotBookable } from './BookingCalendar'
 import SlotPicker from './SlotPicker';
 import { useBookAppointment } from '@/mutations/useBookAppointment';
 import { useQueryClient } from '@tanstack/react-query';
-import { savedUnitIdKey, useSavedUnitId } from '@/queries/useSavedUnitId';
+import { savedUnitIdKey } from '@/queries/useSavedUnitId';
+import { familyProfilesKey, useActiveProfile } from '@/context/activeProfileContext';
+import { emptyFamilyMember, familyMemberDraft, type FamilyMemberFormValue } from '@/components/pages/family/FamilyMemberForm';
+import { readSessionDraft } from '@/lib/useSessionDraft';
 import type { DoctorDetailData, DoctorAvailabilitySlot } from '@/types/doctor-details';
 
 interface AppointmentBookingProps {
@@ -78,9 +83,50 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
     const [patientErrors, setPatientErrors] = useState<BookingPatientErrors>({});
     const [loginPromptOpen, setLoginPromptOpen] = useState(false);
     const queryClient = useQueryClient();
-    // Unit ID already saved on the patient's profile: prefilled for "Old Patient" + "myself".
-    const { data: savedUnitId = '' } = useSavedUnitId(user?.id);
+    const { viewedProfile, viewedFamily, familyMembers, relationships, maxProfiles } = useActiveProfile();
+    // Booking works like being signed in to the viewed profile: "Myself" is that profile and the
+    // family members are only the ones added under it. The booker stays the login.
+    const ownProfile = viewedProfile;
+    const otherProfiles = viewedFamily;
+
+    // Start on the profile being viewed (a family member when switched to one), with its Unit ID prefilled.
+    useEffect(() => {
+        const profile = ownProfile;
+        if (!profile) return;
+        // A new family member was being added before a reload: keep what was typed.
+        const draft = readSessionDraft<FamilyMemberFormValue>(BOOKING_NEW_MEMBER_DRAFT);
+        if (draft) {
+            setPatientDetails({ ...emptyBookingPatientDetails, forSelf: false, memberId: 'new', newMember: { ...emptyFamilyMember, ...draft } });
+            setPatientErrors({});
+            return;
+        }
+        setPatientDetails({
+            ...emptyBookingPatientDetails,
+            forSelf: true,
+            memberId: '',
+            unitId: profile.unit_id || '',
+            patientType: profile.unit_id ? 'old' : '',
+        });
+        setPatientErrors({});
+    }, [ownProfile?.patient_id]); // eslint-disable-line react-hooks/exhaustive-deps
     const doctorPagePath = typeof window !== 'undefined' ? window.location.pathname : '/find-doctors';
+
+    // Keep the new-member form across a reload (never the password). The draft is only removed
+    // once the form was open and then closed (saved / cancelled), not while it is being restored.
+    const newMemberOpen = useRef(false);
+    useEffect(() => {
+        const isOpen = !patientDetails.forSelf && patientDetails.memberId === 'new';
+        try {
+            if (isOpen) {
+                sessionStorage.setItem(BOOKING_NEW_MEMBER_DRAFT, JSON.stringify(familyMemberDraft(patientDetails.newMember)));
+            } else if (newMemberOpen.current) {
+                sessionStorage.removeItem(BOOKING_NEW_MEMBER_DRAFT);
+            }
+        } catch {
+            // storage blocked: the form still works without the draft
+        }
+        newMemberOpen.current = isOpen;
+    }, [patientDetails.forSelf, patientDetails.memberId, patientDetails.newMember]);
 
     const availableSlots = (doctor.availability || []).flatMap(item => {
         if (item && Array.isArray(item.slots)) {
@@ -152,11 +198,12 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
             return;
         }
 
-        const errors = validateBookingPatientDetails(patientDetails);
+        const target = bookingTargetProfile(patientDetails, ownProfile, otherProfiles);
+        const errors = validateBookingPatientDetails(patientDetails, target);
         // Child-only slot: the family member's age must be within the limit.
-        if (!patientDetails.forSelf && selectedSlot.is_child_only && selectedSlot.child_age != null
-            && patientDetails.age !== '' && Number(patientDetails.age) > selectedSlot.child_age) {
-            errors.age = `This slot is only for children up to ${selectedSlot.child_age} years.`;
+        if (target && !target.is_self && selectedSlot.is_child_only && selectedSlot.child_age != null
+            && target.age != null && target.age > selectedSlot.child_age) {
+            errors.who = `This slot is only for children up to ${selectedSlot.child_age} years.`;
         }
         setPatientErrors(errors);
         if (Object.keys(errors).length) {
@@ -165,7 +212,10 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
         }
         setBookingError(null);
 
-        const unitId = patientDetails.patientType === 'old' ? patientDetails.unitId.trim() : undefined;
+        // A saved Unit ID is already on the profile; otherwise an old patient gives it now (saved on the profile).
+        const unitId = !target?.unit_id && patientDetails.patientType === 'old'
+            ? patientDetails.unitId.trim() || undefined
+            : undefined;
         const payload = {
             doctor_id: doctor.id,
             availability_id: selectedSlot.id,
@@ -176,22 +226,19 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
             // Must match the slot (General / Private), otherwise the API rejects the booking
             opd_type: selectedSlot.opd_type || 'general',
             booked_by_name: bookerName || undefined,
-            // Myself: only the Unit ID (saved on my profile). Family member: their own details / profile.
+            // Myself: only the Unit ID (saved on my profile). Family member: their saved profile id.
             booked_for_uid: unitId,
-            ...(patientDetails.forSelf
-                ? {}
-                : {
-                    booked_for_name: patientDetails.patientName.trim(),
-                    booked_for_gender: patientDetails.gender || undefined,
-                    booked_for_age: Number(patientDetails.age),
-                    booked_for_phone: patientDetails.phone,
-                }),
+            // Anyone other than the signed-in account's own profile is booked by their profile id
+            // (the API checks it is linked to this login).
+            ...(target && !target.is_self ? { patient_profile_id: target.patient_id } : {}),
         };
 
         bookAppointment(payload, {
             onSuccess: (response) => {
                 // A new / edited Unit ID for myself is saved on the profile by the API.
-                if (patientDetails.forSelf && unitId) queryClient.invalidateQueries({ queryKey: savedUnitIdKey(user?.id) });
+                if (target?.is_self && unitId) queryClient.invalidateQueries({ queryKey: savedUnitIdKey(user?.id) });
+                // New member / Unit ID / first booking change the saved family profiles.
+                queryClient.invalidateQueries({ queryKey: familyProfilesKey(user?.id) });
                 const appointmentId = response?.data?.appointment?.id;
                 const appointmentData = response?.data;
                 if (appointmentId && appointmentData) {
@@ -269,10 +316,13 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
                         onChange={(next) => {
                             setPatientDetails(next);
                             setPatientErrors({});
+                            setBookingError(null);
                         }}
                         errors={patientErrors}
-                        bookerName={bookerName}
-                        savedUnitId={savedUnitId}
+                        ownProfile={ownProfile}
+                        members={otherProfiles}
+                        relationships={relationships}
+                        canAddMember={familyMembers.length < maxProfiles}
                     />
                 </div>
             )}

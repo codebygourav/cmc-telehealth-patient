@@ -7,6 +7,7 @@ export interface SlotItem {
   end_time: string;
   consultation_type: string;
   consultation_type_label: string;
+  opd_type?: string | null;
   capacity: number;
   booked_count: number;
   available: boolean;
@@ -27,4 +28,9 @@ export interface ApiResponse<T> {
   path: string;
   timestamp: string;
   data: T;
+}
+export interface RescheduleSchedule {
+  consultation_type: "video" | "in-person";
+  opd_type: "general" | "private" | null;
+  label: string;
 }

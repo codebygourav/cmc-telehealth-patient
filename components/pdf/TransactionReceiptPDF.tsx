@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/userContext';
+import { useActiveProfile } from '@/context/activeProfileContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download, FileDownIcon } from 'lucide-react';
@@ -63,6 +64,9 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
     transaction,
 }) => {
     const { user } = useAuth();
+    // A family member's transaction: their name and phone on the receipt.
+    const { activeProfile, isFamilyView } = useActiveProfile();
+    const member = isFamilyView ? activeProfile : null;
 
     const generatePDF = () => {
         if (!transaction) return;
@@ -94,11 +98,11 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
                 ['Date:', formatDateForPDF(transaction.date)],
                 [
                     'Name:',
-                    `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
+                    (member ? member.name : `${user?.first_name || ''} ${user?.last_name || ''}`.trim()) ||
                         'N/A',
                 ],
-                ['Email:', user?.email || 'N/A'],
-                ['Phone:', user?.mobile_no || 'N/A'],
+                ['Email:', (member ? member.login_email : null) || user?.email || 'N/A'],
+                ['Phone:', (member ? member.phone : user?.mobile_no) || 'N/A'],
             ];
             entries.forEach(([label, value]) => {
                 doc.text(label, leftX, y);

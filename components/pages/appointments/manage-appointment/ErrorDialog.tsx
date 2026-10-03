@@ -18,7 +18,7 @@ export default function ErrorDialog({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -30,7 +30,7 @@ export default function ErrorDialog({
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="relative w-full max-w-md bg-white rounded-[40px] shadow-2xl overflow-hidden"
+                        className="sheet-panel relative w-full max-w-md bg-white rounded-[40px] shadow-2xl overflow-hidden"
                     >
                         <div className="p-10 text-center">
                             <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">

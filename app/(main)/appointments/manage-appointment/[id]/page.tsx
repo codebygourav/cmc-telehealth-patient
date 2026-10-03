@@ -70,6 +70,7 @@ export default function ManageAppointment({ params }: PageProps) {
     const [editTitle, setEditTitle] = useState('');
     const [editType, setEditType] = useState('');
     const [editFile, setEditFile] = useState<File | null>(null);
+    const [editingNoteText, setEditingNoteText] = useState(note);
 
     useEffect(() => {
         if (showEditReport) {
@@ -78,6 +79,37 @@ export default function ManageAppointment({ params }: PageProps) {
             setEditFile(null);
         }
     }, [showEditReport]);
+
+    useEffect(() => {
+        if (showEditNote) {
+            setEditingNoteText(note);
+        }
+    }, [showEditNote, note]);
+
+    const parseNoteText = (raw: any): string => {
+        if (!raw) return '';
+        if (Array.isArray(raw)) {
+            return raw.map(item => parseNoteText(item)).filter(Boolean).join(', ');
+        }
+        if (typeof raw === 'string') {
+            const trimmed = raw.trim();
+            if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) {
+                        return parsed.map(item => parseNoteText(item)).filter(Boolean).join(', ');
+                    }
+                    if (typeof parsed === 'string') {
+                        return parseNoteText(parsed);
+                    }
+                } catch (e) {
+                    // ignore json parse error
+                }
+            }
+            return trimmed;
+        }
+        return String(raw);
+    };
 
     // Sync state with API data
     useEffect(() => {
@@ -94,29 +126,15 @@ export default function ManageAppointment({ params }: PageProps) {
                 setReports(mappedReports);
             }
             if (appointment.notes) {
-                setNote(appointment.notes);
+                setNote(parseNoteText(appointment.notes));
             }
         }
     }, [appointment]);
 
     const handleDeleteReport = (id: string) => {
-        // If it's a server ID (API fallback is 'api-', local random is short), delete from server
-        if (id && !id.startsWith('api-') && id.length > 15) {
-            deleteReport(id, {
-                onSuccess: () => {
-                    toast.success('Report deleted successfully');
-                    setActiveMenu(null);
-                },
-                onError: (err) => {
-                    toast.error('Failed to delete report');
-                    console.error('Delete error:', err);
-                }
-            });
-        } else {
-            // Local-only report (newly added), just remove from state
-            setReports(prev => prev.filter(r => r.id !== id));
-            setActiveMenu(null);
-        }
+        setReports(prev => prev.filter(r => r.id !== id));
+        setActiveMenu(null);
+        toast.info("Report removed from appointment");
     };
 
     const handleAddReport = (newReport: Report) => {
@@ -212,6 +230,24 @@ export default function ManageAppointment({ params }: PageProps) {
         });
     };
 
+    const handleSaveNote = (newNoteText: string) => {
+        const clean = parseNoteText(newNoteText);
+        updateInformation({
+            appointmentId,
+            notes: clean,
+        }, {
+            onSuccess: () => {
+                toast.success('Patient notes updated successfully');
+                setNote(clean);
+                setShowEditNote(false);
+            },
+            onError: (err: any) => {
+                toast.error('Failed to update notes');
+                console.error('Update notes error:', err);
+            }
+        });
+    };
+
     return (
         <div>
 
@@ -254,6 +290,7 @@ export default function ManageAppointment({ params }: PageProps) {
                     onViewReport={handleViewReport}
                     onEditReport={setShowEditReport}
                     onDeleteReport={handleDeleteReport}
+                    onEditNote={() => setShowEditNote(true)}
                     onCancel={() => setShowCancelConfirm(true)}
                     appointmentStatus={appointment?.status}
                 />
@@ -287,12 +324,12 @@ export default function ManageAppointment({ params }: PageProps) {
 
                 {/* Edit Report Modal */}
                 {showEditReport && (
-                    <div key="edit-report-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div key="edit-report-modal" className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
                         <div
                             onClick={() => setShowEditReport(null)}
                             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                         />
-                        <div className="relative w-full max-w-lg bg-white rounded-md overflow-hidden">
+                        <div className="sheet-panel relative w-full max-w-lg bg-white rounded-md overflow-hidden">
                             <div className="p-5">
                                 <div className="flex items-center justify-between mb-8">
                                     <h3 className="text-[#1F1E1E] font-bold text-lg">Edit Report</h3>
@@ -376,39 +413,42 @@ export default function ManageAppointment({ params }: PageProps) {
                             onClick={() => setShowEditNote(false)}
                             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                         />
-                        <div className="relative w-full max-w-lg bg-white rounded-md shadow-2xl overflow-hidden">
-                            <div className="p-5">
-                                <div className="flex items-center justify-between mb-8">
-                                    <h3 className="text-xl font-bold font-headline text-primary italic">Edit</h3>
-                                    <button onClick={() => setShowEditNote(false)} className="p-2 hover:bg-surface-container rounded-full">
-                                        <X className="w-6 h-6" />
+                        <div className="relative w-full max-w-lg bg-white rounded-lg shadow-2xl overflow-hidden">
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-6 border-b border-[#E7E8EB] pb-3">
+                                    <h3 className="text-lg font-bold text-[#1F1E1E]">Edit Patient Note</h3>
+                                    <button onClick={() => setShowEditNote(false)} className="p-1.5 hover:bg-gray-100 rounded-full text-muted-foreground">
+                                        <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 italic">Notes</label>
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-semibold text-[#1F1E1E]">
+                                        Write your health problem or notes to Doctor
+                                    </label>
                                     <textarea
-                                        rows={4}
-                                        defaultValue={note}
-                                        onChange={(e) => setNote(e.target.value)}
-                                        className="w-full p-4 bg-surface-container-low border border-outline-variant/10 rounded-2xl font-bold text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 italic resize-none"
+                                        rows={5}
+                                        value={editingNoteText}
+                                        onChange={(e) => setEditingNoteText(e.target.value)}
+                                        placeholder="Describe symptoms, questions, or medical context..."
+                                        className="w-full p-3.5 bg-white border border-[#D1D5DB] rounded-lg text-sm text-[#1F1E1E] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"
                                     />
                                 </div>
 
-                                <div className="flex items-center justify-end gap-4 pt-8">
+                                <div className="flex items-center justify-end gap-3 pt-6 border-t border-[#E7E8EB] mt-6">
                                     <Button
                                         variant="outline"
                                         onClick={() => setShowEditNote(false)}
-                                        className="py-3 h-auto max-w-28 w-full font-semibold cursor-pointer"
+                                        className="py-2.5 font-semibold"
                                     >
                                         Cancel
                                     </Button>
                                     <Button
-                                        variant="default"
-                                        onClick={() => setShowEditNote(false)}
-                                        className="py-3 h-auto max-w-28 w-full font-semibold cursor-pointer"
+                                        onClick={() => handleSaveNote(editingNoteText)}
+                                        disabled={isUpdatingInfo}
+                                        className="btn-primary-cta py-2.5 font-semibold"
                                     >
-                                        Update
+                                        {isUpdatingInfo ? 'Saving...' : 'Update Note'}
                                     </Button>
                                 </div>
                             </div>

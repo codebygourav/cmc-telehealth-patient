@@ -12,6 +12,9 @@ export const useRescheduleAppointment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["doctor-available-slots"] });
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      // Refetch the open appointment now so its new date and "Rescheduled" status show at once.
+      queryClient.invalidateQueries({ queryKey: ["appointment-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["appointment"] });
     },
   });
 };

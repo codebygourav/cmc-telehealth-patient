@@ -11,14 +11,18 @@ const ForgotPasswordPage = () => {
   const [step, setStep] = useState<ForgotPasswordStep>("SEND_OTP");
   const [email, setEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
+  const [isManaged, setIsManaged] = useState(false);
+  const [holderName, setHolderName] = useState<string | null>(null);
 
   const handleSendOtpSuccess = (email: string) => {
     setEmail(email);
     setStep("VERIFY_OTP");
   };
 
-  const handleVerifyOtpSuccess = (token: string) => {
+  const handleVerifyOtpSuccess = (token: string, managed?: boolean, holder?: string | null) => {
     setResetToken(token);
+    setIsManaged(Boolean(managed));
+    setHolderName(holder || null);
     setStep("RESET_PASSWORD");
   };
 
@@ -72,7 +76,12 @@ const ForgotPasswordPage = () => {
                 Create a new password that you haven't used before.
               </p>
             </div>
-            <ResetPasswordForm email={email} resetToken={resetToken} />
+            <ResetPasswordForm
+              email={email}
+              resetToken={resetToken}
+              isManaged={isManaged}
+              holderName={holderName}
+            />
           </div>
         );
       default:

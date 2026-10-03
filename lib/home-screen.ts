@@ -18,6 +18,11 @@ export function mapHomeScreenAppointments(
     type: appt.consultation_type,
     typeLabel: appt.consultation_type_label,
     joinUrl: appt.video_consultation?.join_url,
+    // Join is open from 1 hour before the start until the end (confirmed / rescheduled bookings).
+    canJoin: Boolean((appt as any).call_now || appt.video_consultation?.can_join) && Boolean(appt.video_consultation?.join_url),
+    status: (appt as any).status,
+    statusLabel: (appt as any).status_label,
+    isTestDoctor: Boolean((appt.doctor as any)?.is_test_doctor),
     doctor: {
       specialty: appt.doctor.department,
       experience: appt.doctor.years_experience,

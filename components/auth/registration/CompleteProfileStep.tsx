@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FormProvider, useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,11 +14,13 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/userContext";
 import { consumePostAuthRedirect } from "@/lib/authRedirect";
 import type { User } from "@/types/user-context";
+import { apiFieldErrors, applyApiFieldErrors } from "@/lib/apiFieldErrors";
+import AccountExistsNotice from "../AccountExistsNotice";
 
 const profileSchema = z
   .object({
     email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
     first_name: z.string().min(1, "First name is required"),
     last_name: z.string().min(1, "Last name is required"),
     gender: z.enum(["male", "female", "other"]),
@@ -51,6 +53,8 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
   const router = useRouter();
   const { mutate: completeProfile, isPending } = useCompleteProfile();
   const { login } = useAuth();
+  // The email already has an account: show Sign in / Forgot password instead of the form error.
+  const [accountExists, setAccountExists] = useState<string | null>(null);
 
   const methods = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
@@ -96,6 +100,23 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
     }
   }, [email, methods]);
 
+  // Server errors go under their fields; anything without a field (or no field errors) is a toast.
+  const showErrors = (err: any, fallback: string) => {
+    const data = err?.response?.data ?? err;
+    if (data?.code === "ALREADY_REGISTERED") {
+      setAccountExists(data?.errors?.message || null);
+      return;
+    }
+    const fieldNames = [...Object.keys(profileSchema.shape), "country_code", "current_location"];
+    const remap = (field: string) => (field === "country_code" || field === "current_location" ? "country_iso" : field);
+    if (!Object.keys(apiFieldErrors(err)).length) {
+      toast.error(fallback);
+      return;
+    }
+    const unmatched = applyApiFieldErrors(err, fieldNames, (field, error, options) => methods.setError(remap(field) as keyof ProfileValues, error, options));
+    toast.error(unmatched[0] ?? "Please fix the highlighted fields.");
+  };
+
   const onSubmit = async (data: ProfileValues) => {
     const { is_existing_patient, existing_patient_id, country_iso, ...rest } = data;
     const isExisting = is_existing_patient === "yes";
@@ -112,6 +133,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
       existing_patient_id: isExisting ? (existing_patient_id || "") : "",
     };
 
+    setAccountExists(null);
     completeProfile(payload, {
       onSuccess: async (response: CompleteProfileResponse) => {
         if (response.success) {
@@ -155,12 +177,12 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
           // No token returned: fall back to the login page (redirect is remembered).
           router.push("/auth/login");
         } else {
-          toast.error(response?.errors?.message || response.message || "Failed to complete profile.");
+          showErrors(response, response?.errors?.message || response.message || "Failed to complete profile.");
         }
       },
       onError: (err: any) => {
         const responseData = err?.response?.data || {};
-        toast.error(responseData?.errors?.message || responseData?.message || err?.message || "Profile completion failed");
+        showErrors(err, responseData?.errors?.message || responseData?.message || err?.message || "Profile completion failed");
       },
     });
   };
@@ -168,6 +190,9 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
   return (
     <div className="space-y-6 max-h-[70vh] overflow-y-auto px-1 pr-2">
       <FormProvider {...methods}>
+        {accountExists !== null && (
+          <AccountExistsNotice email={methods.getValues("email") || email} message={accountExists || undefined} />
+        )}
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5 pb-4">
           <InputField
             name="email"
@@ -241,6 +266,8 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
               placeholder={selectedCountry ? `${selectedCountry.code} 7325809632` : "7325809632"}
               required
               disabled={isPending}
+              type="tel"
+              maxLength={10}
             />
           </div>
 
@@ -249,9 +276,10 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
               name="password"
               label="Password"
               type="password"
-              placeholder="••••••••"
+              placeholder="At least 8 characters"
               required
               disabled={isPending}
+              revealable
             />
 
             <div className="flex flex-col space-y-2">
@@ -290,7 +318,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
                 name="existing_patient_id"
-                label="Patient ID"
+                label="Patient UNIT ID (C Number)"
                 placeholder="Enter Patient ID"
                 required
                 disabled={isPending}

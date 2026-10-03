@@ -1,5 +1,6 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { getAuthToken } from "./authToken";
+import { getActiveProfileId } from "./activeProfile";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(
   /\/+$/,
@@ -24,6 +25,12 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAuthToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+
+    // Viewing a family member's profile: the API scopes patient data to them.
+    const activeProfileId = getActiveProfileId();
+    if (activeProfileId) {
+      config.headers["X-Patient-Profile"] = activeProfileId;
+    }
   }
   return config;
 });

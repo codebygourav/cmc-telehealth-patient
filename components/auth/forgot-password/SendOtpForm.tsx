@@ -2,8 +2,9 @@
 import InputField from "@/components/custom/inputfield";
 import { Button } from "@/components/ui/button";
 import { useSendOtp } from "@/mutations/auth/useForgotPassword";
+import { useAuth } from "@/context/userContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -20,13 +21,21 @@ interface SendOtpFormProps {
 
 const SendOtpForm: React.FC<SendOtpFormProps> = ({ onSuccess }) => {
   const { mutate, isPending } = useSendOtp();
+  const { user } = useAuth();
 
   const methods = useForm<SendOtpFormData>({
     resolver: zodResolver(sendOtpSchema),
     defaultValues: {
-      email: "",
+      email: user?.email || "",
     },
   });
+
+  // Prefill email if logged in or coming with ?email=...
+  useEffect(() => {
+    const urlEmail = new URLSearchParams(window.location.search).get("email");
+    const prefill = urlEmail || user?.email;
+    if (prefill) methods.setValue("email", prefill);
+  }, [methods, user]);
 
   const onSubmit = async (data: SendOtpFormData) => {
     mutate(data, {

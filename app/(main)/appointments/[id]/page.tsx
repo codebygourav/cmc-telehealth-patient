@@ -28,6 +28,7 @@ import { deleteUnpaidAppointment } from "@/api/appointments";
 import BookingConfirmationModal, { type BookingConfirmationDetails } from "@/components/pages/appointment-summary/BookingConfirmationModal";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useActiveProfile } from "@/context/activeProfileContext";
 
 interface PageProps {
   params: Promise<{
@@ -110,8 +111,23 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
   const queryClient = useQueryClient();
 
-  // Booked for a family member: their appointment is not in the booker's lists.
+  // Booked for a family member: their appointments are listed under that member's profile.
   const isFamilyBooking = !!(data?.data as any)?.booked_for;
+  const { familyMembers, activeProfile, switchTo } = useActiveProfile();
+  const visitPatientId = data?.data?.patient?.id;
+  const memberProfile = isFamilyBooking ? familyMembers.find((m) => m.patient_id === visitPatientId) : undefined;
+  // Booked for someone else from this profile: their appointment is not in this profile's list,
+  // so stay here and tell the patient to switch profile (no redirect). Own booking -> My Appointments.
+  const bookedForOther = isFamilyBooking && activeProfile?.patient_id !== visitPatientId;
+  const viewAppointments = () => {
+    if (bookedForOther) {
+      const name = memberProfile?.first_name || (data?.data as any)?.booked_for?.name || "the family member";
+      setConfirmation(null);
+      toast.info(`Appointment booked for ${name}. Switch to ${name}'s profile to see this appointment.`, { duration: 8000 });
+      return;
+    }
+    router.replace("/appointments");
+  };
   const afterBookingPath = isFamilyBooking ? "/" : "/appointments";
   const isPaid = data?.data?.payment?.status === "paid";
 
@@ -130,9 +146,10 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
   // Close the booking details: leave the Review page once the booking is paid.
   const closeConfirmation = () => {
+    if (bookedForOther) return viewAppointments();
     setConfirmation(null);
     if (isPaid || justPaidRef.current) {
-      router.replace(afterBookingPath);
+      router.replace(`/appointments/manage-appointment/${AppointmentId}`);
     }
   };
 
@@ -246,13 +263,30 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
                   }),
                 );
               },
-              onError: () => {
-                setDialogState({
-                  open: true,
-                  type: "danger",
-                  title: "Verification Failed",
-                  description: "Payment done but verification failed",
-                });
+              onError: async () => {
+                const updated = await refetch();
+                const latestData: any = updated?.data?.data;
+                const isNowPaid = latestData?.payment?.status === "paid" || ["awaiting_confirmation", "confirmed", "rescheduled", "completed"].includes(latestData?.status);
+
+                if (isNowPaid) {
+                  justPaidRef.current = true;
+                  queryClient.invalidateQueries({
+                    queryKey: appointmentDetailKeys.detail(AppointmentId),
+                  });
+                  setConfirmation(
+                    buildConfirmation({
+                      status: latestData?.status || "awaiting_confirmation",
+                      paymentId: response.razorpay_payment_id,
+                    }),
+                  );
+                } else {
+                  setDialogState({
+                    open: true,
+                    type: "danger",
+                    title: "Verification Failed",
+                    description: "Payment done but verification failed. Please refresh or check your appointments.",
+                  });
+                }
               },
             },
           );
@@ -324,7 +358,7 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
           <div className="space-y-5 lg:col-span-8">
             <BookingOverviewCard doctor={doctor.doctor} schedule={schedule as AppointmentSchedule} />
             <PatientDetailsCard appointment={doctor} />
-            {!isPaid && <NextStepsCard />}
+            {!isPaid && <NextStepsCard isVideo={String(schedule?.consultation_type || "").toLowerCase().includes("video")} />}
           </div>
 
           <div className="space-y-4 lg:sticky lg:top-24 lg:col-span-4">
@@ -390,8 +424,8 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
         open={!!confirmation}
         details={confirmation}
         onClose={closeConfirmation}
-        onViewAppointments={() => router.replace(afterBookingPath)}
-        viewAppointmentsLabel={isFamilyBooking ? "Back to Dashboard" : "Go to My Appointments"}
+        onViewAppointments={viewAppointments}
+        viewAppointmentsLabel={bookedForOther ? "Done" : "Go to My Appointments"}
       />
 
       {/* Custom Dialog */}

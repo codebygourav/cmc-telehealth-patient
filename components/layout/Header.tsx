@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui";
 import { useAuth } from "@/context/userContext";
+import { useActiveProfile } from "@/context/activeProfileContext";
 import { cn } from "@/lib/utils";
 import logo from "@/public/assets/icon/logo-green.png";
 import { useUnreadCount } from "@/queries/useNotifications";
@@ -22,6 +23,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HeaderNavLinks } from "./HeaderNavLinks";
 import { HeaderUserProfileMenu } from "./HeaderUserProfileMenu";
+import FamilyViewBanner from "./FamilyViewBanner";
 
 export function Header() {
   const { settings } = useSettings();
@@ -41,8 +43,10 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const name =
-    user && (user.first_name || user.last_name)
+  const { activeProfile: viewedProfile, isFamilyView: viewingFamily } = useActiveProfile();
+  const name = viewingFamily && viewedProfile
+    ? viewedProfile.name
+    : user && (user.first_name || user.last_name)
       ? `${user.role === "doctor" ? "Dr. " : ""}${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
       : "User";
 
@@ -167,6 +171,9 @@ export function Header() {
             </div>
           )}
         </div>
+      </div>
+      <div className="-mx-5">
+        <FamilyViewBanner />
       </div>
     </header>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { setAuthToken } from "@/lib/authToken";
+import { setActiveProfileId } from "@/lib/activeProfile";
 import { User } from "@/types/user-context";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -148,6 +149,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    setActiveProfileId(null);
     setUser(null);
     setToken(null);
     setAuthToken(null);

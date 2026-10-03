@@ -115,7 +115,7 @@ export const UploadReportModal: React.FC<UploadReportModalProps> = ({
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 100 }}
-                        className="relative w-full max-w-lg bg-white global-radius-10 sm:global-radius-10 shadow-2xl overflow-hidden"
+                        className="sheet-panel relative w-full max-w-lg bg-white global-radius-10 sm:global-radius-10 shadow-2xl overflow-hidden"
                     >
                         <div className="p-1">
                             <div className="flex items-center justify-between mb-2 p-5 pb-0">
@@ -168,10 +168,10 @@ export const UploadReportModal: React.FC<UploadReportModalProps> = ({
                                             onClick={() => handleTypeSelect(type)}
                                             className="w-full g-border global-radius-10  bg-light-gray p-4 py-6 group flex items-center justify-between"
                                         >
-                                            <span className="text-lg font-medium text-gray-800 group-hover:text-primary text-right">
+                                            <span className="text-lg font-medium text-gray-800 group-hover:text-white text-right">
                                                 {type}
                                             </span>
-                                            <ChevronRight className="w-5 h-5 text-gray-400 transition-all opacity-0 group-hover:opacity-100" />
+                                            <ChevronRight className="w-5 h-5 text-gray-400 transition-all opacity-0 group-hover:opacity-100 group-hover:text-white" />
                                         </Button>
                                     ))}
                                 </div>
@@ -183,19 +183,19 @@ export const UploadReportModal: React.FC<UploadReportModalProps> = ({
                                                 Report Type
                                             </label>
                                             <div
-                                                className="w-full px-6 py-4 bg-light-gray global-radius-10 outline-none text-gray-600 font-medium h-auto"
+                                                className="w-full px-4 py-2 bg-light-gray global-radius-10 outline-none text-gray-600 font-medium h-auto border"
                                             >
                                                 {methods.getValues("reportType") || "-"}
                                             </div>
                                         </div>
-                                   
+
 
                                         <InputField
                                             name="reportName"
                                             label="Name"
                                             placeholder="Enter report name"
                                             required
-                                            inputClassName="w-full px-6 py-4 bg-light-gray global-radius-10 outline-none text-gray-600 font-medium h-auto"
+                                            inputClassName="w-full px-6 py-4 bg-light-gray global-radius-10  outline-none text-gray-600 font-medium h-auto"
                                         />
 
                                         <div className="space-y-2">
@@ -209,7 +209,7 @@ export const UploadReportModal: React.FC<UploadReportModalProps> = ({
                                                     onChange={(e) =>
                                                         setFile(e.target.files?.[0] || null)
                                                     }
-                                                    className="absolute inset-0 z-10 opacity-0 cursor-pointer"
+                                                    className="absolute inset-0 z-10 opacity-0 cursor-pointer border"
                                                 />
                                                 <div className="flex items-center justify-between w-full px-6 py-4 transition-all bg-light-gray global-radius-10 text-gray-600 font-medium h-auto">
                                                     <span className="font-medium text-gray-500">
@@ -237,7 +237,7 @@ export const UploadReportModal: React.FC<UploadReportModalProps> = ({
                                             </Button>
                                             <Button
                                                 onClick={() => setStep(1)}
-                                                className="w-full py-3 text-sm font-medium text-gray-500 transition-all bg-transparent border-none hover:text-gray-700"
+                                                className="w-full py-3 bg-white hover:bg-gray-100 text-sm font-medium text-gray-500 transition-all border-none hover:text-gray-700"
                                             >
                                                 ← Back to report types
                                             </Button>

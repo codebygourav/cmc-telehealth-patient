@@ -28,6 +28,9 @@ export const bookAppointment = async (
     booked_for_gender: payload.booked_for_gender,
     booked_for_age: payload.booked_for_age,
     booked_for_phone: payload.booked_for_phone,
+    booked_for_relationship: payload.booked_for_relationship,
+    // The saved family profile the visit is for (empty = the signed-in account holder).
+    patient_profile_id: payload.patient_profile_id,
   };
   Object.entries(bookingFor).forEach(([key, value]) => {
     if (value !== undefined && value !== null && String(value).trim() !== "") {

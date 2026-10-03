@@ -59,8 +59,11 @@ function AppointmentCard({
                             </Avatar>
 
                             <div className="min-w-0 pt-1">
-                                <h3 className="text-lg font-semibold leading-tight text-white sm:text-2xl">
+                                <h3 className="flex flex-wrap items-center gap-2 text-lg font-semibold leading-tight text-white sm:text-2xl">
                                     {appointment.doctorName}
+                                    {appointment.isTestDoctor && (
+                                        <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-950">Test</span>
+                                    )}
                                 </h3>
                                 <p className="mt-2 text-sm sm:text-lg font-semibold text-white/100">
                                     {doctor?.specialty || "Cardiology"}
@@ -74,7 +77,7 @@ function AppointmentCard({
                         </div>
 
                         <Badge className="px-3 py-3 text-sm font-medium text-green-600 bg-white w-fit global-radius hover:bg-white">
-                            Upcoming Session
+                            {appointment.status === "awaiting_confirmation" ? "Awaiting Confirmation" : "Upcoming Session"}
                         </Badge>
                     </div>
 
@@ -87,7 +90,7 @@ function AppointmentCard({
 
                 <Separator className="my-3 bg-transparent" />
 
-                {appointment.type === "video" && (
+                {appointment.type === "video" && (appointment.canJoin ? (
                     <Button
                         onClick={() => {
                             onStartCall(appointment.id);
@@ -99,9 +102,16 @@ function AppointmentCard({
                         className="w-full mt-0 text-base font-semibold text-black bg-white h-11 global-radius btn-primary-without-transition"
                     >
                         <Video className="mr-2 size-4" />
-                        Start Video Call
+                        Join Video Call
                     </Button>
-                )}
+                ) : (
+                    <p className="flex items-center justify-center gap-2 rounded-md bg-white/10 px-3 py-2.5 text-center text-sm font-medium text-white/90">
+                        <Video className="size-4" />
+                        {appointment.status === "awaiting_confirmation"
+                            ? "Join link appears once the doctor confirms."
+                            : "Join link opens 1 hour before your appointment."}
+                    </p>
+                ))}
             </CardContent>
         </Card>
     );

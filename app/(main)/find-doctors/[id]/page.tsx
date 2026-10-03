@@ -49,7 +49,7 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
             open: true,
             type: 'success',
             title: 'Slot Reserved',
-            description: 'Review your booking and complete the payment. The doctor will then confirm your appointment and you will get an email.',
+            description: 'Review your booking and complete the payment to book this slot. You will get an email with the details.',
         });
         setAppointmentId(appointmentId);
     };

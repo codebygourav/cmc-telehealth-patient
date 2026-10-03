@@ -7,6 +7,7 @@ import { TestimonialsCarousel } from "@/components/pages/Dashboard/TestimonialsC
 import { UpcomingAppointments } from "@/components/pages/Dashboard/UpcomingAppointments";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/userContext";
+import { useActiveProfile } from "@/context/activeProfileContext";
 import {
 	mapHomeScreenAdvertisements,
 	mapHomeScreenAppointments,
@@ -21,6 +22,8 @@ import { useRouter } from "next/navigation";
 export default function Home() {
 
 	const { user, initializing } = useAuth();
+	// Viewing a family member: their dashboard, greeted by their name.
+	const { activeProfile, isFamilyView } = useActiveProfile();
 	const isGuest = !initializing && !user;
 	// isPending (not isLoading): keep the loader until data or a real error, so no error flash on reload.
 	const { data, isPending: isLoading, isError } = usePatientHome();
@@ -66,8 +69,10 @@ export default function Home() {
 					) : (
 						<>
 							<h1 className="font-bold sm:text-2xl text-base tracking-tight text-foreground">
-								Welcome back{user?.first_name || user?.last_name ? "," : ""}{" "}
-								{user?.first_name ?? ""} {user?.last_name ?? ""}
+								{isFamilyView && activeProfile
+									? <>{activeProfile.first_name}&apos;s dashboard</>
+									: <>Welcome back{user?.first_name || user?.last_name ? "," : ""}{" "}
+										{user?.first_name ?? ""} {user?.last_name ?? ""}</>}
 							</h1>
 
 							<p className="!font-normal text-span-16 g-text-muted">

@@ -51,6 +51,10 @@ const nextConfig: NextConfig = {
     ],
   },
   turbopack: {},
+  // The family page moved: keep old links (and ?add=1) working.
+  async redirects() {
+    return [{ source: "/family", destination: "/family-members", permanent: true }];
+  },
 };
 
 const withPWA = withPWAInit({

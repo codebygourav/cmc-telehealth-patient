@@ -47,8 +47,15 @@ export const updateAppointmentInformation = async ({
 };
 
 export const deleteMedicalReport = async (reportId: string): Promise<any> => {
-  const response = await axiosInstance.delete(`/patient/medical-reports/${reportId}`);
-  return response.data;
+  try {
+    const response = await axiosInstance.delete(`/patient/medical-reports/${reportId}`);
+    return response.data;
+  } catch (err: any) {
+    if (err?.response?.status === 404) {
+      return { success: true, message: "Report already removed" };
+    }
+    throw err;
+  }
 };
 
 export const getPatientMedicalReports = async (patientId: string): Promise<any> => {

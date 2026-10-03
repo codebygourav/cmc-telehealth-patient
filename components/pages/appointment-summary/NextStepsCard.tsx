@@ -1,12 +1,20 @@
-import { BadgeCheck, CreditCard, MailCheck } from "lucide-react";
+import { BadgeCheck, CreditCard, MailCheck, Video } from "lucide-react";
 
 // What happens after "Confirm & Book" (shown while the booking is unpaid).
-export default function NextStepsCard() {
-    const steps = [
-        { icon: CreditCard, title: "Pay to reserve your slot", text: "Complete the payment to hold this time for you." },
-        { icon: BadgeCheck, title: "Doctor confirms", text: "The doctor reviews your booking and confirms it." },
-        { icon: MailCheck, title: "You get an email", text: "Please reach the clinic at least 45 minutes early." },
-    ];
+// In-person visits are confirmed straight away; video consultations are confirmed by the doctor,
+// who also sets the call time.
+export default function NextStepsCard({ isVideo = false }: { isVideo?: boolean }) {
+    const steps = isVideo
+        ? [
+            { icon: CreditCard, title: "Pay to reserve your slot", text: "Complete the payment to book this video consultation." },
+            { icon: BadgeCheck, title: "Doctor confirms the time", text: "The doctor confirms and sets the call time. You get an email." },
+            { icon: Video, title: "Join the call", text: "The join link appears in My Appointments 1 hour before." },
+        ]
+        : [
+            { icon: CreditCard, title: "Pay to reserve your slot", text: "Complete the payment to hold this time for you." },
+            { icon: MailCheck, title: "Confirmed by email", text: "Your appointment is confirmed straight away." },
+            { icon: BadgeCheck, title: "Visit the clinic", text: "Please reach the clinic at least 45 minutes early." },
+        ];
 
     return (
         <section className="rounded-lg border border-[#E7E8EB] bg-white p-5 shadow-[0px_2px_4px_0px_#0000001A]">

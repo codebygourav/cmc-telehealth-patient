@@ -57,7 +57,12 @@ const DoctorHeader = ({ doctor }: DoctorHeaderProps) => {
                             {profile.department}
                         </span>
                     )}
-                    <h2 className="text-2xl font-bold leading-tight text-[#1F1E1E]">{profile.name}</h2>
+                    <h2 className="flex flex-wrap items-center justify-center gap-2 text-2xl font-bold leading-tight text-[#1F1E1E] sm:justify-start">
+                        {profile.name}
+                        {(profile as { is_test_doctor?: boolean }).is_test_doctor && (
+                            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
+                        )}
+                    </h2>
                     {profile.sub_title && <p className="text-sm text-[#4D4D4D]">{profile.sub_title}</p>}
 
                     {(totalReviews > 0 || socialLinks.length > 0) && (

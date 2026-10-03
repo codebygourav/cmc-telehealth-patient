@@ -13,6 +13,9 @@ export interface BookAppointmentPayload {
   booked_for_gender?: "male" | "female" | "other";
   booked_for_age?: number;
   booked_for_phone?: string;
+  booked_for_relationship?: string;
+  // A saved family profile (managed by this login) the appointment is for.
+  patient_profile_id?: string;
 }
 
 export interface BookAppointmentData {

@@ -16,6 +16,7 @@ interface UpcomingAppointmentCardProps {
     status?: string;
     statusLabel?: string;
     bookedForName?: string | null;
+    isTestDoctor?: boolean;
 }
 
 const UpcomingAppointmentCard = ({
@@ -29,6 +30,7 @@ const UpcomingAppointmentCard = ({
     status,
     statusLabel,
     bookedForName,
+    isTestDoctor,
 }: UpcomingAppointmentCardProps) => {
 
     const router = useRouter();
@@ -54,8 +56,11 @@ const UpcomingAppointmentCard = ({
                             </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-lg md:text-xl text-black break-words flex-1">
+                            <h3 className="flex flex-wrap items-center gap-2 font-semibold text-lg md:text-xl text-black break-words flex-1">
                                 {appointment.doctorName}
+                                {isTestDoctor && (
+                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
+                                )}
                             </h3>
                             <p className="text-sm text-[#4D4D4D] font-medium">
                                 {doctor?.specialty} ({doctor?.experience})

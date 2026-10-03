@@ -138,7 +138,7 @@ export const MedicineDetailsCard = ({
                         </div>
                     </div>
                     <Button
-                        className="w-full md:w-auto px-8 py-7 bg-white text-[#052116] font-bold rounded-2xl shadow-lg hover:bg-opacity-90 transition-all text-lg"
+                        className="w-full md:w-auto px-8 py-7 bg-white text-[#052116] font-bold rounded-2xl shadow-lg  transition-all text-lg"
                         onClick={() => router.push('/appointments/book')}
                     >
                         Reschedule Visit

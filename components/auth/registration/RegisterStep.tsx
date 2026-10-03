@@ -8,6 +8,7 @@ import InputField from "../../custom/inputfield";
 import { useRegister, SendEmailResponse } from "@/mutations/auth/useAuthMutations";
 import { toast } from "sonner";
 import Link from "next/link";
+import AccountExistsNotice from "../AccountExistsNotice";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,6 +23,7 @@ interface RegisterStepProps {
 const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
   const { mutate: register, isPending } = useRegister();
   const [verifiedLink, setVerifiedLink] = useState<{ email: string; message: string } | null>(null);
+  const [existingAccount, setExistingAccount] = useState<{ email: string; message: string } | null>(null);
 
   const methods = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -29,6 +31,8 @@ const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
   });
 
   const onSubmit = (data: RegisterValues) => {
+    setExistingAccount(null);
+    setVerifiedLink(null);
     register(data, {
       onSuccess: (response: SendEmailResponse) => {
         const res: any = response;
@@ -40,6 +44,11 @@ const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
           message.includes("verified") ||
           status === "verified" ||
           code === "ALREADY_VERIFIED";
+
+        if ((res?.code || "") === "ALREADY_REGISTERED") {
+          setExistingAccount({ email: data.email, message: res?.errors?.message || res?.message || "" });
+          return;
+        }
 
         if (response.success) {
           toast.success(response.message || "OTP sent to your email!");
@@ -66,6 +75,11 @@ const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
         const message = (responseData?.message || "").toLowerCase();
         const status = responseData?.errors?.status || responseData?.data?.status || responseData?.status || "";
         const code = responseData?.code || "";
+
+        if (code === "ALREADY_REGISTERED") {
+          setExistingAccount({ email: data.email, message: responseData?.errors?.message || "" });
+          return;
+        }
 
         const isVerified =
           message.includes("verified") ||
@@ -104,6 +118,8 @@ const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
             disabled={isPending}
             type="email"
           />
+
+          {existingAccount && <AccountExistsNotice email={existingAccount.email} message={existingAccount.message || undefined} />}
 
           {verifiedLink && (
             <div className="flex flex-col gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">

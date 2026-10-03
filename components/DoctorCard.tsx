@@ -37,8 +37,11 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
 
                             {/* Name and Rating */}
                             <div className="flex flex-wrap items-start justify-between gap-2">
-                                <h3 className="font-semibold text-lg md:text-xl text-black break-words flex-1">
+                                <h3 className="flex flex-wrap items-center gap-2 font-semibold text-lg md:text-xl text-black break-words flex-1">
                                     {doctor.name}
+                                    {(doctor as { is_test_doctor?: boolean }).is_test_doctor && (
+                                        <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
+                                    )}
                                 </h3>
                                 {doctor?.rating ? (
                                     <div className="flex items-center gap-1 bg-primary/8 text-primary px-2 py-1.5 rounded shrink-0">

@@ -22,6 +22,7 @@ interface ReportsAndNotesProps {
     onViewReport: (report: Report) => void;
     onEditReport: (report: Report) => void;
     onDeleteReport: (id: string) => void;
+    onEditNote?: () => void;
     onCancel?: () => void;
     appointmentStatus?: string;
 }
@@ -37,6 +38,7 @@ export default function ReportsAndNotes({
     onViewReport,
     onEditReport,
     onDeleteReport,
+    onEditNote,
     onCancel,
     appointmentStatus
 }: ReportsAndNotesProps) {
@@ -86,10 +88,9 @@ export default function ReportsAndNotes({
                 const message = data.message || 'Appointment rescheduled successfully';
                 callbacks.onSuccess(message);
 
-                if (appointmentStatus === "rescheduled") {
-                    setIsAlreadyRescheduled(true); // ✅ LOCK
-                    queryClient.invalidateQueries({ queryKey: ['appointment', appointmentId] });
-                }
+                // One reschedule per appointment: lock it and reload the appointment right away.
+                setIsAlreadyRescheduled(true);
+                queryClient.invalidateQueries({ queryKey: ['appointment-detail', appointmentId] });
 
             },
             onError: (error: any) => {
@@ -189,13 +190,22 @@ export default function ReportsAndNotes({
                         ))}
 
                         {/* Note Section */}
-                        <div className="mt-8 pt-8 border-t border-outline-variant/10">
-                            <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-lg text-[#1F1E1E] font-semibold">Note</h4>
+                        <div className="mt-8 pt-6 border-t border-outline-variant/10">
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-[#1F1E1E] font-semibold text-base">Patient Note</h4>
+                                {onEditNote && (
+                                    <button
+                                        type="button"
+                                        onClick={onEditNote}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#D1D5DB] bg-white px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/5 transition-all shadow-2xs cursor-pointer"
+                                    >
+                                        <Edit3 className="h-3.5 w-3.5" /> Edit Note
+                                    </button>
+                                )}
                             </div>
-                            <div className="p-5 bg-gray-100 rounded-lg border border-gray-200">
-                                <p className="text-xs text-gray-700 font-semibold">
-                                    {note ? note : 'Not Defined'}
+                            <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-200">
+                                <p className="text-xs text-[#1F1E1E] font-medium leading-relaxed whitespace-pre-wrap">
+                                    {note ? note : 'No notes added yet.'}
                                 </p>
                             </div>
                         </div>

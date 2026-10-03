@@ -41,7 +41,12 @@ export default function BookingOverviewCard({ doctor, schedule }: BookingOvervie
                             <Stethoscope size={13} /> {doctor.department}
                         </span>
                     )}
-                    <h2 className="text-xl font-bold text-[#1F1E1E] sm:text-2xl">{doctor?.name}</h2>
+                    <h2 className="flex flex-wrap items-center justify-center gap-2 text-xl font-bold text-[#1F1E1E] sm:justify-start sm:text-2xl">
+                        {doctor?.name}
+                        {(doctor as { is_test_doctor?: boolean })?.is_test_doctor && (
+                            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
+                        )}
+                    </h2>
                     <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-[#4D4D4D] sm:justify-start">
                         {years > 0 && (
                             <span className="inline-flex items-center gap-1.5">

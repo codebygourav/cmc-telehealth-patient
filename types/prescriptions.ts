@@ -7,6 +7,13 @@ export interface Prescription {
   pdf_url: string;
   instructions_by_doctor: string | null;
   next_visit_date: string | null;
+  medicine_name?: string | null;
+  dosage?: string | null;
+  frequencylabel?: string | null;
+  timing?: string | null;
+  status?: string;
+  appointment_date?: string | null;
+  diagnosis?: string | null;
 }
 
 export interface GetPrescriptionsResponse {
@@ -43,11 +50,16 @@ export interface MedicineDetail {
 export interface MedicineDetailsData {
   pdf_url: string;
   medicines: MedicineDetail[];
-  instructions_by_doctor: string;
-  next_visit_date: string;
+  instructions_by_doctor: string | string[] | null;
+  next_visit_date: string | null;
   doctor_name: string;
   appointment_id: string;
   doctor_id: string;
+  appointment_date?: string | null;
+  department?: string | null;
+  diagnosis?: string | null;
+  order_investigation?: string | null;
+  notes?: string | string[] | null;
 }
 
 export interface MedicineDetailsResponse {

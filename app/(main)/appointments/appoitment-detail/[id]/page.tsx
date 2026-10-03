@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { MedicineDetailView } from '@/components/pages/my-medicines/MedicineDetailView';
 import { MedicineActionPlan } from '@/components/pages/my-medicines/MedicineActionPlan';
 import HeroSection from '@/components/hero-section';
+import PrescriptionSummary from '@/components/pages/appointments/PrescriptionSummary';
 
 type AppointmentDetail = {
     notes?: string;
@@ -99,6 +100,8 @@ export default function AppointmentDetailPage() {
                             </div>
                         </div>
                     )}
+
+                    {data.prescriptions && <PrescriptionSummary prescription={data.prescriptions} />}
 
                     <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                         <div className="lg:col-span-8 h-full w-full g-border global-radius p-4 bg-white flex flex-col">

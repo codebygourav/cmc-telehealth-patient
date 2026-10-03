@@ -22,6 +22,8 @@ interface VerifyOtpResponse {
   data: {
     email: string;
     reset_token: string;
+    is_managed?: boolean;
+    holder_name?: string | null;
   };
 }
 
@@ -31,6 +33,7 @@ interface ResetPasswordPayload {
   reset_token: string;
   password: string;
   password_confirmation: string;
+  unlink_from_family?: boolean;
 }
 
 interface ResetPasswordResponse {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useResetPassword } from "@/mutations/auth/useForgotPassword";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -26,14 +26,19 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 interface ResetPasswordFormProps {
   email: string;
   resetToken: string;
+  isManaged?: boolean;
+  holderName?: string | null;
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   email,
   resetToken,
+  isManaged,
+  holderName,
 }) => {
   const { mutate, isPending } = useResetPassword();
   const router = useRouter();
+  const [unlinkFromFamily, setUnlinkFromFamily] = useState(false);
 
   const methods = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -50,6 +55,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         reset_token: resetToken,
         password: data.password,
         password_confirmation: data.password_confirmation,
+        unlink_from_family: unlinkFromFamily,
       },
       {
         onSuccess: () => {
@@ -83,6 +89,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           type="password"
           placeholder="Enter new password"
           required
+          revealable
         />
         <InputField
           name="password_confirmation"
@@ -90,7 +97,28 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           type="password"
           placeholder="Confirm your new password"
           required
+          revealable
         />
+
+        {isManaged && (
+          <div className="rounded-md border border-amber-200 bg-amber-50/70 p-3.5 text-left">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={unlinkFromFamily}
+                onChange={(e) => setUnlinkFromFamily(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <div className="text-xs text-[#1F1E1E]">
+                <span className="font-semibold">Unlink profile from {holderName || "the primary account"}</span>
+                <p className="text-muted-foreground mt-0.5">
+                  Check this box if you want to unlink your profile from {holderName || "the primary account"}&apos;s access after resetting your password.
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
+
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? "Resetting..." : "Reset Password"}
         </Button>

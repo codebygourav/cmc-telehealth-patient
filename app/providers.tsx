@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { UserProvider } from "@/context/userContext";
+import { ActiveProfileProvider } from "@/context/activeProfileContext";
 import { useState } from "react";
 
 import { SettingsProvider } from "@/context/settingsContext";
@@ -27,7 +28,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <SettingsProvider>
                 <UserProvider>
-                    {children}
+                    <ActiveProfileProvider>
+                        {children}
+                    </ActiveProfileProvider>
                 </UserProvider>
             </SettingsProvider>
         </QueryClientProvider>

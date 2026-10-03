@@ -177,6 +177,7 @@ const AppointmentsPage = () => {
                                 status={app.status}
                                 statusLabel={(app as any).status_label}
                                 bookedForName={(app as any).booked_for?.name}
+                                isTestDoctor={Boolean((app as any).doctor?.is_test_doctor)}
                             />
                         );
                     })}

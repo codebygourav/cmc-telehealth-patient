@@ -9,6 +9,7 @@ import {
     PrescriptionLoadingState,
 } from '@/components/pages/my-medicines/sections/PrescriptionLoadingState';
 import { SymptomsSection } from '@/components/pages/my-medicines/sections/SymptomsSection';
+import { PrescriptionDocument } from '@/components/pages/my-medicines/sections/PrescriptionDocument';
 import { usePrescriptionDetail } from '@/queries/usePrescriptionDetail';
 import { motion } from 'motion/react';
 
@@ -109,7 +110,7 @@ export const MedicineDetailView = ({
                             {showActionPlan ? (
                                 <div className="md:col-span-4 md:col-start-9">
                                     <MedicineActionPlan
-                                        conclusion={detailResponse.data.instructions_by_doctor ?? ""}
+                                        conclusion={String(detailResponse.data.instructions_by_doctor ?? "")}
                                         nextVisitDate={detailResponse.data.next_visit_date ?? ""}
                                         doctor_id={doctorUserId || detailResponse.data.doctor_id || ""}
                                         footerActionGridClassName="grid-cols-1 gap-6"
@@ -120,37 +121,15 @@ export const MedicineDetailView = ({
                         </div>
                     ) : (
                         <>
-                            {/* ── Prescription card (Doctor header + Medicines) */}
-                            {(showDoctorHeader || showPrescribedMedicines) &&
-                                detailResponse.data.medicines.length > 0 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="p-4 bg-white border-light-gray shadow-sm global-radius sm:p-5"
-                                    >
-                                        <div className="space-y-8">
-                                            {/* Prescribed medicines grid */}
-                                            {showPrescribedMedicines && (
-                                                <PrescribedMedicinesSection
-                                                    doctorName={detailResponse.data.doctor_name}
-                                                    showInlinePdfLink={true}
-                                                    prescribedAt={detailResponse.data.medicines[0]?.date}
-                                                    medicines={detailResponse.data.medicines}
-                                                    pdfUrl={detailResponse.data.pdf_url}
-                                                    cardGrid={cardGrid}
-                                                />
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
+                            <PrescriptionDocument data={detailResponse.data} />
 
-                            {/* ── Conclusion + Next Visit ──────────────────── */}
-                            {showActionPlan && (
+                            {/* ── Next Visit ──────────────────── */}
+                            {showActionPlan && detailResponse.data.next_visit_date && (
                                 <MedicineActionPlan
-                                    conclusion={detailResponse.data.instructions_by_doctor ?? ""}
                                     nextVisitDate={detailResponse.data.next_visit_date ?? ""}
                                     doctor_id={doctorUserId || detailResponse.data.doctor_id || ""}
-                                    footerActionGridClassName={footerActionGrid}
+                                    footerActionGridClassName="grid-cols-1"
+                                    showConclusion={false}
                                 />
                             )}
                         </>
