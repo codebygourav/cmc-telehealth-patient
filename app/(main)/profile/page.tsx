@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileText, IdCard, KeyRound, Link2Off, Loader2, Lock, MapPin, Pencil, Phone, Receipt, ShieldCheck, User, Users } from "lucide-react";
@@ -23,16 +23,25 @@ import { cn } from "@/lib/utils";
 import ProfileTransactions from "@/components/pages/profile/profile-transactions";
 import { useSearchParams } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 type ProfileTab = "basic" | "address" | "password" | "records" | "transactions";
 
-export default function ProfilePage() {
+function ProfilePageContent() {
     const { user } = useAuth();
     const { activeProfile, isFamilyView, switchTo, managedBy } = useActiveProfile();
     const searchParams = useSearchParams();
-    const initialTab = (searchParams.get("tab") as ProfileTab) || "basic";
+    const tabParam = searchParams.get("tab") as ProfileTab;
+    const initialTab = tabParam || "basic";
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
     const [unlinkTarget, setUnlinkTarget] = useState<FamilyProfile | null>(null);
+
+    useEffect(() => {
+        if (tabParam) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam]);
 
     // Member-side: leave the primary account's management from profile page
     const [leaveTarget, setLeaveTarget] = useState<FamilyManager | null>(null);
@@ -226,5 +235,17 @@ export default function ProfilePage() {
 
             <UnlinkMemberDialog target={unlinkTarget} onClose={() => setUnlinkTarget(null)} onUnlinked={afterUnlink} />
         </div>
+    );
+}
+
+export default function ProfilePage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        }>
+            <ProfilePageContent />
+        </Suspense>
     );
 }

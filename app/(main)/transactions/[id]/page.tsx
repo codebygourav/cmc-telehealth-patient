@@ -36,6 +36,8 @@ interface TransactionDetailProps {
     params: { id: string };
 }
 
+export const dynamic = "force-dynamic";
+
 // Helper function to get status icon and color
 const getStatusIcon = (status: string) => {
     switch (status?.toLowerCase()) {

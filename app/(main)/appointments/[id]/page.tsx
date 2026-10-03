@@ -36,6 +36,8 @@ interface PageProps {
   }>;
 }
 
+export const dynamic = "force-dynamic";
+
 const AppointmentSummaryPage = ({ params }: PageProps) => {
   const { id: AppointmentId } = use(params);
   const router = useRouter();
