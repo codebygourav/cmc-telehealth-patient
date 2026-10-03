@@ -18,8 +18,8 @@ const getIcon = (group: string) => {
     case "appointment":
       return {
         icon: Calendar,
-        color: "text-blue-500",
-        bg: "bg-blue-50 dark:bg-blue-950/30",
+        color: "text-primary",
+        bg: "bg-primary/10 dark:bg-emerald-950/30",
       };
     case "lab":
     case "lab_result":

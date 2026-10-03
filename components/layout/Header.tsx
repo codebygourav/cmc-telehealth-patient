@@ -23,6 +23,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HeaderNavLinks } from "./HeaderNavLinks";
 import { HeaderUserProfileMenu } from "./HeaderUserProfileMenu";
+import { NotificationDropdown } from "./NotificationDropdown";
 import FamilyViewBanner from "./FamilyViewBanner";
 
 export function Header() {
@@ -127,24 +128,7 @@ export function Header() {
 
         <div className="hidden lg:flex items-center gap-3 ml-auto sm:gap-4">
           {!isGuest && (
-          <Link href="/notifications" className="relative">
-            <Button
-              variant="outline"
-              size="icon"
-              className={cn(
-                "h-9 w-10 global-radius border-[#E7E8EB] bg-background hover:bg-foreground/10 text-foreground transition-all duration-100",
-                pathname === "/notifications" &&
-                "border-primary/20 bg-primary/5 ",
-              )}
-            >
-              <span className="relative block">
-                <BellCheck className="h-7 w-7" />
-              </span>
-            </Button>
-            {!!unreadData && unreadData > 0 && (
-              <span className="absolute right-2.5 top-4.5 h-1.5 w-1.5 rounded-full bg-red-500" />
-            )}
-          </Link>
+            <NotificationDropdown />
           )}
 
           {user || initializing ? (

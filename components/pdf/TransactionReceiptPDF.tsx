@@ -25,6 +25,7 @@ interface TransactionData {
 
 interface TransactionReceiptPDFProps {
     transaction: TransactionData;
+    variant?: "button" | "card";
 }
 
 const formatAmountString = (amount: string, currency: string) => {
@@ -62,6 +63,7 @@ function formatDateForPDF(dateStr?: string) {
 
 export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
     transaction,
+    variant = "card",
 }) => {
     const { user } = useAuth();
     // A family member's transaction: their name and phone on the receipt.
@@ -90,6 +92,9 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
             // Each header row at left, value at right (trying to match visual of image)
             const leftX = 14;
             const valueX = 60;
+            const docName = transaction.doctor_name || transaction.paid_to;
+            const cleanDocName = docName ? docName.replace(/^(Dr\.\s*)+/gi, '').trim() : null;
+
             const entries = [
                 [
                     'Status:',
@@ -97,9 +102,13 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
                 ],
                 ['Date:', formatDateForPDF(transaction.date)],
                 [
-                    'Name:',
+                    'Patient:',
                     (member ? member.name : `${user?.first_name || ''} ${user?.last_name || ''}`.trim()) ||
                         'N/A',
+                ],
+                [
+                    'Doctor:',
+                    cleanDocName ? `Dr. ${cleanDocName}` : 'N/A',
                 ],
                 ['Email:', (member ? member.login_email : null) || user?.email || 'N/A'],
                 ['Phone:', (member ? member.phone : user?.mobile_no) || 'N/A'],
@@ -132,10 +141,9 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
             ]);
             tableData.push([
                 'Paid To',
-                transaction.paid_to ||
-                    (transaction.doctor_name
-                        ? `Dr. ${transaction.doctor_name}`
-                        : 'N/A'),
+                cleanDocName
+                    ? `Dr. ${cleanDocName}`
+                    : (transaction.paid_to || 'N/A'),
             ]);
 
             if (transaction.order_id) {
@@ -177,7 +185,6 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
                     cellPadding: { top: 3.5, right: 3, bottom: 3.5, left: 0 },
                     overflow: 'linebreak',
                 },
-                // Give space for label column and wider value, match the image
                 columnStyles: {
                     0: {
                         fontStyle: 'bold',
@@ -218,29 +225,44 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
         }
     };
 
+    if (variant === "button") {
+        return (
+            <button
+                type="button"
+                onClick={generatePDF}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-xs transition-colors cursor-pointer shrink-0"
+            >
+                <Download className="h-3.5 w-3.5" />
+                <span>Receipt PDF</span>
+            </button>
+        );
+    }
+
     return (
-        <div className="px-6 py-6 border-t border-gray-100 ">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">
+        <div className="px-4 sm:px-6 py-4 sm:py-6 border-t border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 sm:mb-4">
                 Attachments
             </h3>
 
-            <div className="flex items-center justify-between bg-surface-container-low rounded-2xl p-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                        <FileDownIcon className="w-5 h-5 text-gray-700" />
+            <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-3.5 sm:p-4 border border-gray-200/80 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-xs flex items-center justify-center border border-gray-200 shrink-0">
+                        <FileDownIcon className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                        <h2 className="font-semibold text-gray-900 text-sm">
+                    <div className="min-w-0">
+                        <h2 className="font-semibold text-gray-900 text-sm truncate">
                             Receipt.pdf
                         </h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">
                             Online receipt for this transaction
                         </p>
                     </div>
                 </div>
                 <button
+                    type="button"
                     onClick={generatePDF}
-                    className="text-gray-700 hover:text-gray-900 transition-colors p-2"
+                    className="text-primary hover:text-primary/80 transition-colors p-2 cursor-pointer shrink-0 rounded-lg hover:bg-primary/10"
+                    title="Download Receipt PDF"
                 >
                     <Download className="w-5 h-5" />
                 </button>

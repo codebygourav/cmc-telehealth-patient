@@ -70,8 +70,12 @@ export function usePushNotifications() {
 
             setSubscription(sub);
 
-            await storePushSubscription(sub);
-            console.log("Registered Push Subscription on Backend successfully!");
+            try {
+                await storePushSubscription(sub);
+                console.log("Registered Push Subscription on Backend successfully!");
+            } catch (backendErr) {
+                console.warn("Push subscription backend registration warning:", backendErr);
+            }
 
             return sub;
         } catch (error) {

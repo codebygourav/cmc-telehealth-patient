@@ -25,6 +25,7 @@ import {
     Copy,
     Check
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TransactionReceiptPDF } from "@/components/pdf/TransactionReceiptPDF";
 import jsPDF from "jspdf";
@@ -71,13 +72,18 @@ const formatAmount = (amount: string, currency: string) => {
 };
 
 
+function formatDoctorName(name?: string | null) {
+    if (!name) return null;
+    const clean = name.replace(/^(Dr\.\s*)+/gi, "").trim();
+    return clean ? `Dr. ${clean}` : null;
+}
+
 export default function TransactionDetail({ params }: TransactionDetailProps) {
     const router = useRouter();
     const [transaction, setTransaction] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [copiedId, setCopiedId] = useState(false);
-
 
     useEffect(() => {
         const fetchTransaction = async () => {
@@ -91,7 +97,7 @@ export default function TransactionDetail({ params }: TransactionDetailProps) {
                 if (err.response?.status === 401) {
                     setError("Unauthorized. Please login again.");
                     setTimeout(() => {
-                        router.push("/login");
+                        router.push("/auth/login");
                     }, 2000);
                 } else {
                     setError("Failed to load transaction details");
@@ -124,11 +130,11 @@ export default function TransactionDetail({ params }: TransactionDetailProps) {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                     <p className="text-red-600">{error || "Transaction not found"}</p>
                     <button
-                        onClick={() => router.back()}
-                        className="mt-4 text-sm text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                        onClick={() => router.push("/profile?tab=transactions")}
+                        className="mt-4 text-sm text-primary hover:underline inline-flex items-center gap-1 cursor-pointer font-semibold"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        Go Back
+                        Go Back to Profile Transactions
                     </button>
                 </div>
             </div>
@@ -137,31 +143,33 @@ export default function TransactionDetail({ params }: TransactionDetailProps) {
 
     const StatusIcon = getStatusIcon(transaction.status).icon;
     const statusStyle = getStatusIcon(transaction.status);
+    const docName = formatDoctorName(transaction.doctor_name || transaction.paid_to);
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-2xl mx-auto">
+        <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+            <div className="max-w-2xl mx-auto px-4">
                 {/* Back Button and Download */}
                 <DetailHeader
                     title="Transaction Details"
                     subtitle="Back to Transactions"
+                    onBack={() => router.push("/profile?tab=transactions")}
                 />
 
                 {/* Status Card */}
-                <div className={`${statusStyle.bg} rounded-2xl p-6 mb-6 shadow-sm border border-gray-100`}>
-                    <div className="flex items-center justify-between">
+                <div className={`${statusStyle.bg} rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-xs border border-gray-100`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <StatusIcon className={`w-8 h-8 ${statusStyle.color}`} />
+                            <StatusIcon className={`w-7 h-7 sm:w-8 sm:h-8 ${statusStyle.color} shrink-0`} />
                             <div>
-                                <p className={`font-semibold text-lg ${statusStyle.color}`}>
+                                <p className={`font-semibold text-base sm:text-lg ${statusStyle.color}`}>
                                     {transaction.status_label || transaction.status}
                                 </p>
-                                <p className="font-medium text-xs text-gray-900">{transaction.date || "N/A"}</p>
+                                <p className="font-medium text-xs text-gray-700">{transaction.date || "N/A"}</p>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-600">Amount</p>
-                            <p className="font-bold text-2xl text-gray-900">
+                        <div className="flex sm:flex-col justify-between items-baseline sm:items-end pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200/50">
+                            <p className="text-xs sm:text-sm text-gray-600">Amount</p>
+                            <p className="font-bold text-xl sm:text-2xl text-gray-900">
                                 {formatAmount(transaction.amount, transaction.currency)}
                             </p>
                         </div>
@@ -169,22 +177,21 @@ export default function TransactionDetail({ params }: TransactionDetailProps) {
                 </div>
 
                 {/* Main Clean Card */}
-                <div className="overflow-hidden">
-                    {/* Transaction ID */}
-                    <div className="px-6 py-5 border-b border-gray-300 flex justify-between items-center">
-                        <p className="text-sm text-gray-500">Transaction Id</p>
-                        <div className="flex items-center gap-2">
-                            <p className="font-mono font-semibold text-base text-gray-900">
-                                {transaction.transaction_id && (
-                                    <span>{transaction.transaction_id}</span>
-                                )}
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
+                    {/* Transaction ID Header */}
+                    <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 bg-gray-50/50">
+                        <p className="text-xs sm:text-sm font-semibold text-gray-600 shrink-0">Transaction ID</p>
+                        <div className="flex items-center gap-2 min-w-0 break-all">
+                            <p className="font-mono font-semibold text-xs sm:text-sm text-gray-900 break-all">
+                                {transaction.transaction_id || transaction.id}
                             </p>
                             <button
-                                onClick={() => copyToClipboard(transaction.id || transaction.transaction_id)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                type="button"
+                                onClick={() => copyToClipboard(transaction.transaction_id || transaction.id)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 cursor-pointer shrink-0"
                             >
                                 {copiedId ? (
-                                    <Check className="w-4 h-4 text-green-500" />
+                                    <Check className="w-4 h-4 text-emerald-600" />
                                 ) : (
                                     <Copy className="w-4 h-4" />
                                 )}
@@ -192,47 +199,81 @@ export default function TransactionDetail({ params }: TransactionDetailProps) {
                         </div>
                     </div>
 
-                    {/* Details */}
-                    <div className="divide-y divide-gray-200">
-                        {/* Paid To */}
-                        <div className="px-6 py-5 flex justify-between items-center">
-                            <p className="text-gray-600">Paid To</p>
-                            <div className="flex items-center gap-2">
-                                <p className="font-medium text-gray-900">{transaction.paid_to || "N/A"}</p>
+                    {/* Details Table */}
+                    <div className="divide-y divide-gray-100 text-sm">
+                        {/* Patient Name */}
+                        {transaction.patient_name && (
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Patient Name</p>
+                                <p className="font-semibold text-gray-900 text-sm sm:text-right break-words">{transaction.patient_name}</p>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Transaction ID (from API) */}
-                        {transaction.transaction_id && (
-                            <div className="px-6 py-5 flex justify-between items-center">
-                                <p className="text-gray-600">Transaction ID</p>
-                                <p className="font-mono text-gray-900">{transaction.transaction_id}</p>
+                        {/* Doctor Name */}
+                        {docName && (
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Doctor Name</p>
+                                <p className="font-semibold text-primary text-sm sm:text-right break-words">{docName}</p>
+                            </div>
+                        )}
+
+                        {/* Appointment Date & Time */}
+                        {(transaction.appointment_date || transaction.appointment_time) && (
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Appointment Schedule</p>
+                                <div className="sm:text-right">
+                                    <p className="font-semibold text-gray-900 text-sm">
+                                        {transaction.appointment_date || ""} {transaction.appointment_time ? `at ${transaction.appointment_time}` : ""}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Consultation Mode */}
+                        {transaction.consultation_type && (
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Consultation Mode</p>
+                                <p className="font-semibold text-gray-900 text-sm capitalize sm:text-right">{transaction.consultation_type}</p>
+                            </div>
+                        )}
+
+                        {/* Appointment ID */}
+                        {transaction.appointment_id && (
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Appointment Ref</p>
+                                <Link
+                                    href={`/appointments/${transaction.appointment_id}`}
+                                    className="font-mono text-xs font-semibold text-primary hover:underline flex items-center gap-1 break-all"
+                                >
+                                    <span>#{transaction.appointment_id}</span>
+                                    <FileText className="w-3.5 h-3.5 shrink-0" />
+                                </Link>
                             </div>
                         )}
 
                         {/* Order ID */}
                         {transaction.order_id && (
-                            <div className="px-6 py-5 flex justify-between items-center">
-                                <p className="text-gray-600">Order ID</p>
-                                <p className="font-mono text-gray-900 text-sm">{transaction.order_id}</p>
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Order ID</p>
+                                <p className="font-mono text-gray-900 text-xs break-all sm:text-right">{transaction.order_id}</p>
                             </div>
                         )}
 
                         {/* Payment Method */}
-                        <div className="px-6 py-5 flex justify-between items-center">
-                            <p className="text-gray-600">Payment method</p>
-                            <p className="font-medium text-gray-900">{transaction.payment_method || "N/A"}</p>
+                        <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                            <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">Payment Method</p>
+                            <p className="font-semibold text-gray-900 text-sm capitalize sm:text-right">{transaction.payment_method || "Online"}</p>
                         </div>
 
                         {/* Show Bank/UPI details */}
                         {(transaction.payment_method?.toLowerCase() !== "upi" && transaction.bank_name) ||
                             (transaction.payment_method?.toLowerCase() === "upi" && (transaction.upi_id || transaction.account_details)) ? (
-                            <div className="px-6 py-5 flex justify-between items-center">
-                                <p className="text-gray-600">
+                            <div className="px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                                <p className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">
                                     {transaction.payment_method?.toLowerCase() === "upi" ? "UPI ID" : "Bank Name"}
                                 </p>
-                                <div className="text-right">
-                                    <p className="text-base text-gray-900">
+                                <div className="sm:text-right break-all">
+                                    <p className="font-medium text-gray-900 text-sm break-all">
                                         {transaction.payment_method?.toLowerCase() === "upi"
                                             ? (transaction.upi_id || transaction.account_details)
                                             : transaction.bank_name}
@@ -240,26 +281,10 @@ export default function TransactionDetail({ params }: TransactionDetailProps) {
                                 </div>
                             </div>
                         ) : null}
-
-                        {/* Patient Name */}
-                        {transaction.patient_name && (
-                            <div className="px-6 py-5 flex justify-between items-center">
-                                <p className="text-gray-600">Patient Name</p>
-                                <p className="font-medium text-gray-900">{transaction.patient_name}</p>
-                            </div>
-                        )}
-
-                        {/* Doctor Name */}
-                        {transaction.doctor_name && (
-                            <div className="px-6 py-5 flex justify-between items-center">
-                                <p className="text-gray-600">Doctor Name</p>
-                                <p className="font-medium text-gray-900">Dr. {transaction.doctor_name}</p>
-                            </div>
-                        )}
                     </div>
-                    {/* Attachments Section */}
 
-                    <TransactionReceiptPDF transaction={transaction} />
+                    {/* Attachments Section */}
+                    <TransactionReceiptPDF transaction={{ ...transaction, doctor_name: docName }} />
                 </div>
             </div>
         </div>

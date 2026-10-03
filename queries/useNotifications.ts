@@ -7,10 +7,11 @@ export const useNotifications = (page: number = 1) => {
     return useQuery({
         queryKey: ["notifications", page],
         queryFn: () => fetchNotifications(page),
-        staleTime: 2 * 60 * 1000,
+        staleTime: 15 * 1000,
         gcTime: 10 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
+        refetchInterval: 20 * 1000,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
     });
 };
 
@@ -22,11 +23,11 @@ export const useUnreadCount = () => {
         queryFn: fetchUnreadCount,
         // Guests have no notifications.
         enabled: !!token,
-        staleTime: 2 * 60 * 1000,
+        staleTime: 15 * 1000,
         gcTime: 10 * 60 * 1000,
-        refetchInterval: 5 * 60 * 1000,
+        refetchInterval: 20 * 1000,
         refetchIntervalInBackground: false,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
     });
 };

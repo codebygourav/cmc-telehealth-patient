@@ -99,9 +99,9 @@ function AppointmentCard({
                                 "_blank"
                             );
                         }}
-                        className="w-full mt-0 text-base font-semibold text-black bg-white h-11 global-radius btn-primary-without-transition"
+                        className="w-full mt-4 text-sm sm:text-base font-bold text-primary bg-white hover:bg-slate-100 h-11 rounded-md shadow-sm transition-all border-0 cursor-pointer flex items-center justify-center gap-2"
                     >
-                        <Video className="mr-2 size-4" />
+                        <Video className="size-4" />
                         Join Video Call
                     </Button>
                 ) : (

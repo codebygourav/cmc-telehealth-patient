@@ -28,12 +28,29 @@ export const markNotificationAsRead = async (notificationId: string) => {
 
 //! store push subscription
 export const storePushSubscription = async (subscription: any) => {
-    const { data } = await api.post("/notifications/push-subscription", subscription);
-    return data;
+    try {
+        const { data } = await api.post("/webpush/subscribe", subscription);
+        return data;
+    } catch (err: any) {
+        // Fallback in case backend uses alternate route
+        if (err?.response?.status === 405 || err?.response?.status === 404) {
+            const { data } = await api.post("/notifications/push-subscription", subscription);
+            return data;
+        }
+        throw err;
+    }
 };
 
 //! delete push subscription
 export const deletePushSubscription = async (endpoint: string) => {
-    const { data } = await api.post("/notifications/push-subscription/delete", { endpoint });
-    return data;
+    try {
+        const { data } = await api.post("/webpush/unsubscribe", { endpoint });
+        return data;
+    } catch (err: any) {
+        if (err?.response?.status === 405 || err?.response?.status === 404) {
+            const { data } = await api.post("/notifications/push-subscription/delete", { endpoint });
+            return data;
+        }
+        throw err;
+    }
 };

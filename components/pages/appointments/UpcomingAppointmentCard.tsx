@@ -161,23 +161,23 @@ const UpcomingAppointmentCard = ({
 
                     {/* View Details Button */}
 
-                    {call_now && joinUrl ? (
+                    {(call_now || (appointment as any).canJoin) && joinUrl ? (
                         <Button
                             variant="default"
-                            onClick={() => window.open(`/start-consultation?room_url=${joinUrl}&appointment_id=${appointment.id}`, "_blank")}
-                            className="w-full  h-auto text-sm font-semibold btn-primary-cta"
+                            onClick={() => window.open(`/start-consultation?room_url=${encodeURIComponent(joinUrl)}&appointment_id=${appointment.id}`, "_blank")}
+                            className="w-full h-10 text-sm font-semibold btn-primary-cta flex items-center justify-center gap-2 cursor-pointer"
                         >
-                            <Phone size={22} strokeWidth={3.5} className="m-0" />
-                            Join Now
+                            <Video size={18} className="m-0" />
+                            Join Video Call
                         </Button>
                     ) : (
                         <Button
                             variant="default"
                             onClick={() => router.push(`/appointments/manage-appointment/${appointment.id}`)}
-                            className="w-full  h-auto text-sm font-semibold btn-primary-cta"
+                            className="w-full h-10 text-sm font-semibold btn-primary-cta flex items-center justify-center gap-2 cursor-pointer"
                         >
                             Manage Appointment
-                            <ChevronRight size={22} strokeWidth={3.5} className="m-0" />
+                            <ChevronRight size={18} className="m-0" />
                         </Button>
                     )}
                 </div>

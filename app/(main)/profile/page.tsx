@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
-import { FileText, IdCard, KeyRound, Link2Off, Loader2, Lock, MapPin, Pencil, Phone, ShieldCheck, User, Users } from "lucide-react";
+import { FileText, IdCard, KeyRound, Link2Off, Loader2, Lock, MapPin, Pencil, Phone, Receipt, ShieldCheck, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/userContext";
 import { familyProfilesKey, useActiveProfile } from "@/context/activeProfileContext";
@@ -20,14 +20,18 @@ import HeroSection from "@/components/hero-section";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import ProfileTransactions from "@/components/pages/profile/profile-transactions";
+import { useSearchParams } from "next/navigation";
 
-type ProfileTab = "basic" | "address" | "password" | "records";
+type ProfileTab = "basic" | "address" | "password" | "records" | "transactions";
 
 export default function ProfilePage() {
     const { user } = useAuth();
     const { activeProfile, isFamilyView, switchTo, managedBy } = useActiveProfile();
+    const searchParams = useSearchParams();
+    const initialTab = (searchParams.get("tab") as ProfileTab) || "basic";
     const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState<ProfileTab>("basic");
+    const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
     const [unlinkTarget, setUnlinkTarget] = useState<FamilyProfile | null>(null);
 
     // Member-side: leave the primary account's management from profile page
@@ -66,6 +70,7 @@ export default function ProfilePage() {
         { id: "address", label: "Address Details", icon: MapPin },
         { id: "password", label: "Change Password", icon: Lock },
         { id: "records", label: "Medical Records", icon: FileText },
+        { id: "transactions", label: "Transactions", icon: Receipt },
     ];
 
     return (
@@ -170,12 +175,14 @@ export default function ProfilePage() {
                                 {activeTab === "address" && "Address Details"}
                                 {activeTab === "password" && "Change Password"}
                                 {activeTab === "records" && "Medical Records & Reports"}
+                                {activeTab === "transactions" && "Appointment Transactions & Receipts"}
                             </h2>
                             <p className="mb-6 text-sm text-muted-foreground">
                                 {activeTab === "basic" && (member ? `These details appear on ${member.first_name}'s appointments and bookings.` : "These details appear on your appointments and bookings.")}
                                 {activeTab === "address" && "Update your address for clinic visits and prescription delivery."}
                                 {activeTab === "password" && (member ? `${member.first_name}'s login. A code is sent to their email to reset the password.` : "Update your account password to keep your profile secure.")}
                                 {activeTab === "records" && "Upload and manage private reports under your profile. Reports here are not shared with doctors unless attached to an appointment."}
+                                {activeTab === "transactions" && "View all appointment payment records and download official PDF transaction receipts."}
                             </p>
 
                             {user ? (
@@ -187,6 +194,7 @@ export default function ProfilePage() {
                                         ? <MemberLoginSection value={emptyFamilyMember} onChange={() => undefined} idPrefix="profile-member" profile={member} />
                                         : <ChangePasswordForm />)}
                                     {activeTab === "records" && <ProfileMedicalRecords user={user} />}
+                                    {activeTab === "transactions" && <ProfileTransactions />}
                                 </>
                             ) : (
                                 <div className="h-40 animate-pulse rounded-md bg-gray-100" aria-busy="true" />
