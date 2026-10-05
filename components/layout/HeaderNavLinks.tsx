@@ -11,13 +11,14 @@ import {
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types/header";
-import { Bell, LogOut, Menu, User as UserIcon } from "lucide-react";
+import { Bell, LogOut, Menu, User as UserIcon, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "@/public/assets/icon/logo-green.png";
 import { useSettings } from "@/context/settingsContext";
-import ProfileSwitcherList from "./ProfileSwitcherList";
-import type { Dispatch, SetStateAction } from "react";
+import MobileMenuProfileCard from "./MobileMenuProfileCard";
+import { useUnreadCount } from "@/queries/useNotifications";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 interface HeaderNavLinksProps {
     items: NavItem[];
@@ -40,6 +41,8 @@ export function HeaderNavLinks({
     isGuest = false,
 }: HeaderNavLinksProps) {
     const { settings } = useSettings();
+    const { data: unread } = useUnreadCount();
+    const unreadCount = Number(unread) || 0;
 
     return (
 
@@ -91,119 +94,49 @@ export function HeaderNavLinks({
                         </Button>
                     </SheetTrigger>
 
-                    <SheetContent side="right" className="w-[320px] sm:w-[360px] border-l border-border/60 px-0 flex flex-col h-full max-h-screen">
-                        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/40 text-left flex flex-row items-center justify-between shrink-0">
-                            <SheetTitle className="text-base font-bold flex items-center">
-                                <Image
-                                    src={settings.logoUrl || logo}
-                                    alt={settings.appName || "CMC Telehealth"}
-                                    width={150}
-                                    height={36}
-                                    className="object-contain w-auto h-8"
-                                    priority
-                                    unoptimized
-                                />
+                    <SheetContent side="right" className="flex h-full max-h-dvh w-[340px] max-w-[92vw] flex-col gap-0 border-l border-border/60 px-0 sm:w-[380px]">
+                        <SheetHeader className="flex shrink-0 flex-row items-center justify-between border-b border-border/40 px-5 pt-5 pb-4 text-left">
+                            <SheetTitle className="flex items-center">
+                                <Image src={settings.logoUrl || logo} alt={settings.appName || "CMC Telehealth"} width={150} height={36}
+                                    className="h-9 w-auto object-contain" priority unoptimized />
                             </SheetTitle>
                         </SheetHeader>
 
-                        <div className="flex-1 overflow-y-auto px-3.5 py-4 flex flex-col gap-2.5">
-                            {items.map((item) => {
-                                const isActive = isActivePath(item.href);
+                        <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-4">
+                            {!isGuest && <MobileMenuProfileCard onDone={() => setMobileMenuOpen(false)} />}
 
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className={cn(
-                                            "flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 shadow-2xs",
-                                            isActive
-                                                ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                                : "border-border/70 bg-background text-foreground/85 hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
-                                        )}
-                                    >
-                                        <span className={cn("shrink-0", isActive ? "text-primary-foreground" : "text-primary")}>
-                                            {item.icon}
-                                        </span>
-                                        <span className="flex-1">{item.title}</span>
-                                        {item.badge ? (
-                                            <Badge
-                                                variant={isActive ? "secondary" : "default"}
-                                                className={cn(
-                                                    "rounded-full px-2 py-0 text-[10px]",
-                                                    isActive && "bg-primary-foreground/15 text-primary-foreground",
-                                                )}
-                                            >
-                                                {Number(item.badge) > 99 ? "99+" : item.badge}
-                                            </Badge>
-                                        ) : null}
-                                    </Link>
-                                );
-                            })}
+                            <MenuSection title={isGuest ? undefined : "Medical services"}>
+                                {items.map((item) => (
+                                    <MenuLink key={item.href} href={item.href} icon={item.icon} label={item.title} active={isActivePath(item.href)}
+                                        badge={item.badge} onClick={() => setMobileMenuOpen(false)} />
+                                ))}
+                            </MenuSection>
 
+                            {!isGuest && (
+                                <MenuSection title="Account">
+                                    <MenuLink href="/notifications" icon={<Bell className="h-4 w-4" />} label="Notifications" active={pathname === "/notifications"}
+                                        count={unreadCount} onClick={() => setMobileMenuOpen(false)} />
+                                    <MenuLink href="/profile" icon={<UserIcon className="h-4 w-4" />} label="My Profile" active={pathname === "/profile"}
+                                        onClick={() => setMobileMenuOpen(false)} />
+                                    <MenuLink href="/family-members" icon={<Users className="h-4 w-4" />} label="Family Profiles" active={pathname === "/family-members"}
+                                        onClick={() => setMobileMenuOpen(false)} />
+                                </MenuSection>
+                            )}
+                        </div>
+
+                        <div className="shrink-0 border-t border-border/40 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
                             {isGuest ? (
-                                <div className="mt-2 grid grid-cols-2 gap-2">
-                                    <Link
-                                        href="/auth/login"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="flex items-center justify-center rounded-xl border border-border/80 bg-background px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted"
-                                    >
-                                        Sign In
-                                    </Link>
-                                    <Link
-                                        href="/auth/register"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                                    >
-                                        Register
-                                    </Link>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}
+                                        className="flex h-12 items-center justify-center rounded-xl border border-border/80 bg-background text-sm font-semibold text-foreground hover:bg-muted">Sign In</Link>
+                                    <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}
+                                        className="flex h-12 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90">Register</Link>
                                 </div>
                             ) : (
-                            <>
-                            <div className="mt-2 rounded-2xl border border-border/80 bg-muted/20 p-2 shadow-2xs">
-                                <ProfileSwitcherList onDone={() => setMobileMenuOpen(false)} />
-                            </div>
-
-                            <Link
-                                href="/profile"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={cn(
-                                    "mt-1 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 shadow-2xs",
-                                    pathname === "/profile"
-                                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                        : "border-border/70 bg-background text-foreground/85 hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
-                                )}
-                            >
-                                <UserIcon className={cn("w-4 h-4 shrink-0", pathname === "/profile" ? "text-primary-foreground" : "text-primary")} />
-                                <span className="flex-1">My Profile</span>
-                            </Link>
-
-                            <Link
-                                href="/notifications"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={cn(
-                                    "flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 shadow-2xs",
-                                    pathname === "/notifications"
-                                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                        : "border-border/70 bg-background text-foreground/85 hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
-                                )}
-                            >
-                                <Bell className={cn("w-4 h-4 shrink-0", pathname === "/notifications" ? "text-primary-foreground" : "text-primary")} />
-                                <span className="flex-1">Notifications</span>
-                            </Link>
-
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    setMobileMenuOpen(false);
-                                    await onLogout();
-                                }}
-                                className="mt-1 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-semibold text-destructive transition-all duration-200 hover:bg-destructive/10 cursor-pointer"
-                            >
-                                <LogOut className="w-4 h-4 shrink-0 text-destructive" />
-                                <span className="flex-1 text-left">Log out</span>
-                            </button>
-                            </>
+                                <button type="button" onClick={async () => { setMobileMenuOpen(false); await onLogout(); }}
+                                    className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 text-base font-semibold text-red-600 transition-colors hover:bg-red-100">
+                                    <LogOut className="h-5 w-5" /> Log Out
+                                </button>
                             )}
                         </div>
                     </SheetContent>
@@ -212,3 +145,28 @@ export function HeaderNavLinks({
         </>
     );
 }
+
+const MenuSection = ({ title, children }: { title?: string; children: ReactNode }) => (
+    <div>
+        {title && <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{title}</p>}
+        <div className="space-y-2">{children}</div>
+    </div>
+);
+
+const MenuLink = ({ href, icon, label, active, onClick, badge, count }: {
+    href: string; icon: ReactNode; label: string; active: boolean; onClick: () => void; badge?: string | number; count?: number;
+}) => (
+    <Link href={href} onClick={onClick} aria-current={active ? "page" : undefined}
+        className={cn("flex items-center gap-3.5 rounded-lg border px-3.5 py-3 text-[15px] font-medium transition-colors",
+            active ? "border-primary bg-primary text-primary-foreground shadow-sm" : "border-primary/35 bg-white text-[#1F1E1E] hover:border-primary hover:bg-primary/5")}>
+        <span className={cn("shrink-0 [&_svg]:h-5 [&_svg]:w-5", active ? "text-primary-foreground" : "text-muted-foreground")}>{icon}</span>
+        <span className="flex-1">{label}</span>
+        {count ? (
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-1.5 text-xs font-bold text-red-600">{count > 99 ? "99+" : count}</span>
+        ) : badge ? (
+            <span className="text-xs font-semibold opacity-80">{badge}</span>
+        ) : active ? (
+            <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+        ) : null}
+    </Link>
+);

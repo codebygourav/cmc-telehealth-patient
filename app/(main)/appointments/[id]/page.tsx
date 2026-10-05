@@ -8,7 +8,7 @@ import NextStepsCard from "@/components/pages/appointment-summary/NextStepsCard"
 import ConfirmButton from "@/components/pages/appointment-summary/ConfirmButton";
 import LoadingSkeleton from "@/components/pages/appointment-summary/LoadingSkeleton";
 import CustomDialog from "@/components/custom/Dialogboxs";
-import { AlertCircle, CheckCircle2, ChevronRight } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   appointmentDetailKeys,
@@ -55,6 +55,7 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
     patientGender: searchParams.get("patientGender") || "",
   };
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<BookingConfirmationDetails | null>(null);
   // Set once payment succeeds on this page, so the "already paid" redirect below does not run.
@@ -125,7 +126,12 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
     if (bookedForOther) {
       const name = memberProfile?.first_name || (data?.data as any)?.booked_for?.name || "the family member";
       setConfirmation(null);
-      toast.info(`Appointment booked for ${name}. Switch to ${name}'s profile to see this appointment.`, { duration: 8000 });
+      if (memberProfile) {
+        switchTo(memberProfile.patient_id);
+        router.push("/appointments");
+      } else {
+        router.push("/find-doctors");
+      }
       return;
     }
     router.replace("/appointments");
@@ -203,9 +209,6 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
       // API call to confirm booking
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Do NOT show dialog here! Wait until after payment/verification.
-      // Move dialog logic to payment handlers.
-
       const res = await loadRazorpayScript();
 
       if (!res) {
@@ -225,7 +228,6 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
       const options = {
         key: razorpayKeyId,
         amount: doctor.payment.total, // already in paise
-        // currency: "INR",
         currency: doctor.payment.currency,
         name: "Cmc Telehealth",
         description: doctor?.doctor?.name,
@@ -239,6 +241,8 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
           )
             return;
 
+          setIsVerifyingPayment(true);
+
           verifyPayment(
             {
               razorpay_order_id: response.razorpay_order_id,
@@ -247,23 +251,21 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
               razorpay_signature: response.razorpay_signature,
             },
             {
-              onSuccess: (res) => {
+              onSuccess: async (res) => {
+                await refetch();
                 queryClient.invalidateQueries({
                   queryKey: appointmentDetailKeys.detail(AppointmentId),
                 });
 
-                refetch();
-
                 justPaidRef.current = true;
 
-                // Show every booking detail with Download PDF / Print.
-                // New bookings go to the doctor for confirmation first (status from the API).
                 setConfirmation(
                   buildConfirmation({
                     status: res?.data?.appointment_status || "awaiting_confirmation",
                     paymentId: response.razorpay_payment_id,
                   }),
                 );
+                setIsVerifyingPayment(false);
               },
               onError: async () => {
                 const updated = await refetch();
@@ -289,6 +291,7 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
                     description: "Payment done but verification failed. Please refresh or check your appointments.",
                   });
                 }
+                setIsVerifyingPayment(false);
               },
             },
           );
@@ -448,6 +451,20 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
           )
         }
       />
+      {/* Payment Verification Loading Overlay */}
+      {isVerifyingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <div>
+              <h3 className="text-lg font-bold text-[#1F1E1E]">Verifying Payment...</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Please wait while we confirm your payment and update your appointment details.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

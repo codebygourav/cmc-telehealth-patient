@@ -25,6 +25,7 @@ import { HeaderNavLinks } from "./HeaderNavLinks";
 import { HeaderUserProfileMenu } from "./HeaderUserProfileMenu";
 import { NotificationDropdown } from "./NotificationDropdown";
 import FamilyViewBanner from "./FamilyViewBanner";
+import CallAlertBar from "./CallAlertBar";
 
 export function Header() {
   const { settings } = useSettings();
@@ -158,6 +159,7 @@ export function Header() {
       </div>
       <div className="-mx-5">
         <FamilyViewBanner />
+        {user && <CallAlertBar />}
       </div>
     </header>
   );

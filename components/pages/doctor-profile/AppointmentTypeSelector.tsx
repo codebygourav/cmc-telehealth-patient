@@ -37,7 +37,7 @@ const AppointmentTypeSelector = ({
                         aria-selected={active}
                         onClick={() => onChange(type)}
                         className={cn(
-                            'group flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2.5 text-left transition-colors',
+                            'group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md px-3 py-2.5 text-center transition-colors sm:flex-row sm:justify-start sm:gap-2.5 sm:text-left',
                             active
                                 ? 'bg-primary text-white shadow-sm hover:bg-primary/90'
                                 : 'text-[#4D4D4D] hover:bg-white hover:text-[#1F1E1E] hover:shadow-sm',
@@ -51,7 +51,7 @@ const AppointmentTypeSelector = ({
                         >
                             <Icon size={16} className={active ? 'text-white' : 'text-primary'} />
                         </span>
-                        <span className="min-w-0">
+                        <span className="min-w-0 w-full sm:w-auto">
                             <span className="block text-sm font-semibold leading-tight">{label}</span>
                             <span className={cn('mt-0.5 block truncate text-[11px] leading-tight', active ? 'text-white/75' : 'text-[#8A8A8A]')}>
                                 {hasSlots ? hint : 'No schedules yet'}

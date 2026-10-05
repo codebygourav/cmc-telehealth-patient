@@ -18,7 +18,7 @@ import HeroSection from '@/components/hero-section';
 
 const AppointmentsPage = () => {
 
-    const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'pending_payment'>('upcoming');
+    const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'past' | 'pending_payment'>('today');
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
     const queryClient = useQueryClient();
@@ -122,17 +122,19 @@ const AppointmentsPage = () => {
     );
 
     // Empty State Component
-    const EmptyState = ({ type }: { type: 'upcoming' | 'past' }) => (
+    const EmptyState = ({ type }: { type: 'today' | 'upcoming' | 'past' }) => (
         <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
                 <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-surface-container-low">
                     <Calendar className="w-8 h-8 text-on-surface-variant/50" />
                 </div>
-                <h3 className="mb-1 text-lg font-bold text-on-surface">No {type} appointments</h3>
+                <h3 className="mb-1 text-lg font-bold text-on-surface">{type === 'today' ? 'No appointments today' : `No ${type} appointments`}</h3>
                 <p className="text-sm text-on-surface-variant">
-                    {type === 'upcoming'
-                        ? 'You have no upcoming appointments scheduled.'
-                        : 'You have no past appointments to show.'}
+                    {type === 'today'
+                        ? 'You have no appointments today.'
+                        : type === 'upcoming'
+                            ? 'You have no upcoming appointments scheduled.'
+                            : 'You have no past appointments to show.'}
                 </p>
             </div>
         </div>
@@ -146,15 +148,17 @@ const AppointmentsPage = () => {
     };
 
     // Upcoming Tab Content
-    const UpcomingContent = () => {
+    // "Today": every appointment dated today (done or not) until the day is over.
+    // "Upcoming": from tomorrow on (the API splits them, see AppointmentController::index).
+    const UpcomingContent = ({ type = 'upcoming' }: { type?: 'today' | 'upcoming' }) => {
         if (isLoading) return <LoadingState />;
         if (isError) return <ErrorState />;
 
-        const upcomingApps = filterAppointments(data?.data);
+        const upcomingApps = type === 'today' ? (data?.data ?? []) : filterAppointments(data?.data);
         const pagination = data?.pagination;
 
         if (upcomingApps.length === 0 && (!pagination || pagination.total === 0)) {
-            return <EmptyState type="upcoming" />;
+            return <EmptyState type={type} />;
         }
 
         return (
@@ -174,6 +178,7 @@ const AppointmentsPage = () => {
                                 fee={app.fee_amount}
                                 joinUrl={app.join_url || app.video_consultation?.join_url}
                                 call_now={app.call_now}
+                                isRejoin={Boolean((app as any).call_is_rejoin)}
                                 status={app.status}
                                 statusLabel={(app as any).status_label}
                                 bookedForName={(app as any).booked_for?.name}
@@ -289,12 +294,17 @@ const AppointmentsPage = () => {
 
     // Reset to page 1 when tab changes
     const handleTabChange = (value: string) => {
-        setActiveTab(value as 'upcoming' | 'past' | 'pending_payment');
+        setActiveTab(value as 'today' | 'upcoming' | 'past' | 'pending_payment');
         setCurrentPage(1);
     };
 
     // Define tabs with dynamic content
     const tabs = [
+        {
+            key: 'today',
+            label: 'Today',
+            content: <UpcomingContent type="today" />,
+        },
         {
             key: 'upcoming',
             label: 'Upcoming',
@@ -327,7 +337,7 @@ const AppointmentsPage = () => {
                     defaultTab="upcoming"
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
-                    tabsListClassName="max-w-xl"
+                    tabsListClassName="max-w-2xl"
                 />
             </div>
 

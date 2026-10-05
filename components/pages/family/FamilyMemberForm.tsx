@@ -112,19 +112,21 @@ export default function FamilyMemberForm({ value, onChange, errors = {}, relatio
 
     return (
         <div className="@container space-y-3">
-            <div className="grid grid-cols-1 gap-3 @lg:grid-cols-2">
+            {/* One grid: 4 fields per row on wide screens, 2 on phones. */}
+            <div className="grid grid-cols-2 gap-3 @4xl:grid-cols-4">
+                <div className="col-span-2 min-w-0 @4xl:col-span-1">
                 <FormField label="Patient Name" required error={errors.name} htmlFor={`${idPrefix}-name`}>
                     <input id={`${idPrefix}-name`} className={cn(inputClass, errors.name && "border-destructive")} value={value.name}
                         onChange={(e) => set("name", e.target.value)} placeholder="Person visiting the doctor" maxLength={255} />
                 </FormField>
+                </div>
+                <div className="col-span-2 min-w-0 @4xl:col-span-1">
                 <FormField label="Relation" required error={errors.relationship || errors.relationship_label} htmlFor={`${idPrefix}-relationship`}>
                     <RelationCombobox id={`${idPrefix}-relationship`} className={inputClass} options={relationOptions} customKey={CUSTOM_RELATION}
                         relationship={value.relationship} label={value.relationship_label} invalid={!!(errors.relationship || errors.relationship_label)}
                         onChange={(relationship, relationship_label) => onChange({ ...value, relationship, relationship_label })} />
                 </FormField>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-3">
+                </div>
                 <FormField label="Gender" required error={errors.gender} htmlFor={`${idPrefix}-gender`}>
                     <select id={`${idPrefix}-gender`} className={cn(inputClass, errors.gender && "border-destructive")} value={value.gender}
                         onChange={(e) => set("gender", e.target.value)}>
@@ -138,16 +140,13 @@ export default function FamilyMemberForm({ value, onChange, errors = {}, relatio
                     <input id={`${idPrefix}-age`} inputMode="numeric" className={cn(inputClass, errors.age && "border-destructive")} value={value.age}
                         onChange={(e) => set("age", e.target.value.replace(/\D/g, "").slice(0, 3))} placeholder="e.g. 35" />
                 </FormField>
-                <div className="col-span-2 min-w-0 @3xl:col-span-1">
+                <div className="col-span-2 min-w-0 @4xl:col-span-1">
                     <FormField label="Phone Number" required error={errors.phone} htmlFor={`${idPrefix}-phone`}>
                         <input id={`${idPrefix}-phone`} inputMode="numeric" className={cn(inputClass, errors.phone && "border-destructive")} value={value.phone}
                             onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10 digit mobile number" />
                     </FormField>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 @lg:grid-cols-2">
-                <div className="min-w-0">
+                <div className="col-span-2 min-w-0">
                     <p className="mb-1 text-sm font-semibold text-[#1F1E1E]">Patient Type <span className="text-destructive">*</span></p>
                     <div className={cn("grid h-11 grid-cols-2 gap-1 rounded-md border bg-[#F5F6F8] p-1", errors.patient_type ? "border-destructive" : "border-[#E7E8EB]")}
                         role="radiogroup" aria-label="Patient type">
@@ -165,10 +164,12 @@ export default function FamilyMemberForm({ value, onChange, errors = {}, relatio
                         : <p className="mt-1 text-xs text-muted-foreground">Old patient: visited the clinic before and has a Unit ID.</p>}
                 </div>
                 {value.patient_type === "old" && (
+                    <div className="col-span-2 min-w-0 @4xl:col-span-1">
                     <FormField label="Unit ID (C Number)" required error={errors.unit_id} htmlFor={`${idPrefix}-unit`}>
                         <input id={`${idPrefix}-unit`} className={cn(inputClass, errors.unit_id && "border-destructive")} value={value.unit_id}
                             onChange={(e) => set("unit_id", e.target.value)} placeholder="e.g. C-123456" maxLength={255} />
                     </FormField>
+                    </div>
                 )}
             </div>
 

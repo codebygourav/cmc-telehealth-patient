@@ -15,6 +15,8 @@ import { useAuth } from "@/context/userContext";
 import { ProfileAvatar } from "@/components/layout/ProfileSwitcherList";
 import ExistingProfileMatchPanel from "@/components/pages/family/ExistingProfileMatchPanel";
 import UnlinkMemberDialog from "@/components/pages/family/UnlinkMemberDialog";
+import RelinkDialog from "@/components/pages/family/RelinkDialog";
+import SheetDialog from "@/components/custom/SheetDialog";
 import FamilyMemberForm, {
     emptyFamilyMember,
     familyMemberDraft,
@@ -93,25 +95,9 @@ function FamilyProfilesContent() {
         setEditing(profile.patient_id);
     };
 
-    const openRelink = async (profile: FamilyProfile) => {
-        try {
-            const found = await lookupFamilyMember({
-                name: profile.name,
-                phone: profile.phone || undefined,
-                unit_id: profile.unit_id,
-                login_email: profile.login_email || profile.email,
-            });
-            if (found) {
-                setMatch(found);
-                setForm(familyMemberFromProfile(profile));
-                setEditing(profile.patient_id);
-            } else {
-                toast.error("Could not find profile details to re-link. Please click Add Family Member to link.");
-            }
-        } catch (err) {
-            toast.error(familyApiError(err));
-        }
-    };
+    // Link Again: only the code check; their details can be edited once linked.
+    const [relinkTarget, setRelinkTarget] = useState<FamilyProfile | null>(null);
+    const openRelink = (profile: FamilyProfile) => setRelinkTarget(profile);
 
     const findExisting = (loginEmail?: string) => lookupFamilyMember({
         name: form.name.trim(),
@@ -233,39 +219,6 @@ function FamilyProfilesContent() {
                     </section>
                 )}
 
-                {editing && (
-                    <section className="rounded-lg border border-[#E7E8EB] bg-white p-5 shadow-[0px_2px_4px_0px_#0000001A]">
-                        <h2 className="mb-1 text-base font-semibold text-[#1F1E1E]">
-                            {editing === "new" ? "New Family Member" : "Edit Family Member"}
-                        </h2>
-                        <p className="mb-4 text-xs text-muted-foreground">
-                            Booking alerts for this person come to your account. Add their Unit ID if they have visited before.
-                        </p>
-                        <FamilyMemberForm value={form} onChange={(next) => { setForm(next); setErrors({}); setMatch(null); }} errors={errors} relationships={relationships} idPrefix="family-page"
-                            profile={editingProfile ?? null} onEmailTaken={editing === "new" ? onEmailTaken : undefined} />
-                        {match ? (
-                            <div className="mt-4">
-                                <ExistingProfileMatchPanel
-                                    match={match}
-                                    relationship={toFamilyMemberInput(form).relationship}
-                                    relationshipLabel={toFamilyMemberInput(form).relationship_label}
-                                    idPrefix="family-page"
-                                    onLinked={async () => { closeForm(); await refresh(); }}
-                                    onCreateNew={() => { setMatch(null); save(true); }}
-                                    onCancel={() => setMatch(null)}
-                                />
-                            </div>
-                        ) : (
-                        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                            <Button variant="outline" onClick={closeForm} disabled={saving}>Cancel</Button>
-                            <Button className="btn-primary-cta" onClick={() => save()} disabled={saving}>
-                                {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : editing === "new" ? "Add Member" : "Save Changes"}
-                            </Button>
-                        </div>
-                        )}
-                    </section>
-                )}
-
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {loading && [0, 1].map((i) => <div key={i} className="h-36 animate-pulse rounded-lg bg-gray-100" />)}
 
@@ -357,6 +310,48 @@ function FamilyProfilesContent() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+
+            {/* Add / edit: wide dialog on desktop, bottom sheet on phones (buttons always visible). */}
+            <SheetDialog
+                open={!!editing}
+                onOpenChange={(open) => !open && !saving && closeForm()}
+                title={editing === "new" ? "New Family Member" : "Edit Family Member"}
+                description="Booking alerts for this person come to your account. Add their Unit ID if they have visited before."
+                className={match ? "sm:max-w-6xl" : "sm:max-w-5xl"}
+                footer={match ? undefined : (
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                        <Button variant="outline" className="h-10" onClick={closeForm} disabled={saving}>Cancel</Button>
+                        <Button className="btn-primary-cta h-10" onClick={() => save()} disabled={saving}>
+                            {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : editing === "new" ? "Add Member" : "Save Changes"}
+                        </Button>
+                    </div>
+                )}
+            >
+                <div className={match ? "grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]" : ""}>
+                    <FamilyMemberForm value={form} onChange={(next) => { setForm(next); setErrors({}); setMatch(null); }} errors={errors} relationships={relationships} idPrefix="family-page"
+                        profile={editingProfile ?? null} onEmailTaken={editing === "new" ? onEmailTaken : undefined} />
+                    {match && (
+                        <aside className="lg:sticky lg:top-0 lg:self-start">
+                            <p className="mb-2 text-xs text-muted-foreground">
+                                The details you entered match a patient who already has a profile here. Link that profile instead of creating a second copy of their records.
+                            </p>
+                            <ExistingProfileMatchPanel
+                                match={match}
+                                relationship={toFamilyMemberInput(form).relationship}
+                                relationshipLabel={toFamilyMemberInput(form).relationship_label}
+                                idPrefix="family-page"
+                                onLinked={async () => { closeForm(); await refresh(); }}
+                                onCreateNew={() => { setMatch(null); save(true); }}
+                                onCancel={() => setMatch(null)}
+                            />
+                        </aside>
+                    )}
+                </div>
+            </SheetDialog>
+
+            <RelinkDialog profile={relinkTarget} onClose={() => setRelinkTarget(null)}
+                onLinked={async () => { setRelinkTarget(null); await refresh(); }} />
 
             <UnlinkMemberDialog target={unlinkTarget} onClose={() => setUnlinkTarget(null)} onUnlinked={afterUnlink} />
         </div>

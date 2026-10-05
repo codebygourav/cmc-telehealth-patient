@@ -14,5 +14,7 @@ export const useBrowseDoctors = () => {
     queryKey: [...browseDoctorsKeys.all, token ? "auth" : "guest"],
     queryFn: getBrowseDoctors,
     enabled: !initializing,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };

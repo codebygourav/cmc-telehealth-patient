@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react';
-import { FileText, Plus, MoreVertical, Eye, Edit3, Trash2 } from 'lucide-react';
+import { FileText, Plus, MoreVertical, Eye, Edit3, Trash2, CalendarX2, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Report } from '@/types/medical-reports';
 import { SlotItem } from '@/types/slots';
@@ -25,6 +25,10 @@ interface ReportsAndNotesProps {
     onEditNote?: () => void;
     onCancel?: () => void;
     appointmentStatus?: string;
+    /** Video call open now (any time on the appointment date, also after completion). */
+    callNow?: boolean;
+    joinUrl?: string;
+    isRejoin?: boolean;
 }
 
 export default function ReportsAndNotes({
@@ -40,7 +44,10 @@ export default function ReportsAndNotes({
     onDeleteReport,
     onEditNote,
     onCancel,
-    appointmentStatus
+    appointmentStatus,
+    callNow = false,
+    joinUrl,
+    isRejoin = false,
 }: ReportsAndNotesProps) {
 
     const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
@@ -49,6 +56,22 @@ export default function ReportsAndNotes({
     );
     const rescheduleMutation = useRescheduleAppointment();
     const queryClient = useQueryClient();
+
+    // Close the View / Edit / Delete menu on any click outside it (or Esc).
+    useEffect(() => {
+        if (!activeMenu) return;
+        const close = (event: Event) => {
+            if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
+            if (event.target instanceof Element && event.target.closest('[data-report-menu]')) return;
+            setActiveMenu(null);
+        };
+        document.addEventListener('pointerdown', close);
+        document.addEventListener('keydown', close);
+        return () => {
+            document.removeEventListener('pointerdown', close);
+            document.removeEventListener('keydown', close);
+        };
+    }, [activeMenu, setActiveMenu]);
 
     useEffect(() => {
         if (appointmentStatus === "rescheduled") {
@@ -136,8 +159,10 @@ export default function ReportsAndNotes({
                                         <h4 className="font-semibold text-[#1f1e1e] text-sm mb-1">{report.title}</h4>
                                         <p className="text-[10px] text-[#4D4D4D]">{report.date}</p>
                                     </div>
-                                    <div className="relative">
+                                    <div className="relative" data-report-menu>
                                         <button
+                                            aria-label="Report actions"
+                                            aria-expanded={activeMenu === report.id}
                                             onClick={() => setActiveMenu(activeMenu === report.id ? null : report.id)}
                                             className="p-2 hover:bg-surface-container rounded-xl transition-colors"
                                         >
@@ -151,7 +176,7 @@ export default function ReportsAndNotes({
                                                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                    className="absolute right-0 top-full mt-2 w-36 bg-white rounded-lg border-light-gray z-20 overflow-hidden"
+                                                    className="absolute right-0 top-full z-20 mt-2 w-36 overflow-hidden rounded-lg border border-[#E7E8EB] bg-white shadow-lg"
                                                 >
                                                     <button
                                                         onClick={() => {
@@ -213,36 +238,39 @@ export default function ReportsAndNotes({
                 )}
             </CardContent>
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Appointment actions. Only the doctor / clinic reschedules; the patient can join the
+                call (rejoin all day on the date, also after completion) and cancel while not done. */}
+            {(() => {
+                const done = ['completed', 'cancelled', 'no_show', 'failed'].includes(String(appointmentStatus));
+                const showJoin = (callNow || String(appointmentStatus) === 'completed') && !!joinUrl;
+                const showCancel = !done && !!onCancel;
+                if (!showJoin && !showCancel) return null;
+                return (
+                    <div className="space-y-2.5 border-t border-[#E7E8EB] pt-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Manage this appointment</p>
+                        <div className={`grid gap-2.5 ${showJoin && showCancel ? 'grid-cols-1 min-[420px]:grid-cols-2' : 'grid-cols-1'}`}>
+                            {showJoin && (
+                                <Button onClick={() => window.open(`/start-consultation?room_url=${encodeURIComponent(joinUrl!)}&appointment_id=${appointmentId}`, '_blank')}
+                                    className="h-11 cursor-pointer font-semibold">
+                                    <Video className="mr-1.5 h-4 w-4" /> {isRejoin || String(appointmentStatus) === 'completed' ? 'Rejoin video call' : 'Join video call'}
+                                </Button>
+                            )}
+                            {showCancel && (
+                                <Button onClick={onCancel} variant="outline"
+                                    className="h-11 cursor-pointer border-red-300 font-semibold text-red-600 hover:bg-red-50 hover:text-red-700">
+                                    <CalendarX2 className="mr-1.5 h-4 w-4" /> Cancel appointment
+                                </Button>
+                            )}
+                        </div>
+                        {String(appointmentStatus) === 'completed' && showJoin && (
+                            <p className="text-xs text-muted-foreground">This consultation is completed. You can rejoin the call today if the doctor asks you to.</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">Need a different time? The clinic or your doctor can reschedule it for you.</p>
+                    </div>
+                );
+            })()}
 
-                {/* ✅ Reschedule button only if NOT rescheduled */}
-                {!isAlreadyRescheduled && (
-                    <Button onClick={handleRescheduleClick} className='py-3 h-auto font-semibold cursor-pointer'>
-                        Reschedule
-                    </Button>
-                )}
 
-                <Button
-                    onClick={onCancel}
-                    className={`${isAlreadyRescheduled ? 'col-span-2' : ''} py-3 h-auto font-semibold cursor-pointer`}
-                    variant="outline"
-                >
-                    Cancel
-                </Button>
-
-            </div>
-
-            {/* Reschedule Dialog */}
-            <RescheduleDialog
-                isOpen={showRescheduleDialog}
-                onClose={() => setShowRescheduleDialog(false)}
-                doctorId={doctorId || ''}
-                appointmentId={appointmentId}
-                onConfirmReschedule={handleConfirmReschedule}
-                isLoading={rescheduleMutation.isPending}
-                isAlreadyRescheduled={isAlreadyRescheduled}
-            />
 
         </Card>
     );

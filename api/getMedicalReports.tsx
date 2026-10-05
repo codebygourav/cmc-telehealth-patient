@@ -9,3 +9,8 @@ export const fetchMedicalReports = async (patientId: string, page: number
     );
     return data;
 };
+// Remove a report from the viewed profile's private storage.
+export const deleteMedicalReport = async (reportId: string) => {
+    const { data } = await api.delete(`/patient/medical-reports/${reportId}`);
+    return data;
+};

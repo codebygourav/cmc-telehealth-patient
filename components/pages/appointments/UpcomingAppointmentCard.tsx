@@ -13,6 +13,8 @@ interface UpcomingAppointmentCardProps {
     fee?: string;
     joinUrl?: string;
     call_now?: boolean;
+    /** The call was used before: "Rejoin" instead of "Join". */
+    isRejoin?: boolean;
     status?: string;
     statusLabel?: string;
     bookedForName?: string | null;
@@ -27,6 +29,7 @@ const UpcomingAppointmentCard = ({
     fee = "0",
     joinUrl,
     call_now,
+    isRejoin = false,
     status,
     statusLabel,
     bookedForName,
@@ -36,12 +39,13 @@ const UpcomingAppointmentCard = ({
     const router = useRouter();
 
     return (
-        <div className="bg-white shadow-[0px_2px_4px_rgba(0,0,0,0.1)] rounded-lg border-light-gray overflow-hidden">
-            <div className="p-4 sm:p-5 md:p-6">
+        <div className="flex h-full flex-col bg-white shadow-[0px_2px_4px_rgba(0,0,0,0.1)] rounded-lg border-light-gray overflow-hidden">
+            {/* Column layout: the details block sits at the bottom so cards in a row line up. */}
+            <div className="flex flex-1 flex-col p-4 sm:p-5 md:p-6">
 
                 {/* Header Section - Doctor Info */}
                 <div className="flex sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 sm:mb-5 md:mb-6">
-                    <div className="flex gap-3 sm:gap-4">
+                    <div className="flex min-w-0 flex-1 gap-3 sm:gap-4">
                         <div className="relative shrink-0">
                             <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-surface-container-low">
                                 <img
@@ -56,19 +60,27 @@ const UpcomingAppointmentCard = ({
                             </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="flex flex-wrap items-center gap-2 font-semibold text-lg md:text-xl text-black break-words flex-1">
-                                {appointment.doctorName}
-                                {isTestDoctor && (
-                                    <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
+                            <div className="flex items-start justify-between gap-2">
+                                <h3 className="flex min-w-0 flex-wrap items-center gap-2 font-semibold text-lg md:text-xl text-black break-words">
+                                    {appointment.doctorName}
+                                    {isTestDoctor && (
+                                        <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
+                                    )}
+                                </h3>
+                                {/* Desktop: status on the right of the name */}
+                                {statusLabel && (
+                                    <span className={`hidden shrink-0 whitespace-nowrap px-2.5 py-1 rounded text-[11px] font-semibold sm:inline-block ${getStatusColor("appointment", status)}`}>
+                                        {statusLabel}
+                                    </span>
                                 )}
-                            </h3>
+                            </div>
                             <p className="text-sm text-[#4D4D4D] font-medium">
                                 {doctor?.specialty} ({doctor?.experience})
                             </p>
                             {(statusLabel || bookedForName) && (
                                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                     {statusLabel && (
-                                        <span className={`px-2.5 py-1 rounded text-[11px] font-semibold ${getStatusColor("appointment", status)}`}>
+                                        <span className={`px-2.5 py-1 rounded text-[11px] font-semibold sm:hidden ${getStatusColor("appointment", status)}`}>
                                             {statusLabel}
                                         </span>
                                     )}
@@ -100,7 +112,7 @@ const UpcomingAppointmentCard = ({
                 </div>
 
                 {/* Consultation Details Section */}
-                <div className="p-5 bg-light-gray mt-5">
+                <div className="p-5 bg-light-gray mt-auto">
 
                     <div className="flex md:flex-row flex-col gap-6 md:gap-8 mb-5 md:mb-6 relative">
 
@@ -117,7 +129,7 @@ const UpcomingAppointmentCard = ({
                                                 {consultationType}
                                             </p>
                                             <p className="text-xs font-bold capitalize break-words md:hidden">
-                                                {consultationType === "Video consultation" ? "Video" : "In Person"}
+                                                {appointment.type === "video" ? "Video" : "In Person"}
                                             </p>
                                         </>
                                     ) : appointment.type === 'in-person' ? (
@@ -127,7 +139,7 @@ const UpcomingAppointmentCard = ({
                                                 {consultationType}
                                             </p>
                                             <p className="text-xs font-bold capitalize break-words md:hidden">
-                                                {consultationType === "Video consultation" ? "Video" : "In Person"}
+                                                In Person
                                             </p>
                                         </>
                                     ) : (
@@ -161,25 +173,27 @@ const UpcomingAppointmentCard = ({
 
                     {/* View Details Button */}
 
-                    {(call_now || (appointment as any).canJoin) && joinUrl ? (
+                    {/* Video call open: Join, with Manage (reports, notes, details) right under it. */}
+                    <div className="grid grid-cols-1 gap-2">
+                        {(call_now || (appointment as any).canJoin) && joinUrl && (
+                            <Button
+                                variant="default"
+                                onClick={() => window.open(`/start-consultation?room_url=${encodeURIComponent(joinUrl)}&appointment_id=${appointment.id}`, "_blank")}
+                                className="w-full h-10 text-sm font-semibold btn-primary-cta flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                                <Video size={18} className="m-0" />
+                                {isRejoin || status === 'completed' ? 'Rejoin Video Call' : 'Join Video Call'}
+                            </Button>
+                        )}
                         <Button
-                            variant="default"
-                            onClick={() => window.open(`/start-consultation?room_url=${encodeURIComponent(joinUrl)}&appointment_id=${appointment.id}`, "_blank")}
-                            className="w-full h-10 text-sm font-semibold btn-primary-cta flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                            <Video size={18} className="m-0" />
-                            Join Video Call
-                        </Button>
-                    ) : (
-                        <Button
-                            variant="default"
+                            variant={(call_now || (appointment as any).canJoin) && joinUrl ? "outline" : "default"}
                             onClick={() => router.push(`/appointments/manage-appointment/${appointment.id}`)}
-                            className="w-full h-10 text-sm font-semibold btn-primary-cta flex items-center justify-center gap-2 cursor-pointer"
+                            className={`w-full h-10 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer ${(call_now || (appointment as any).canJoin) && joinUrl ? "border-primary text-primary hover:bg-primary/5" : "btn-primary-cta"}`}
                         >
                             Manage Appointment
                             <ChevronRight size={18} className="m-0" />
                         </Button>
-                    )}
+                    </div>
                 </div>
 
             </div>

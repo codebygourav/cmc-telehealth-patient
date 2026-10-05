@@ -1,10 +1,10 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/userContext";
 import { getFamilyProfiles, type FamilyManager, type FamilyProfile } from "@/api/family";
-import { ACTIVE_PROFILE_EVENT, getActiveProfileId, setActiveProfileId } from "@/lib/activeProfile";
+import { ACTIVE_PROFILE_EVENT, ACTIVE_PROFILE_STORAGE_KEY, getActiveProfileId, setActiveProfileId } from "@/lib/activeProfile";
 
 interface ActiveProfileContextValue {
     profiles: FamilyProfile[];
@@ -40,9 +40,32 @@ export function ActiveProfileProvider({ children }: { children: React.ReactNode 
     useEffect(() => {
         setActiveId(getActiveProfileId());
         const onChange = (event: Event) => setActiveId((event as CustomEvent<string | null>).detail ?? null);
+        // Switched in ANOTHER tab: this tab would otherwise show one profile while loading the
+        // other's data. Reload so it shows only the newly chosen profile, like a fresh login.
+        const onStorage = (event: StorageEvent) => {
+            if (event.key === ACTIVE_PROFILE_STORAGE_KEY && event.oldValue !== event.newValue) {
+                window.location.reload();
+            }
+        };
         window.addEventListener(ACTIVE_PROFILE_EVENT, onChange);
-        return () => window.removeEventListener(ACTIVE_PROFILE_EVENT, onChange);
+        window.addEventListener("storage", onStorage);
+        return () => {
+            window.removeEventListener(ACTIVE_PROFILE_EVENT, onChange);
+            window.removeEventListener("storage", onStorage);
+        };
     }, []);
+
+    // A different login in this browser: drop the cache of the previous account and re-read the
+    // profile choice (it is only kept for the login that made it).
+    const previousUserId = useRef<string | null | undefined>(undefined);
+    useEffect(() => {
+        const id = user?.id ?? null;
+        if (previousUserId.current !== undefined && previousUserId.current !== id) {
+            queryClient.clear();
+            setActiveId(getActiveProfileId());
+        }
+        previousUserId.current = id;
+    }, [user?.id, queryClient]);
 
     const { data, isPending, refetch } = useQuery({
         queryKey: familyProfilesKey(user?.id),

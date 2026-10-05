@@ -62,8 +62,8 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                             </p>
                                         </div>
 
-                                        {/* Review Card */}
-                                        <div className="flex items-center gap-x-1.5 bg-light-gray rounded-xl py-2 px-2.5 h-fit">
+                                        {/* Rating: only when the doctor has reviews */}
+{Number(doctor?.total_reviews) > 0 && (<div className="flex items-center gap-x-1.5 bg-light-gray rounded-xl py-2 px-2.5 h-fit">
                                             <p className="text-xs text-[#4D4D4D] flex items-center gap-x-1">
                                                 <Star size={14} color="#FABD2E" fill="#FABD2E" />
                                                 Rating
@@ -72,7 +72,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                                 {doctor?.average_rating || "N/A"}
                                                 <span className="text-xs text-gray-400"> ({doctor?.total_reviews || "0"})</span>
                                             </div>
-                                        </div>
+                                        </div>)}
                                     </div>
                                 </div>
                             </div>

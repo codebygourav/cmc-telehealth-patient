@@ -252,6 +252,8 @@ export default function ManageAppointment({ params }: PageProps) {
         <div>
 
             <HeroSection
+                showBackButton
+                backHref="/appointments"
                 title="Manage Appointment"
                 description="Detailed information about your appointment."
             />
@@ -293,6 +295,9 @@ export default function ManageAppointment({ params }: PageProps) {
                     onEditNote={() => setShowEditNote(true)}
                     onCancel={() => setShowCancelConfirm(true)}
                     appointmentStatus={appointment?.status}
+                    callNow={Boolean((appointment as any)?.call_now)}
+                    joinUrl={(appointment as any)?.join_url || undefined}
+                    isRejoin={Boolean((appointment as any)?.call_is_rejoin)}
                 />
             </div>
 

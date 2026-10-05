@@ -86,6 +86,8 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
         <>
 
             <HeroSection
+                showBackButton
+                backHref="/find-doctors"
                 title="Doctor Detail"
                 description="Connect with world-class specialists curated for your health journey. Expert clinical care delivered with a human touch."
             />

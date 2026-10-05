@@ -78,13 +78,11 @@ export default function AddReportModal({
 
     if (!isOpen) return null;
 
-    // Check if a profile report is already attached to this appointment
-    const isReportAttached = (profileRecord: any) => {
-        const title = profileRecord.report_name || profileRecord.title;
-        return reports.some(
-            (r) => r.id === profileRecord.id || (r.title === title && title)
-        );
-    };
+    // A profile report is attached when the same report (id) or the same file is in the list.
+    // Never by title: two different reports can share a name (e.g. "3436").
+    const sameReport = (r: Report, record: any) =>
+        r.id === record.id || (!!record.file_url && !!r.fileUrl && r.fileUrl === record.file_url);
+    const isReportAttached = (profileRecord: any) => reports.some((r) => sameReport(r, profileRecord));
 
     const handleToggleProfileReport = (record: any) => {
         const title = record.report_name || record.title;
@@ -92,9 +90,7 @@ export default function AddReportModal({
 
         if (attached) {
             // Find report ID in current reports array
-            const existing = reports.find(
-                (r) => r.id === record.id || r.title === title
-            );
+            const existing = reports.find((r) => sameReport(r, record));
             if (existing) {
                 onDeleteReport(existing.id);
                 toast.info(`Removed "${title}" from doctor share list`);
@@ -173,7 +169,7 @@ export default function AddReportModal({
             />
 
             <div className="sheet-panel relative w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl">
-                <div className="max-h-[90vh] overflow-y-auto p-5 sm:p-6 custom-scrollbar">
+                <div className="max-h-[88dvh] overflow-y-auto overscroll-contain px-4 pt-4 sm:max-h-[90vh] sm:px-6 sm:pt-6 custom-scrollbar">
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-[#E7E8EB] pb-4">
                         <div>
@@ -211,45 +207,45 @@ export default function AddReportModal({
                             <label className="text-sm font-semibold text-[#1F1E1E]">
                                 How would you like to attach reports?
                             </label>
-                            <div className="grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1 text-xs font-semibold sm:text-sm">
+                            <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1 text-[13px] font-semibold sm:text-sm">
                                 <button
                                     type="button"
                                     onClick={() => setSourceTab("profile")}
                                     className={cn(
-                                        "flex items-center justify-center gap-2 rounded-md py-2.5 transition-all",
+                                        "flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2 transition-all",
                                         sourceTab === "profile"
                                             ? "bg-primary text-white shadow-sm"
                                             : "text-muted-foreground hover:text-[#1F1E1E]"
                                     )}
                                 >
                                     <Folder className="h-4 w-4" />
-                                    <span>From Profile Storage ({patientReports.length})</span>
+                                    <span><span className="hidden sm:inline">From </span>My Reports ({patientReports.length})</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setSourceTab("new")}
                                     className={cn(
-                                        "flex items-center justify-center gap-2 rounded-md py-2.5 transition-all",
+                                        "flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2 transition-all",
                                         sourceTab === "new"
                                             ? "bg-primary text-white shadow-sm"
                                             : "text-muted-foreground hover:text-[#1F1E1E]"
                                     )}
                                 >
                                     <UploadCloud className="h-4 w-4" />
-                                    <span>Upload New File</span>
+                                    <span>Upload New<span className="hidden sm:inline"> File</span></span>
                                 </button>
                             </div>
                         </div>
 
                         {/* TAB 1: Select from My Profile Storage */}
                         {sourceTab === "profile" && (
-                            <div className="rounded-lg border border-[#E7E8EB] bg-gray-50/50 p-4">
-                                <div className="mb-3 flex items-center justify-between">
+                            <div className="rounded-lg border border-[#E7E8EB] bg-gray-50/50 p-3 sm:p-4">
+                                <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
                                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Your Private Profile Reports
                                     </span>
                                     <span className="text-xs text-muted-foreground">
-                                        Click to toggle share
+                                        Tap a report to share or remove it
                                     </span>
                                 </div>
 
@@ -275,7 +271,7 @@ export default function AddReportModal({
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="max-h-56 space-y-2 overflow-y-auto pr-1 custom-scrollbar">
+                                    <div className="space-y-2 sm:max-h-56 sm:overflow-y-auto sm:pr-1 custom-scrollbar">
                                         {patientReports.map((record, index) => {
                                             const attached = isReportAttached(record);
                                             const title = record.report_name || record.title || "Medical Report";
@@ -304,7 +300,7 @@ export default function AddReportModal({
                                                     <button
                                                         type="button"
                                                         className={cn(
-                                                            "ml-3 inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition-all",
+                                                            "ml-2 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all",
                                                             attached
                                                                 ? "bg-emerald-600 text-white"
                                                                 : "bg-gray-100 text-muted-foreground hover:bg-primary hover:text-white"
@@ -316,7 +312,7 @@ export default function AddReportModal({
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <Plus className="h-3.5 w-3.5" /> Select & Share
+                                                                <Plus className="h-3.5 w-3.5" /> Share
                                                             </>
                                                         )}
                                                     </button>
@@ -407,14 +403,12 @@ export default function AddReportModal({
 
                         {/* Attached Reports for Doctor Summary */}
                         <div className="space-y-2 pt-2 border-t border-[#E7E8EB]">
-                            <div className="flex items-center justify-between">
+                            <div>
                                 <label className="text-sm font-semibold text-[#1F1E1E]">
-                                    Reports Attached to Share with Doctor ({reports.length})
+                                    Shared with doctor ({reports.length})
                                 </label>
                                 {reports.length > 0 && (
-                                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                        Will be shared for this appointment
-                                    </span>
+                                    <p className="text-xs text-emerald-700">These reports will be shared for this appointment.</p>
                                 )}
                             </div>
 
@@ -423,7 +417,7 @@ export default function AddReportModal({
                                     No reports attached yet. Select from your profile storage above or upload a new file.
                                 </p>
                             ) : (
-                                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                <div className="space-y-2 sm:max-h-40 sm:overflow-y-auto custom-scrollbar">
                                     {reports.map((report, index) => (
                                         <div
                                             key={`attached-${report.id || index}`}
@@ -456,13 +450,13 @@ export default function AddReportModal({
                             )}
                         </div>
 
-                        {/* Footer Action Buttons */}
-                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E7E8EB]">
+                        {/* Footer buttons: stay pinned at the bottom while the form scrolls. */}
+                        <div className="sticky bottom-0 z-10 -mx-4 grid grid-cols-2 gap-2 border-t border-[#E7E8EB] bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:flex sm:justify-end sm:gap-3 sm:px-6 sm:pb-6">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={onClose}
-                                className="w-28 font-semibold"
+                                className="w-full font-semibold sm:w-28"
                             >
                                 Cancel
                             </Button>
@@ -470,7 +464,7 @@ export default function AddReportModal({
                                 type="button"
                                 onClick={() => onSubmit(modalNote)}
                                 disabled={isUpdating}
-                                className="w-32 btn-primary-cta font-semibold"
+                                className="w-full btn-primary-cta font-semibold sm:w-32"
                             >
                                 {isUpdating ? (
                                     <Loader2 className="h-4 w-4 animate-spin text-white" />

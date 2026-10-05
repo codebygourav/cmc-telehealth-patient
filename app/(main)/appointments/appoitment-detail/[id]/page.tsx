@@ -3,11 +3,11 @@
 import { fetchAppointmentById } from '@/api/appointment-detail';
 import AddReviewsDialouge from '@/components/pages/appointments/addReviewsDialouge';
 import { AppointmentInfoCards } from '@/components/pages/appointments/AppointmentInfoCards';
-import { MedicineCard } from '@/components/MedicineCard';
 import { Pill } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { MedicineDetailView } from '@/components/pages/my-medicines/MedicineDetailView';
+import SheetDialog from '@/components/custom/SheetDialog';
+import PrescriptionDetailBody from '@/components/pages/my-medicines/sections/PrescriptionDetailBody';
 import { MedicineActionPlan } from '@/components/pages/my-medicines/MedicineActionPlan';
 import HeroSection from '@/components/hero-section';
 import PrescriptionSummary from '@/components/pages/appointments/PrescriptionSummary';
@@ -51,14 +51,6 @@ export default function AppointmentDetailPage() {
     if (loading) return <p className="mt-10 text-center">Loading...</p>;
     if (!data) return <p className="mt-10 text-center">No Data</p>;
 
-    if (selectedMedicineId) {
-        return (
-            <MedicineDetailView
-                prescriptionId={selectedMedicineId}
-                onBack={() => setSelectedMedicineId(null)}
-            />
-        );
-    }
 
     const { notes } = data;
     const doctorId = data?.doctor?.id || "";
@@ -68,6 +60,8 @@ export default function AppointmentDetailPage() {
         <div className="min-h-screen bg-gray-50">
 
             <HeroSection
+                showBackButton
+                backHref="/appointments"
                 title="Appointments Detail"
                 description="Connect with world-class specialists curated for your health journey. Expert clinical care delivered with a human touch."
             />
@@ -101,36 +95,33 @@ export default function AppointmentDetailPage() {
                         </div>
                     )}
 
-                    {data.prescriptions && <PrescriptionSummary prescription={data.prescriptions} />}
-
-                    <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        <div className="lg:col-span-8 h-full w-full g-border global-radius p-4 bg-white flex flex-col">
-
-                            <div className="flex-1 h-full">
-                                {data.prescriptions ? (
-                                    <MedicineCard
-                                        prescription={data.prescriptions}
-                                        onViewDetail={(id) => setSelectedMedicineId(id)}
-                                    />
-                                ) : (
-                                    <div className="p-8 h-full flex items-center justify-center text-center text-gray-400 bg-white border border-gray-100 rounded-2xl">
-                                        No prescription details available.
-                                    </div>
-                                )}
-                            </div>
+                    {data.prescriptions ? (
+                        <PrescriptionSummary prescription={data.prescriptions} onViewDetail={() => setSelectedMedicineId(data.appointment_id || (id as string))} />
+                    ) : (
+                        <div className="mt-6 rounded-xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400">
+                            No prescription details available.
                         </div>
+                    )}
 
-                        <div className="lg:col-span-4 h-full">
-                            <MedicineActionPlan
-                                showConclusion={false}
-                                nextVisitDate={nextVisitDate}
-                                doctor_id={doctorId}
-                                footerActionGridClassName="grid-cols-1 h-full p-0"
-                                buttonClass="!p-2"
-                                nextVisitCardClassName="!p-4"
-                            />
-                        </div>
+                    <div className="mt-6">
+                        <MedicineActionPlan
+                            showConclusion={false}
+                            nextVisitDate={nextVisitDate}
+                            doctor_id={doctorId}
+                            footerActionGridClassName="grid-cols-1"
+                        />
                     </div>
+
+                    {/* Full prescription (medicines, timings, notes) in a drawer: bottom sheet on phones. */}
+                    <SheetDialog
+                        open={!!selectedMedicineId}
+                        onOpenChange={(open) => !open && setSelectedMedicineId(null)}
+                        title="Prescription details"
+                        description="Medicines and notes from your doctor for this visit."
+                        className="sm:max-w-3xl"
+                    >
+                        {selectedMedicineId && <PrescriptionDetailBody appointmentId={selectedMedicineId} />}
+                    </SheetDialog>
 
                     <AddReviewsDialouge
                         appointmentStatus={data?.status}

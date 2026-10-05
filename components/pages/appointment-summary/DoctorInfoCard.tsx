@@ -36,8 +36,8 @@ const DoctorInfoCard = ({ doctor }: DoctorInfoCardProps) => {
                     {doctor?.years_experience ?? "N/A"}
                   </p>
                 </div>
-                {/* Review Card */}
-                <div className="flex items-center gap-x-1.5 bg-light-gray global-radius-10 g-border p-1.5 text-xs">
+                {/* Rating: only when the doctor has reviews */}
+{Number(doctor?.total_reviews) > 0 && (<div className="flex items-center gap-x-1.5 bg-light-gray global-radius-10 g-border p-1.5 text-xs">
                   <p className="g-text-muted flex items-center gap-x-1">
                     <Star className="w-4 h-4 border-none text-amber-500" fill="#f99c00" />
                     Rating
@@ -46,7 +46,7 @@ const DoctorInfoCard = ({ doctor }: DoctorInfoCardProps) => {
                     {doctor?.average_rating ?? "N/A"}
                     <span className="g-text-muted"> ({doctor?.total_reviews ?? "0"})</span>
                   </div>
-                </div>
+                </div>)}
               </div>
             </div>
           </div>

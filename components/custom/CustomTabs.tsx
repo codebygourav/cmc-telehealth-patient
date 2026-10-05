@@ -70,7 +70,7 @@ const CustomTabs = ({
                         "flex items-center transition-all duration-300 !border border-light-gray",
                         rightSlot ? "w-auto justify-start" : "w-full justify-center",
                         isPill
-                            ? "bg-light-gray py-7 global-radius gap-1 px-2"
+                            ? "bg-light-gray h-auto group-data-horizontal/tabs:h-auto max-w-full global-radius gap-1 p-1 sm:p-1.5"
                             : "bg-primary gap-4",
                         tabsListClassName
                     )}
@@ -84,7 +84,8 @@ const CustomTabs = ({
                                 // Always apply text-primary for tab text and active tab text
                                 isPill
                                     ? cn(
-                                        "px-6 py-3 h-auto global-radius flex-1 g-text-dark g-text-md",
+                                        // Shrink to fit on phones (3 tabs in ~360px) instead of overflowing.
+                                        "min-w-0 flex-1 self-stretch h-auto global-radius g-text-dark px-1.5 py-2.5 text-[13px] leading-tight whitespace-normal text-center sm:whitespace-nowrap sm:px-5 sm:py-3 sm:text-base",
                                         "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     )
                                     : cn(

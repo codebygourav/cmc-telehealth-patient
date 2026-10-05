@@ -111,6 +111,17 @@ export const linkExistingProfile = async (input: { match_token: string; relation
     return data?.data;
 };
 
+// Link an unlinked profile again: a code goes to the member's own email.
+export const sendRelinkOtp = async (patientId: string): Promise<string> => {
+    const { data } = await api.post(`/patient/family-profiles/${patientId}/relink/otp`);
+    return data?.message || "A verification code was sent to their email.";
+};
+
+export const relinkProfile = async (patientId: string, otp: string) => {
+    const { data } = await api.post(`/patient/family-profiles/${patientId}/relink`, { otp });
+    return data;
+};
+
 // Member login: verify the email with a code, then save the member with login_email + login_password.
 export const sendMemberLoginOtp = async (email: string) => {
     const { data } = await api.post("/patient/family-profiles/login-email/otp", { email });

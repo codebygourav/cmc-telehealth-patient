@@ -131,6 +131,13 @@ th{width:34%;background:#f9fafb;color:#4d4d4d}p{font-size:13px;color:#4d4d4d;mar
                     <p className="text-sm text-[#4D4D4D]">{note}</p>
                 </div>
 
+                {details.bookedBy && (
+                    <div className="mx-6 mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
+                        <p className="font-bold">Booked for Family Member: {details.patientName}</p>
+                        <p className="mt-1">To view or manage this appointment, please switch to <strong>{details.patientName}</strong>&apos;s profile.</p>
+                    </div>
+                )}
+
                 <dl className="mx-6 mt-4 divide-y divide-[#E7E8EB] rounded-lg border border-[#E7E8EB]">
                     {rows.map(([label, value]) => (
                         <div key={label} className="flex justify-between gap-4 px-4 py-2.5 text-sm">

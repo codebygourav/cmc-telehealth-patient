@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Download, ExternalLink, FileText, Lock, Plus, Upload } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { ExternalLink, FileText, Loader2, Lock, Plus, Trash2, Upload } from "lucide-react";
+import { deleteMedicalReport } from "@/api/getMedicalReports";
+import SheetDialog from "@/components/custom/SheetDialog";
 import { useMedicalReports } from "@/queries/useGetMedicalReports";
 import { UploadReportModal } from "@/components/pages/medical-records/UploadReportModal";
 import { Button } from "@/components/ui/button";
@@ -16,6 +20,28 @@ export default function ProfileMedicalRecords({ user }: ProfileMedicalRecordsPro
 
     const { data, isLoading } = useMedicalReports(user?.id, page);
     const records = data?.data ?? [];
+
+    // Remove a report (asks first).
+    const queryClient = useQueryClient();
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            setDeleting(true);
+            await deleteMedicalReport(deleteTarget.id);
+            toast.success(`"${deleteTarget.name}" removed from your reports.`);
+            setDeleteTarget(null);
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["medical-reports"] }),
+                queryClient.invalidateQueries({ queryKey: ["patient-medical-reports"] }),
+            ]);
+        } catch (err: any) {
+            toast.error(err?.response?.data?.errors?.message || err?.response?.data?.message || "Could not remove the report. Please try again.");
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -86,8 +112,15 @@ export default function ProfileMedicalRecords({ user }: ProfileMedicalRecordsPro
                                     <p className="mt-1 text-[11px] text-muted-foreground">{record.report_date_formatted || record.report_date}</p>
                                 </div>
                             </div>
-                            {record.file_url && (
-                                <div className="mt-3 flex items-center justify-end border-t border-[#E7E8EB] pt-2.5">
+                            <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#E7E8EB] pt-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setDeleteTarget({ id: record.id, name: record.report_name || "Report" })}
+                                    className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                                </button>
+                                {record.file_url && (
                                     <a
                                         href={record.file_url}
                                         target="_blank"
@@ -96,12 +129,31 @@ export default function ProfileMedicalRecords({ user }: ProfileMedicalRecordsPro
                                     >
                                         View File <ExternalLink className="h-3.5 w-3.5" />
                                     </a>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
             )}
+
+            <SheetDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => !open && !deleting && setDeleteTarget(null)}
+                title="Remove this report?"
+                description={deleteTarget ? `"${deleteTarget.name}" will be removed from your private reports.` : undefined}
+                footer={
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                        <Button variant="outline" className="h-10" onClick={() => setDeleteTarget(null)} disabled={deleting}>Keep it</Button>
+                        <Button className="h-10 bg-red-600 text-white hover:bg-red-700" onClick={confirmDelete} disabled={deleting}>
+                            {deleting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Removing...</> : <><Trash2 className="mr-1.5 h-4 w-4" /> Remove</>}
+                        </Button>
+                    </div>
+                }
+            >
+                <p className="text-sm text-[#4D4D4D]">
+                    If you already shared it with a doctor for an appointment, it will no longer appear there either. This cannot be undone from the app.
+                </p>
+            </SheetDialog>
 
             <UploadReportModal
                 isOpen={isModalOpen}
