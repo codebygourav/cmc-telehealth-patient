@@ -173,8 +173,8 @@ const UpcomingAppointmentCard = ({
 
                     {/* View Details Button */}
 
-                    {/* Video call open: Join, with Manage (reports, notes, details) right under it. */}
-                    <div className="grid grid-cols-1 gap-2">
+                    {/* Video call open: Join + Manage side by side (stacked on phones). */}
+                    <div className={`grid grid-cols-1 gap-2 ${(call_now || (appointment as any).canJoin) && joinUrl ? "sm:grid-cols-2" : ""}`}>
                         {(call_now || (appointment as any).canJoin) && joinUrl && (
                             <Button
                                 variant="default"
@@ -190,7 +190,7 @@ const UpcomingAppointmentCard = ({
                             onClick={() => router.push(`/appointments/manage-appointment/${appointment.id}`)}
                             className={`w-full h-10 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer ${(call_now || (appointment as any).canJoin) && joinUrl ? "border-primary text-primary hover:bg-primary/5" : "btn-primary-cta"}`}
                         >
-                            Manage Appointment
+                            {(call_now || (appointment as any).canJoin) && joinUrl ? 'Manage' : 'Manage Appointment'}
                             <ChevronRight size={18} className="m-0" />
                         </Button>
                     </div>

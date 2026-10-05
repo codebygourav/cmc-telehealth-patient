@@ -64,13 +64,13 @@ const CustomTabs = ({
             className={cn("w-full container-max-width mx-auto", className)}
         >
             {/* Top Row */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 w-full overflow-hidden">
                 <TabsList
                     className={cn(
-                        "flex items-center transition-all duration-300 !border border-light-gray",
-                        rightSlot ? "w-auto justify-start" : "w-full justify-center",
+                        "flex items-center transition-all duration-300 !border border-light-gray overflow-x-auto overflow-y-hidden scrollbar-none flex-nowrap shrink-0 justify-start sm:justify-start md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+                        rightSlot ? "w-auto justify-start" : "w-full",
                         isPill
-                            ? "bg-light-gray h-auto group-data-horizontal/tabs:h-auto max-w-full global-radius gap-1 p-1 sm:p-1.5"
+                            ? "bg-light-gray h-auto group-data-horizontal/tabs:h-auto max-w-full rounded-md gap-1 p-1.5"
                             : "bg-primary gap-4",
                         tabsListClassName
                     )}
@@ -80,12 +80,12 @@ const CustomTabs = ({
                             key={tab.key}
                             value={tab.key}
                             className={cn(
-                                "transition-all duration-300 font-source-sans font-bold g-text-md",
+                                "transition-all duration-300 font-source-sans font-semibold shrink-0 whitespace-nowrap",
                                 // Always apply text-primary for tab text and active tab text
                                 isPill
                                     ? cn(
-                                        // Shrink to fit on phones (3 tabs in ~360px) instead of overflowing.
-                                        "min-w-0 flex-1 self-stretch h-auto global-radius g-text-dark px-1.5 py-2.5 text-[13px] leading-tight whitespace-normal text-center sm:whitespace-nowrap sm:px-5 sm:py-3 sm:text-base",
+                                        // 14px, same as the doctor app tabs.
+                                        "h-auto rounded-md g-text-dark px-4 py-2 text-sm sm:px-6",
                                         "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     )
                                     : cn(

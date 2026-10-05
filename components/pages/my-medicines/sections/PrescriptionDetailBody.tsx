@@ -5,8 +5,8 @@ import { usePrescriptionDetail } from '@/queries/usePrescriptionDetail';
 import { PrescriptionDocument } from './PrescriptionDocument';
 
 /** Full prescription of one appointment (for drawers / dialogs). */
-export default function PrescriptionDetailBody({ appointmentId }: { appointmentId: string }) {
-    const { data, isLoading, isError } = usePrescriptionDetail(appointmentId);
+export default function PrescriptionDetailBody({ appointmentId, live = false }: { appointmentId: string; live?: boolean }) {
+    const { data, isLoading, isError } = usePrescriptionDetail(appointmentId, { live });
 
     if (isLoading) {
         return <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin text-primary" /> Loading prescription...</div>;

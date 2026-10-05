@@ -124,14 +124,11 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
   const bookedForOther = isFamilyBooking && activeProfile?.patient_id !== visitPatientId;
   const viewAppointments = () => {
     if (bookedForOther) {
-      const name = memberProfile?.first_name || (data?.data as any)?.booked_for?.name || "the family member";
+      // Booked from this profile for a family member: their appointment lives on their profile.
+      const name = memberProfile?.first_name || (data?.data as any)?.booked_for?.name || "your family member";
       setConfirmation(null);
-      if (memberProfile) {
-        switchTo(memberProfile.patient_id);
-        router.push("/appointments");
-      } else {
-        router.push("/find-doctors");
-      }
+      toast.success(`Appointment booked for ${name}. Switch to ${name}'s profile (top right) to see and manage it.`, { duration: 9000 });
+      router.replace("/find-doctors");
       return;
     }
     router.replace("/appointments");
@@ -189,6 +186,26 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
     };
   };
   const { mutate: verifyPayment } = useVerifyPayment();
+
+  // After the Razorpay window closes: show "Checking your payment…" and poll for up to 20 seconds.
+  const pollPaymentStatus = async () => {
+    setIsVerifyingPayment(true);
+    for (let attempt = 0; attempt < 10 && !justPaidRef.current; attempt++) {
+      const updated = await refetch();
+      const latest: any = updated?.data?.data;
+      const paid = latest?.payment?.status === "paid" || ["awaiting_confirmation", "confirmed", "rescheduled", "completed"].includes(latest?.status);
+      if (paid) {
+        justPaidRef.current = true;
+        queryClient.invalidateQueries({ queryKey: appointmentDetailKeys.detail(AppointmentId) });
+        setConfirmation(buildConfirmation({ status: latest?.status || "awaiting_confirmation", paymentId: latest?.payment?.payment_id ?? null }));
+        setIsVerifyingPayment(false);
+        return;
+      }
+      if (justPaidRef.current) break; // the success callback took over
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    if (!justPaidRef.current) setIsVerifyingPayment(false); // closed without paying: back to the booking
+  };
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -305,6 +322,16 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
         theme: {
           color: "#013220",
+        },
+
+        // The checkout closed. With UPI / some methods the success callback comes late (or the
+        // window closes first), so check the payment status right away instead of showing the
+        // old "pending" screen until the server catches up.
+        modal: {
+          ondismiss: () => {
+            if (justPaidRef.current) return;
+            pollPaymentStatus();
+          },
         },
       };
 
@@ -430,7 +457,7 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
         details={confirmation}
         onClose={closeConfirmation}
         onViewAppointments={viewAppointments}
-        viewAppointmentsLabel={bookedForOther ? "Done" : "Go to My Appointments"}
+        viewAppointmentsLabel={bookedForOther ? "Done — back to Find Doctors" : "Go to My Appointments"}
       />
 
       {/* Custom Dialog */}
@@ -453,11 +480,11 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
       />
       {/* Payment Verification Loading Overlay */}
       {isVerifyingPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full">
             <Loader2 className="w-12 h-12 animate-spin text-primary" />
             <div>
-              <h3 className="text-lg font-bold text-[#1F1E1E]">Verifying Payment...</h3>
+              <h3 className="text-lg font-bold text-[#1F1E1E]">Checking your payment…</h3>
               <p className="text-xs text-muted-foreground mt-1">
                 Please wait while we confirm your payment and update your appointment details.
               </p>

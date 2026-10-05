@@ -33,11 +33,13 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
         type: 'danger' | 'success';
         title: string;
         description: string;
+        confirmText?: string;
     }>({
         open: false,
         type: 'danger',
         title: '',
         description: '',
+        confirmText: 'OK',
     });
 
     // isPending (not isLoading): keep the loader until data or a real error, so no error flash on reload.
@@ -48,8 +50,9 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
         setDialogState({
             open: true,
             type: 'success',
-            title: 'Slot Reserved',
-            description: 'Review your booking and complete the payment to book this slot. You will get an email with the details.',
+            title: 'Slot Reserved - Payment Required',
+            description: 'Your slot has been reserved. Please review your booking details and complete the payment to confirm your appointment.',
+            confirmText: 'Confirm & Pay',
         });
         setAppointmentId(appointmentId);
     };
@@ -60,6 +63,7 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
             type: 'danger',
             title: 'Booking Failed',
             description: error || 'Unable to book appointment. Please try again later.',
+            confirmText: 'OK',
         });
     };
 
@@ -148,12 +152,14 @@ const DoctorProfile = ({ params }: DoctorProfileProps) => {
                 type={dialogState.type}
                 title={dialogState.title}
                 description={dialogState.description}
-                confirmText="OK"
+                confirmText={dialogState.confirmText || (dialogState.type === 'success' ? 'Confirm & Pay' : 'OK')}
                 cancelText="Cancel"
                 onConfirm={
                     () => {
-                        setDialogState(prev => ({ ...prev, open: false }))
-                        router.push(`/appointments/${appointmentId}`);
+                        setDialogState(prev => ({ ...prev, open: false }));
+                        if (dialogState.type === 'success' && appointmentId) {
+                            router.push(`/appointments/${appointmentId}`);
+                        }
                     }
                 }
                 icon={dialogState.type === 'danger' ?

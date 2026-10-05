@@ -337,7 +337,7 @@ const AppointmentsPage = () => {
                     defaultTab="upcoming"
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
-                    tabsListClassName="max-w-2xl"
+                    tabsListClassName="w-full md:max-w-2xl overflow-x-auto overflow-y-hidden scrollbar-none flex-nowrap justify-start sm:justify-start md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                 />
             </div>
 

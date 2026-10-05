@@ -298,6 +298,7 @@ export default function ManageAppointment({ params }: PageProps) {
                     callNow={Boolean((appointment as any)?.call_now)}
                     joinUrl={(appointment as any)?.join_url || undefined}
                     isRejoin={Boolean((appointment as any)?.call_is_rejoin)}
+                    canCancel={(appointment as any)?.can_cancel !== false}
                 />
             </div>
 

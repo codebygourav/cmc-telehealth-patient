@@ -29,6 +29,8 @@ interface ReportsAndNotesProps {
     callNow?: boolean;
     joinUrl?: string;
     isRejoin?: boolean;
+    /** Patients may cancel only until 1 hour before the start (server decides). */
+    canCancel?: boolean;
 }
 
 export default function ReportsAndNotes({
@@ -48,6 +50,7 @@ export default function ReportsAndNotes({
     callNow = false,
     joinUrl,
     isRejoin = false,
+    canCancel = true,
 }: ReportsAndNotesProps) {
 
     const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
@@ -243,8 +246,8 @@ export default function ReportsAndNotes({
             {(() => {
                 const done = ['completed', 'cancelled', 'no_show', 'failed'].includes(String(appointmentStatus));
                 const showJoin = (callNow || String(appointmentStatus) === 'completed') && !!joinUrl;
-                const showCancel = !done && !!onCancel;
-                if (!showJoin && !showCancel) return null;
+                const showCancel = !done && !!onCancel && canCancel;
+                if (!showJoin && !showCancel && done) return null;
                 return (
                     <div className="space-y-2.5 border-t border-[#E7E8EB] pt-4">
                         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Manage this appointment</p>
@@ -264,6 +267,9 @@ export default function ReportsAndNotes({
                         </div>
                         {String(appointmentStatus) === 'completed' && showJoin && (
                             <p className="text-xs text-muted-foreground">This consultation is completed. You can rejoin the call today if the doctor asks you to.</p>
+                        )}
+                        {!done && !canCancel && (
+                            <p className="text-xs text-muted-foreground">Cancelling is possible only up to 1 hour before the appointment. Please contact the clinic.</p>
                         )}
                         <p className="text-xs text-muted-foreground">Need a different time? The clinic or your doctor can reschedule it for you.</p>
                     </div>
