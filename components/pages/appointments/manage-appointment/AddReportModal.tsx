@@ -168,7 +168,7 @@ export default function AddReportModal({
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             />
 
-            <div className="sheet-panel relative w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="sheet-panel relative w-full max-w-2xl overflow-hidden rounded-md bg-white shadow-2xl">
                 <div className="max-h-[88dvh] overflow-y-auto overscroll-contain px-4 pt-4 sm:max-h-[90vh] sm:px-6 sm:pt-6 custom-scrollbar">
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-[#E7E8EB] pb-4">

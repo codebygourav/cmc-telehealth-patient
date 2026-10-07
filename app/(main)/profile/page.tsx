@@ -215,7 +215,7 @@ function ProfilePageContent() {
 
             {/* Leave / Unlink confirmation dialog for member leaving primary account management */}
             <Dialog open={!!leaveTarget} onOpenChange={(open) => !open && setLeaveTarget(null)}>
-                <DialogContent className="max-w-[95vw] rounded-xl p-5 sm:max-w-md">
+                <DialogContent className="max-w-[95vw] rounded-md p-5 sm:max-w-md">
                     <DialogTitle className="text-lg font-semibold">Unlink from {leaveTarget?.holder_name || "the primary account"}?</DialogTitle>
                     <div className="space-y-2 text-sm text-[#4D4D4D]">
                         <p>After unlinking:</p>

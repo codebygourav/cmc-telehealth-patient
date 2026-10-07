@@ -132,7 +132,7 @@ th{width:34%;background:#f9fafb;color:#4d4d4d}p{font-size:13px;color:#4d4d4d;mar
                 </div>
 
                 {details.bookedBy && (
-                    <div className="mx-6 mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
+                    <div className="mx-6 mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
                         <p className="font-bold">Booked for Family Member: {details.patientName}</p>
                         <p className="mt-1">To view or manage this appointment, please switch to <strong>{details.patientName}</strong>&apos;s profile.</p>
                     </div>

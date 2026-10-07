@@ -44,7 +44,7 @@ export function HeaderUserProfileMenu({
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            className="flex items-center gap-2.5 rounded-xl border border-[#E7E8EB] bg-white py-1.5 pl-1.5 pr-3 text-left transition-colors hover:border-primary/40"
+                            className="flex items-center gap-2.5 rounded-md border border-[#E7E8EB] bg-white py-1.5 pl-1.5 pr-3 text-left transition-colors hover:border-primary/40"
                         >
                             <ProfileAvatar name={shownName} index={activeIndex} className="h-9 w-9 text-xs" />
                             <span className="hidden min-w-0 md:block">

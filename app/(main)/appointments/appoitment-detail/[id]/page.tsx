@@ -87,7 +87,7 @@ export default function AppointmentDetailPage() {
 
                     {/* Show notes if they exist */}
                     {notes && (
-                        <div className="p-6 italic text-gray-600 bg-gray-100 border-l-4 rounded-xl border-primary">
+                        <div className="p-6 italic text-gray-600 bg-gray-100 border-l-4 rounded-md border-primary">
                             <h3 className="text-sm">Symptoms Reported</h3>
                             <div className="mt-2 text-base">
                                 &quot;{notes}&quot;
@@ -98,7 +98,7 @@ export default function AppointmentDetailPage() {
                     {data.prescriptions ? (
                         <PrescriptionSummary prescription={data.prescriptions} onViewDetail={() => setSelectedMedicineId(data.appointment_id || (id as string))} />
                     ) : (
-                        <div className="mt-6 rounded-xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400">
+                        <div className="mt-6 rounded-md border border-gray-100 bg-white p-8 text-center text-sm text-gray-400">
                             No prescription details available.
                         </div>
                     )}

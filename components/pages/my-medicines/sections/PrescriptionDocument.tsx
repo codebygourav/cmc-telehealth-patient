@@ -31,7 +31,7 @@ export const PrescriptionDocument = ({ data }: { data: MedicineDetailsData }) =>
             {/* Visit header */}
             <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                 <div className="flex items-start gap-3">
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                         <Stethoscope className="size-5" />
                     </span>
                     <div className="min-w-0">

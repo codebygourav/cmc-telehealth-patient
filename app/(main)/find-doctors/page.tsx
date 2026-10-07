@@ -66,8 +66,7 @@ const FindDoctorsContent = () => {
     ];
 
     // Queries
-    // isPending (not isLoading): keep the loader until data or a real error, so no error flash on reload.
-    const { data: doctorsData, error, isPending: isLoading, refetch } = useBrowseDoctors();
+    const { data: doctorsData, error, isLoading, refetch } = useBrowseDoctors();
 
     const { data: departmentsData } = useDepartmentsAndSymptoms();
 
@@ -169,7 +168,7 @@ const FindDoctorsContent = () => {
     }, []);
 
     // Loading state
-    if (isLoading) {
+    if (isLoading && !doctorsData) {
         return <LoadingSkeleton />;
     }
 

@@ -137,7 +137,7 @@ export default function ReportsAndNotes({
                     <h3 className="text-lg text-[#1F1E1E] font-semibold">Manage Reports & Notes</h3>
                     <button
                         onClick={onAddReport}
-                        className="p-2 bg-primary/15 text-emerald-600 rounded-xl"
+                        className="p-2 bg-primary/15 text-emerald-600 rounded-md"
                     >
                         <Plus size={18} strokeWidth={3} className="text-primary" />
                     </button>
@@ -167,7 +167,7 @@ export default function ReportsAndNotes({
                                             aria-label="Report actions"
                                             aria-expanded={activeMenu === report.id}
                                             onClick={() => setActiveMenu(activeMenu === report.id ? null : report.id)}
-                                            className="p-2 hover:bg-surface-container rounded-xl transition-colors"
+                                            className="p-2 hover:bg-surface-container rounded-md transition-colors"
                                         >
                                             <MoreVertical className="w-4 h-4 text-on-surface-variant" />
                                         </button>
@@ -231,7 +231,7 @@ export default function ReportsAndNotes({
                                     </button>
                                 )}
                             </div>
-                            <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-200">
+                            <div className="p-4 bg-gray-50/80 rounded-md border border-gray-200">
                                 <p className="text-xs text-[#1F1E1E] font-medium leading-relaxed whitespace-pre-wrap">
                                     {note ? note : 'No notes added yet.'}
                                 </p>

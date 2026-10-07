@@ -70,7 +70,7 @@ const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps)
                     <BackToHome />
 
                     {/* Card Container */}
-                    <div className="mt-8 bg-card py-8 px-6 shadow-xl rounded-xl border border-border sm:px-10">
+                    <div className="mt-8 bg-card py-8 px-6 shadow-xl rounded-md border border-border sm:px-10">
                         {/* Header */}
                         {title && (
                             <div className="mb-6 text-center">

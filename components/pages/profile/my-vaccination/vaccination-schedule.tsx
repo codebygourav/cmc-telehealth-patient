@@ -630,7 +630,7 @@ const VaccinationSchedule = () => {
         <section className="space-y-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="font-display text-2xl font-bold text-on-surface flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+                    <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shadow-sm">
                         <Calendar className="w-5 h-5" />
                     </div>
                     Vaccination Schedule

@@ -47,7 +47,7 @@ export default function Notifications() {
     const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
     const [totalPages, setTotalPages] = useState(1);
     const [mounted, setMounted] = useState(false);
-    
+
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -183,7 +183,7 @@ export default function Notifications() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-10 px-3 text-sm flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-xl"
+                                className="h-10 px-3 text-sm flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-md"
                                 onClick={subscription ? unsubscribeFromPush : subscribeToPush}
                                 disabled={pushLoading}
                             >

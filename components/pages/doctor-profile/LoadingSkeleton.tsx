@@ -8,7 +8,7 @@ const Card = ({ children, className = '' }: { children: React.ReactNode; classNa
 const LoadingSkeleton = () => (
   <div className="animate-pulse" aria-busy="true" aria-label="Loading doctor details">
     {/* Hero */}
-    <div className="container-max-width mx-auto mb-5 flex w-full flex-col items-center gap-3 rounded-xl bg-[#F5F6F8] px-4 py-10 md:py-14">
+    <div className="container-max-width mx-auto mb-5 flex w-full flex-col items-center gap-3 rounded-md bg-[#F5F6F8] px-4 py-10 md:py-14">
       <Bar className="h-8 w-56" />
       <Bar className="h-4 w-80 max-w-full" />
       <Bar className="h-4 w-64 max-w-full" />

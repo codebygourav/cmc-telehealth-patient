@@ -50,7 +50,7 @@ export default function DoctorInfoCard({ doctor, appointment_status }: DoctorInf
                             <div className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4 mt-2">
 
                                 {/* Experience Card */}
-                                <div className="flex items-center gap-x-1.5 bg-light-gray rounded-xl py-2 px-2.5 h-fit">
+                                <div className="flex items-center gap-x-1.5 bg-light-gray rounded-md py-2 px-2.5 h-fit">
                                     <p className="text-xs text-[#4D4D4D]">Experience</p>
                                     <p className="text-xs font-semibold text-[#4D4D4D]">
                                         {doctor?.years_experience || "N/A"}
@@ -58,7 +58,7 @@ export default function DoctorInfoCard({ doctor, appointment_status }: DoctorInf
                                 </div>
 
                                 {/* Rating: only when the doctor has reviews */}
-{Number(doctor?.total_reviews) > 0 && (<div className="flex items-center gap-x-1.5 bg-light-gray rounded-xl py-2 px-2.5 h-fit">
+                                {Number(doctor?.total_reviews) > 0 && (<div className="flex items-center gap-x-1.5 bg-light-gray rounded-md py-2 px-2.5 h-fit">
                                     <p className="text-xs text-[#4D4D4D] flex items-center gap-x-1">
                                         <Star size={14} color="#FABD2E" fill="#FABD2E" />
                                         Rating

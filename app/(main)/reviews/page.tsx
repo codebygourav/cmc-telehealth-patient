@@ -65,7 +65,7 @@ export default function Page() {
 
             {/* Empty State */}
             {!isLoading && reviews.length === 0 && (
-                <div className="text-center py-12 sm:py-16 md:py-20 px-4 border-2 border-dashed rounded-xl sm:rounded-2xl bg-gray-50/30 dark:bg-gray-950/10">
+                <div className="text-center py-12 sm:py-16 md:py-20 px-4 border-2 border-dashed rounded-md sm:rounded-2xl bg-gray-50/30 dark:bg-gray-950/10">
                     <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
                         <Star className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
                     </div>
@@ -81,7 +81,7 @@ export default function Page() {
             {/* Reviews List */}
             {!isLoading && reviews.length > 0 && (
                 <>
-                    <div className="space-y-6 sm:space-y-8 md:space-y-10  shadow-sm bg-white p-4 rounded-xl sm:rounded-2xl">
+                    <div className="space-y-6 sm:space-y-8 md:space-y-10  shadow-sm bg-white p-4 rounded-md sm:rounded-2xl">
                         {reviews.map((review, index) => (
                             <div
                                 key={review.id}
@@ -107,7 +107,7 @@ export default function Page() {
                                                 {review.doctor_departments}
                                             </p>
 
-                                            
+
                                         </div>
                                     </div>
 
@@ -118,8 +118,8 @@ export default function Page() {
                                                 <Star
                                                     key={i}
                                                     className={`w-4 h-4 sm:w-5 sm:h-5 ${i < review.rating
-                                                            ? 'text-yellow-500 fill-yellow-500'
-                                                            : 'text-gray-300 fill-gray-300 dark:text-gray-600 dark:fill-gray-600'
+                                                        ? 'text-yellow-500 fill-yellow-500'
+                                                        : 'text-gray-300 fill-gray-300 dark:text-gray-600 dark:fill-gray-600'
                                                         }`}
                                                 />
                                             ))}

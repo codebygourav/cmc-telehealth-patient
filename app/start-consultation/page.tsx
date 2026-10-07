@@ -79,7 +79,7 @@ const ConsultationContent = () => {
                 // Desktop: bottom-left, next to Whereby's centred controls.
                 <div className="absolute left-3 top-3 z-50 flex gap-2 sm:left-5 sm:top-auto sm:bottom-3">
                     <button type="button" onClick={() => setPrescribeModal(true)} title="Prescription"
-                        className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white shadow-md backdrop-blur hover:bg-black/75 sm:rounded-xl sm:px-3.5 sm:py-2.5 sm:text-sm">
+                        className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white shadow-md backdrop-blur hover:bg-black/75 sm:rounded-md sm:px-3.5 sm:py-2.5 sm:text-sm">
                         <Pill className="h-4 w-4" /> Prescription
                     </button>
                 </div>

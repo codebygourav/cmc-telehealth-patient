@@ -89,7 +89,7 @@ export default function Transactions() {
                     {getFilteredTransactions(status).map((item: any) => (
                         <div
                             key={item.id}
-                            className="p-6 border-b border-gray-100 bg-white hover:bg-gray-200 rounded-xl transition cursor-pointer"
+                            className="p-6 border-b border-gray-100 bg-white hover:bg-gray-200 rounded-md transition cursor-pointer"
                             onClick={() => router.push(`/transactions/${item.id}`)}
                         >
                             <div className="flex justify-between items-center">
@@ -183,7 +183,7 @@ export default function Transactions() {
                     "overflow-x-auto overflow-y-hidden", // Add scroll
                     "flex-nowrap", // Prevent wrapping
                     "justify-start", // Left align for scroll
-                     // Space for scrollbar
+                    // Space for scrollbar
                     "scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700" // Optional: custom scrollbar
                 )}
             />

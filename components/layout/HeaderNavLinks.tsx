@@ -128,9 +128,9 @@ export function HeaderNavLinks({
                             {isGuest ? (
                                 <div className="grid grid-cols-2 gap-2">
                                     <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}
-                                        className="flex h-12 items-center justify-center rounded-xl border border-border/80 bg-background text-sm font-semibold text-foreground hover:bg-muted">Sign In</Link>
+                                        className="flex h-12 items-center justify-center rounded-md border border-border/80 bg-background text-sm font-semibold text-foreground hover:bg-muted">Sign In</Link>
                                     <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}
-                                        className="flex h-12 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90">Register</Link>
+                                        className="flex h-12 items-center justify-center rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90">Register</Link>
                                 </div>
                             ) : (
                                 <button type="button" onClick={async () => { setMobileMenuOpen(false); await onLogout(); }}

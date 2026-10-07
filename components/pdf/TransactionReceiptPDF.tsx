@@ -104,7 +104,7 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
                 [
                     'Patient:',
                     (member ? member.name : `${user?.first_name || ''} ${user?.last_name || ''}`.trim()) ||
-                        'N/A',
+                    'N/A',
                 ],
                 [
                     'Doctor:',
@@ -154,7 +154,7 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
                 'Payment Method',
                 transaction.payment_method
                     ? transaction.payment_method.charAt(0).toUpperCase() +
-                      transaction.payment_method.slice(1)
+                    transaction.payment_method.slice(1)
                     : 'N/A',
             ]);
 
@@ -230,7 +230,7 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
             <button
                 type="button"
                 onClick={generatePDF}
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-xs transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-xs transition-colors cursor-pointer shrink-0"
             >
                 <Download className="h-3.5 w-3.5" />
                 <span>Receipt PDF</span>
@@ -246,7 +246,7 @@ export const TransactionReceiptPDF: React.FC<TransactionReceiptPDFProps> = ({
 
             <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-3.5 sm:p-4 border border-gray-200/80 gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 bg-white rounded-xl shadow-xs flex items-center justify-center border border-gray-200 shrink-0">
+                    <div className="w-10 h-10 bg-white rounded-md shadow-xs flex items-center justify-center border border-gray-200 shrink-0">
                         <FileDownIcon className="w-5 h-5 text-primary" />
                     </div>
                     <div className="min-w-0">

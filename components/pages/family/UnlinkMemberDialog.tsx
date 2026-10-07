@@ -58,7 +58,7 @@ export default function UnlinkMemberDialog({ target, onClose, onUnlinked }: Unli
 
     return (
         <Dialog open={!!target} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-[95vw] rounded-xl p-5 sm:max-w-md">
+            <DialogContent className="max-w-[95vw] rounded-md p-5 sm:max-w-md">
                 <DialogTitle className="text-lg font-semibold">Unlink {target?.name}?</DialogTitle>
                 <div className="space-y-2 text-sm text-[#4D4D4D]">
                     <p>

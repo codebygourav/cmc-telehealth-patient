@@ -98,7 +98,7 @@ export default function ProfileTransactions() {
                             type="button"
                             onClick={() => setSelectedStatus(status)}
                             className={cn(
-                                "flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer border",
+                                "flex items-center gap-2 rounded-md px-4 py-2 text-xs font-semibold transition-all shrink-0 cursor-pointer border",
                                 isActive
                                     ? "border-primary bg-primary text-primary-foreground shadow-xs"
                                     : "border-border/70 bg-background text-foreground/80 hover:border-primary/40 hover:bg-muted"
@@ -135,7 +135,7 @@ export default function ProfileTransactions() {
                             {/* Card Header: Patient / Doctor Info + Amount */}
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 sm:pb-0 border-b sm:border-b-0 border-border/40">
                                 <div className="flex items-start gap-3">
-                                    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl mt-0.5", statusBg)}>
+                                    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-md mt-0.5", statusBg)}>
                                         <StatusIcon className={cn("h-5 w-5", statusColor)} />
                                     </div>
                                     <div className="space-y-1">
@@ -229,7 +229,7 @@ export default function ProfileTransactions() {
                                         asChild
                                         size="sm"
                                         variant="outline"
-                                        className="h-9 px-3 rounded-xl border-border/80 hover:border-primary hover:bg-primary/5 hover:text-primary font-semibold text-xs gap-1.5 shrink-0"
+                                        className="h-9 px-3 rounded-md border-border/80 hover:border-primary hover:bg-primary/5 hover:text-primary font-semibold text-xs gap-1.5 shrink-0"
                                     >
                                         <Link href={`/transactions/${item.id}`}>
                                             View Details

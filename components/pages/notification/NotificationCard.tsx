@@ -98,7 +98,7 @@ export function NotificationCard({
     >
       <CardContent className="relative pl-0">
         <div className="relative flex items-start gap-4">
-          <div className={`p-2.5 rounded-xl ${bg} shrink-0`}>
+          <div className={`p-2.5 rounded-md ${bg} shrink-0`}>
             <Icon className={`h-6 w-6 ${color}`} />
           </div>
 

@@ -112,7 +112,7 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
                     <Input
                         value={formData.address}
                         onChange={(e) => handleChange("address", e.target.value)}
-                        className="h-11 rounded-xl border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-11 rounded-md border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter house/flat number"
                     />
                 </div>
@@ -122,7 +122,7 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
                     <Input
                         value={formData.area}
                         onChange={(e) => handleChange("area", e.target.value)}
-                        className="h-11 rounded-xl border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-11 rounded-md border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter area"
                     />
                 </div>
@@ -132,7 +132,7 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
                     <Input
                         value={formData.landmark}
                         onChange={(e) => handleChange("landmark", e.target.value)}
-                        className="h-11 rounded-xl border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-11 rounded-md border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter landmark"
                     />
                 </div>
@@ -142,7 +142,7 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
                     <Input
                         value={formData.pincode}
                         onChange={(e) => handleChange("pincode", e.target.value)}
-                        className="h-11 rounded-xl border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-11 rounded-md border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter pincode"
                     />
                 </div>
@@ -152,7 +152,7 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
                     <Input
                         value={formData.city}
                         onChange={(e) => handleChange("city", e.target.value)}
-                        className="h-11 rounded-xl border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-11 rounded-md border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter city"
                     />
                 </div>
@@ -162,7 +162,7 @@ export default function ManageAddressForm({ user }: ManageAddressFormProps) {
                     <Input
                         value={formData.state}
                         onChange={(e) => handleChange("state", e.target.value)}
-                        className="h-11 rounded-xl border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
+                        className="h-11 rounded-md border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter state"
                     />
                 </div>

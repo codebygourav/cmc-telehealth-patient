@@ -26,7 +26,7 @@ export default function SheetDialog({ open, onOpenChange, title, description, ch
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 className={cn(
-                    "flex max-h-[90vh] w-[95vw] flex-col gap-0 overflow-hidden rounded-xl p-0 sm:max-w-lg",
+                    "flex max-h-[90vh] w-[95vw] flex-col gap-0 overflow-hidden rounded-md p-0 sm:max-w-lg",
                     "max-sm:max-h-[92dvh] max-sm:overflow-hidden max-sm:p-0 max-sm:pt-3",
                     className,
                 )}

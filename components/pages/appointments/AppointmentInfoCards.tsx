@@ -55,7 +55,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                     <div className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4 mt-2">
 
                                         {/* Experience Card */}
-                                        <div className="flex items-center gap-x-1.5 bg-light-gray rounded-xl py-2 px-2.5 h-fit">
+                                        <div className="flex items-center gap-x-1.5 bg-light-gray rounded-md py-2 px-2.5 h-fit">
                                             <p className="text-xs text-[#4D4D4D]">Experience</p>
                                             <p className="text-xs font-semibold text-[#4D4D4D]">
                                                 {doctor?.years_experience || "N/A"}
@@ -63,7 +63,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                         </div>
 
                                         {/* Rating: only when the doctor has reviews */}
-{Number(doctor?.total_reviews) > 0 && (<div className="flex items-center gap-x-1.5 bg-light-gray rounded-xl py-2 px-2.5 h-fit">
+                                        {Number(doctor?.total_reviews) > 0 && (<div className="flex items-center gap-x-1.5 bg-light-gray rounded-md py-2 px-2.5 h-fit">
                                             <p className="text-xs text-[#4D4D4D] flex items-center gap-x-1">
                                                 <Star size={14} color="#FABD2E" fill="#FABD2E" />
                                                 Rating
@@ -192,7 +192,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                             {medical_reports.map((report: any) => (
                                 <div
                                     key={report.id}
-                                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-700"
+                                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-700"
                                 >
                                     <div className="flex items-center gap-3 flex-1 min-w-0">
                                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--primary)29] rounded-lg flex items-center justify-center shrink-0">
