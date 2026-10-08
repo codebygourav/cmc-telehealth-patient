@@ -61,6 +61,18 @@ const withPWA = withPWAInit({
   dest: "public",
   register: true,
   disable: process.env.NODE_ENV === "development",
+  // API calls always go straight to the network. The default "NetworkFirst + 10 s timeout" cache
+  // made pages wait (skeleton) on a slow connection and could show old data until a reload.
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
+        handler: "NetworkOnly",
+        method: "GET",
+      },
+    ],
+  },
 });
 
 export default withPWA(nextConfig);

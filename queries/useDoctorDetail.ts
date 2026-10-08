@@ -8,13 +8,15 @@ export const doctorDetailKeys = {
   detail: (userId: string) => [...doctorDetailKeys.all, userId] as const,
 };
 
-// Public: guests can view doctor details.
-export const useDoctorDetail = (userId: string) => {
+// Public: guests can view doctor details. initialData (from the server-rendered page) is shown at
+// once — also while the auth state loads — and refreshed in the background.
+export const useDoctorDetail = (userId: string, initialData?: DoctorDetailResponse) => {
   const { token, initializing } = useAuth();
 
   return useQuery<DoctorDetailResponse>({
     queryKey: [...doctorDetailKeys.detail(userId), token ? "auth" : "guest"],
     queryFn: () => getDoctorDetail({ userId }),
     enabled: !!userId && !initializing,
+    placeholderData: (previous) => previous ?? initialData,
   });
 };
