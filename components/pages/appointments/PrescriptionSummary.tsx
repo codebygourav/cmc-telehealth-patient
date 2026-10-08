@@ -46,12 +46,12 @@ export default function PrescriptionSummary({ prescription, onViewDetail }: { pr
                     <ol className="space-y-2 sm:hidden">
                         {medicines.map((m, i) => {
                             const how = [m.dosage, m.frequency, m.duration].filter((v: any) => v && String(v).trim()).join(" · ");
-                            const notes = [m.meal?.replace(/_/g, " "), m.instructions].filter(Boolean).join(" · ");
+                            const notes = [m.meal?.replace(/_/g, " "), m.display_instructions || m.instructions].filter(Boolean).join(" · ");
                             return (
                                 <li key={m.id || i} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
                                     <p className="flex gap-2 text-sm font-semibold text-[#1F1E1E]">
                                         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] text-primary">{i + 1}</span>
-                                        <span className="min-w-0 break-words">{m.name || "-"}</span>
+                                        <span className="min-w-0 break-words">{m.display_name || m.name || "-"}</span>
                                     </p>
                                     {how && <p className="mt-1 pl-7 text-sm text-[#4D4D4D]">{how}</p>}
                                     {notes && <p className="mt-1 whitespace-pre-line pl-7 text-sm text-[#4D4D4D]">{notes}</p>}
@@ -70,11 +70,11 @@ export default function PrescriptionSummary({ prescription, onViewDetail }: { pr
                             {medicines.map((m, i) => (
                                 <tr key={m.id || i} className="border-b last:border-0 align-top">
                                     <td className="py-2 pr-3">{i + 1}</td>
-                                    <td className="py-2 pr-3 font-medium text-[#1F1E1E]">{m.name || "-"}</td>
+                                    <td className="py-2 pr-3 font-medium text-[#1F1E1E]">{m.display_name || m.name || "-"}</td>
                                     <td className="py-2 pr-3">{m.dosage || "-"}</td>
                                     <td className="py-2 pr-3">{m.frequency || "-"}</td>
                                     <td className="py-2 pr-3">{m.duration || "-"}</td>
-                                    <td className="py-2 whitespace-pre-line">{[m.meal?.replace(/_/g, " "), m.instructions].filter(Boolean).join(" · ") || "-"}</td>
+                                    <td className="py-2 whitespace-pre-line">{[m.meal?.replace(/_/g, " "), m.display_instructions || m.instructions].filter(Boolean).join(" · ") || "-"}</td>
                                 </tr>
                             ))}
                         </tbody>

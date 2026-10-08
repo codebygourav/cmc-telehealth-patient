@@ -17,7 +17,7 @@ export const MedicineItem = ({ medicine }: MedicineItemProps) => {
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-lg sm:text-xl font-bold g-text-dark leading-tight">{medicine.name}</h4>
+            <h4 className="text-lg sm:text-xl font-bold g-text-dark leading-tight">{medicine.display_name || medicine.name}</h4>
             <Badge variant="outline" className={cn(
               "rounded-full uppercase font-bold py-0 h-5 border-none text-[10px]",
               isPast ? "bg-surface-container text-red" : "bg-emerald-100 text-emerald-700"
@@ -105,7 +105,7 @@ export const MedicineItem = ({ medicine }: MedicineItemProps) => {
             </div>
             <div className="text-sm font-medium leading-relaxed g-text-muted">
               <span className="mr-1 font-bold g-text-dark">Instruction:</span>
-              <span className="break-words">{medicine.instructions.join(', ')}</span>
+              <span className="break-words">{medicine.display_instructions || medicine.instructions.join(', ')}</span>
             </div>
           </div>
         </div>

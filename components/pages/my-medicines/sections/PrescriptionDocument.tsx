@@ -60,13 +60,13 @@ export const PrescriptionDocument = ({ data }: { data: MedicineDetailsData }) =>
                 ) : (
                     <ol className="divide-y divide-gray-100">
                         {data.medicines.map((m, i) => {
-                            const how = text(m.instructions) || [m.frequencylabel, m.meal?.replace(/_/g, ' ')].filter(Boolean).join(' · ');
+                            const how = text(m.display_instructions || m.instructions) || [m.frequencylabel, m.meal?.replace(/_/g, ' ')].filter(Boolean).join(' · ');
                             return (
                                 <li key={m.prescription_id || i} className="flex gap-3 py-3">
                                     <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{i + 1}</span>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <p className="font-semibold text-[#1F1E1E] break-words">{m.name}</p>
+                                            <p className="font-semibold text-[#1F1E1E] break-words">{m.display_name || m.name}</p>
                                             {m.status && (
                                                 <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', statusClass[m.status] || statusClass.Past)}>{m.status}</span>
                                             )}

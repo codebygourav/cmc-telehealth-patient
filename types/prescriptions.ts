@@ -1,4 +1,7 @@
 export interface Prescription {
+  /** Name / how to take for display, without the strength. */
+  display_name?: string | null;
+  display_instructions?: string | null;
   appointment_id: string;
   doctor_name: string;
   medician_name: string;
@@ -25,6 +28,9 @@ export interface GetPrescriptionsResponse {
 }
 
 export interface MedicineDetail {
+  /** Name / how to take for display, without the strength. */
+  display_name?: string | null;
+  display_instructions?: string | null;
   number: number;
   prescription_id: string;
   name: string;

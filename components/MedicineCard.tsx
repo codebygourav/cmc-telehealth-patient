@@ -24,6 +24,7 @@ function InfoBadges({ prescription }: { prescription: any }) {
   const items: InfoBadgeProps[] = [];
 
   const medicineName =
+    prescription?.display_name ||
     prescription?.medician_name ||
     prescription?.medicine_name ||
     prescription?.name;
@@ -138,7 +139,7 @@ export const MedicineCard = ({
                     >
                       <span className="font-bold text-gray-800 flex items-center gap-1">
                         <Pill className="w-3.5 h-3.5 text-emerald-600" />
-                        {med.name}
+                        {med.display_name || med.name}
                       </span>
                       {(med.frequencylabel || med.frequency) && (
                         <span className="text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">
@@ -149,7 +150,7 @@ export const MedicineCard = ({
                       {med.take_when && <span className="text-gray-500 font-medium">({med.take_when})</span>}
                       {med.instructions && med.instructions.length > 0 && (
                         <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                          {Array.isArray(med.instructions) ? med.instructions.join(", ") : med.instructions}
+                          {med.display_instructions || (Array.isArray(med.instructions) ? med.instructions.join(", ") : med.instructions)}
                         </span>
                       )}
                     </div>

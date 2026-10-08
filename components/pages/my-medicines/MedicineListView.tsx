@@ -114,7 +114,7 @@ const VisitCard = ({ items, onView }: { items: Prescription[]; onView: () => voi
                     <li key={i} className="flex items-start gap-2 text-sm">
                         <Pill className="mt-0.5 size-4 shrink-0 text-primary" />
                         <span className="min-w-0">
-                            <span className="font-medium text-[#1F1E1E]">{item.medicine_name || item.medician_name}</span>
+                            <span className="font-medium text-[#1F1E1E]">{item.display_name || item.medicine_name || item.medician_name}</span>
                             {item.frequencylabel && <span className="text-muted-foreground"> · {item.frequencylabel}</span>}
                         </span>
                     </li>
