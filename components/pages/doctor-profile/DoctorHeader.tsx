@@ -63,6 +63,9 @@ const DoctorHeader = ({ doctor }: DoctorHeaderProps) => {
                             <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
                         )}
                     </h2>
+                    {(profile as { department_role?: string | null })?.department_role && (
+                        <p className="-mt-1 text-sm font-medium text-primary">({(profile as { department_role?: string | null }).department_role})</p>
+                    )}
                     {profile.sub_title && <p className="text-sm text-[#4D4D4D]">{profile.sub_title}</p>}
 
                     {(totalReviews > 0 || socialLinks.length > 0) && (

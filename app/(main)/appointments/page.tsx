@@ -87,8 +87,10 @@ const AppointmentsPage = () => {
         return {
             id: app.doctor.id,
             name: app.doctor.name,
-            specialty: app.doctor.department,
-            rating: app.doctor.average_rating || 0,
+            // Department and the doctor's role in it, e.g. "Pediatrics · Professor & Head".
+            specialty: [app.doctor.department, (app.doctor as any).department_role && `(${(app.doctor as any).department_role})`].filter(Boolean).join(" "),
+            // Real average from reviews; 0 = no reviews yet (the card shows "New").
+            rating: Number(app.doctor.average_rating) || 0,
             reviews: app.ratings_count || 0,
             experience: app.doctor.years_experience || '',
             location: '',
@@ -281,6 +283,7 @@ const AppointmentsPage = () => {
                         key={app.appointment_id}
                         appointment={transformToAppointment(app)}
                         specialty={transformToDoctor(app)?.specialty}
+                        rating={transformToDoctor(app)?.rating}
                         consultationType={app.consultation_type_label || app.schedule?.consultation_type_label}
                         fee={app.fee_amount}
                         bookedForName={(app as any).booked_for?.name}

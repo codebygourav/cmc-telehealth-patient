@@ -38,7 +38,6 @@ const UpcomingAppointmentCard = ({
 
     const doctorName = appointment.doctorName || doctor?.name || "Doctor";
     const specialty = doctor?.specialty || "Specialist";
-    const rating = doctor?.rating ? Number(doctor.rating).toFixed(1) : "5.0";
     const feeFormatted = parseFloat(String(fee || 0)).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -89,12 +88,14 @@ const UpcomingAppointmentCard = ({
                                 </span>
                             )}
                         </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium truncate mt-0.5">
-                            <span className="truncate">{specialty}</span>
-                            <span className="text-slate-300">•</span>
-                            <span className="flex items-center gap-0.5 text-amber-500 font-semibold shrink-0">
-                                ★ <span className="text-slate-700">{rating}</span>
-                            </span>
+                        {/* Department (role) in small text; the rating only when the doctor has at least 1 review. */}
+                        <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] leading-snug text-slate-500">
+                            <span className="min-w-0 truncate" title={specialty}>{specialty}</span>
+                            {Number(doctor?.rating) > 0 && (
+                                <span className="flex shrink-0 items-center gap-0.5 font-semibold text-amber-500">
+                                    ★ <span className="text-slate-700">{Number(doctor?.rating).toFixed(1)}</span>
+                                </span>
+                            )}
                         </div>
                         {bookedForName && (
                             <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
@@ -138,12 +139,8 @@ const UpcomingAppointmentCard = ({
                             SESSION MODE
                         </span>
                         {isVideo ? (
-                            /* Signal Equalizer Bars */
-                            <div className="flex items-end gap-0.5 h-3" title="Active Video Signal">
-                                <span className="w-0.5 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                                <span className="w-0.5 h-3 bg-emerald-500 rounded-full" />
-                                <span className="w-0.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                            </div>
+                            /* Video call */
+                            <Video className="h-4 w-4 text-emerald-600" aria-label="Video call" />
                         ) : (
                             <span className="bg-slate-200/80 text-slate-600 text-[9px] font-bold px-1.5 py-0.2 rounded-md">
                                 OPD

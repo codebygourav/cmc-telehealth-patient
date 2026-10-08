@@ -38,6 +38,9 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                     <h2 className="text-2xl font-bold text-[#1F1E1E] mt-1">
                                         {doctor?.name || "Dr. Amit Sharma"}
                                     </h2>
+                                    {(doctor as { department_role?: string | null })?.department_role && (
+                                        <p className="mt-0.5 text-sm font-medium text-primary">({(doctor as { department_role?: string | null }).department_role})</p>
+                                    )}
 
                                     {/* Status Badge - Visible on mobile only (below name) */}
                                     <div className="block sm:hidden mt-3">

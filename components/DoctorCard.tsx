@@ -56,7 +56,10 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
                             {/* Category */}
                             <p className="font-medium text-sm text-[#4D4D4D] md:text-base mt-1">
                                 {Array.isArray(doctor.speciality) && doctor.speciality.length > 0
-                                    ? (typeof doctor.speciality[0] === 'string' ? doctor.speciality[0] : doctor.speciality[0].name)
+                                    ? (typeof doctor.speciality[0] === 'string'
+                                        ? doctor.speciality[0]
+                                        // Department and the doctor's role in it, e.g. "Pediatrics · Professor & Head".
+                                        : [doctor.speciality[0].name, (doctor.speciality[0] as any).role && `(${(doctor.speciality[0] as any).role})`].filter(Boolean).join(" "))
                                     : (typeof doctor.speciality === 'string' ? doctor.speciality : (doctor.speciality as any)?.name || "")}
                             </p>
 

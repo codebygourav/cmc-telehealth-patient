@@ -47,6 +47,9 @@ export default function BookingOverviewCard({ doctor, schedule }: BookingOvervie
                             <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700">Test</span>
                         )}
                     </h2>
+                    {(doctor as { department_role?: string | null })?.department_role && (
+                        <p className="-mt-1 text-sm font-medium text-primary">({(doctor as { department_role?: string | null }).department_role})</p>
+                    )}
                     <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-[#4D4D4D] sm:justify-start">
                         {years > 0 && (
                             <span className="inline-flex items-center gap-1.5">
