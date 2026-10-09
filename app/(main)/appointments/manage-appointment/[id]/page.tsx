@@ -248,6 +248,24 @@ export default function ManageAppointment({ params }: PageProps) {
         });
     };
 
+    // Not found (wrong / old link, or it belongs to another profile): never show an empty or
+    // placeholder appointment — go to My Appointments.
+    const notFound = !isLoading && (!!error || !appointment);
+    useEffect(() => {
+        if (!notFound) return;
+        toast.error('This appointment was not found in your account. If it was booked for a family member, switch to their profile.', { duration: 7000 });
+        router.replace('/appointments');
+    }, [notFound, router]);
+
+    if (isLoading || notFound) {
+        return (
+            <div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-500">
+                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                {notFound ? 'Opening your appointments…' : 'Loading appointment…'}
+            </div>
+        );
+    }
+
     return (
         <div>
 
