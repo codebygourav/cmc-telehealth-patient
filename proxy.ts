@@ -10,9 +10,9 @@ const authRoutes = [
   "/register",
 ];
 
-// Browsable without login: doctors list, doctor details and legal pages.
+// Browsable without login: doctors list, doctor details, contact form and legal pages.
 // The dashboard, booking and everything personal need login.
-const publicRoutes = ["/find-doctors", "/privacy-policy", "/terms-conditions"];
+const publicRoutes = ["/find-doctors", "/contact-us", "/privacy-policy", "/terms-conditions"];
 
 const isPublicRoute = (path: string) =>
   publicRoutes.some((route) => path === route || path.startsWith(`${route}/`));
@@ -57,8 +57,10 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// The service worker files (sw.js, workbox-*, worker-*) are left alone: redirecting them to the
+// login page would stop the app from installing and from working offline.
 export const config = {
   matcher: [
-    "/((?!api|_next|favicon.ico|manifest.webmanifest|manifest.json|assets|icons).*)",
+    "/((?!api|_next|favicon.ico|manifest.webmanifest|manifest.json|sw.js|sw-dev.js|workbox-|worker-|assets|icons).*)",
   ],
 };

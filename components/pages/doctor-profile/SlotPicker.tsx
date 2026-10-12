@@ -89,7 +89,8 @@ export default function SlotPicker({ slots, selectedSlot, onSelectSlot }: SlotPi
                                     </span>
                                     <span className={cn("text-xs", selected ? "text-white/85" : "text-[#4D4D4D]")}>
                                         {slot.currency_symbol || "₹"}
-                                        {slot.consultation_fee ?? 0} ({typeLabel})
+                                        {slot.consultation_fee ?? 0}
+                                        {slot.international_fee ? ` / $${slot.international_fee}` : ""} ({typeLabel})
                                     </span>
                                     <span
                                         className={cn(

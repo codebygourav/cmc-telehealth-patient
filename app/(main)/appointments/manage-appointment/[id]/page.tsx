@@ -42,7 +42,20 @@ export default function ManageAppointment({ params }: PageProps) {
     const router = useRouter();
 
     // Fetch appointment details using the proper hook
-    const { data, isLoading, error } = useAppointmentDetail(appointmentId);
+    const { data, isLoading, error, refetch } = useAppointmentDetail(appointmentId);
+    // Still loading after 12 s (slow / flaky connection): offer retry instead of an endless spinner.
+    const [slow, setSlow] = useState(false);
+    useEffect(() => {
+        if (!isLoading) { setSlow(false); return; }
+        const t = setTimeout(() => setSlow(true), 12000);
+        return () => clearTimeout(t);
+    }, [isLoading]);
+    // Back online: load it again at once.
+    useEffect(() => {
+        const onOnline = () => { if (!data) refetch(); };
+        window.addEventListener('online', onOnline);
+        return () => window.removeEventListener('online', onOnline);
+    }, [data, refetch]);
     const appointment = data?.data;
     // console.log("Appointments : ", appointment?.status);
 
@@ -256,6 +269,21 @@ export default function ManageAppointment({ params }: PageProps) {
         toast.error('This appointment was not found in your account. If it was booked for a family member, switch to their profile.', { duration: 7000 });
         router.replace('/appointments');
     }, [notFound, router]);
+
+    if (isLoading && slow) {
+        return (
+            <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-4 text-center">
+                <p className="text-sm font-medium text-slate-700">This is taking longer than usual.</p>
+                <p className="text-xs text-slate-500">Please check your internet connection.</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                    <button type="button" onClick={() => { setSlow(false); refetch(); }}
+                        className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">Try again</button>
+                    <button type="button" onClick={() => router.replace('/appointments')}
+                        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Go to My Appointments</button>
+                </div>
+            </div>
+        );
+    }
 
     if (isLoading || notFound) {
         return (

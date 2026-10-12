@@ -10,6 +10,8 @@ interface UpcomingAppointmentCardProps {
     onManageClick: (appointmentId: string) => void;
     consultationType?: string;
     fee?: string;
+    // Currency of the fee from the API ("$" for an international video consultation).
+    currencySymbol?: string;
     joinUrl?: string;
     call_now?: boolean;
     isRejoin?: boolean;
@@ -26,6 +28,7 @@ const UpcomingAppointmentCard = ({
     onManageClick,
     consultationType = "Video Call",
     fee = "0",
+    currencySymbol = "₹",
     joinUrl,
     call_now,
     isRejoin = false,
@@ -152,7 +155,7 @@ const UpcomingAppointmentCard = ({
                             {isVideo ? "Video Call" : "General (In-Clinic)"}
                         </p>
                         <p className="text-xs text-slate-500 font-medium truncate">
-                            Fee: ₹{feeFormatted}
+                            Fee: {currencySymbol}{feeFormatted}
                         </p>
                     </div>
                 </div>

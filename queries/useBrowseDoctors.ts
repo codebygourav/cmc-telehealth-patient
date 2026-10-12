@@ -1,21 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBrowseDoctors } from "@/api/browseDoctors";
 import type { BrowseDoctorsResponse } from "@/types/browse-doctors";
+import { useAuth } from "@/context/userContext";
 
 export const browseDoctorsKeys = {
   all: ["browse-doctors"] as const,
 };
 
-// Public: guests and authenticated users can browse doctors instantly. initialData (from the
-// server-rendered page) is shown at once and refreshed in the background.
-export const useBrowseDoctors = (initialData?: BrowseDoctorsResponse) => {
-  return useQuery({
-    queryKey: browseDoctorsKeys.all,
+// Public: guests and logged-in patients can browse doctors. The server-rendered list (guest
+// prices) is shown at once as a placeholder; the browser then loads the list for whoever is
+// looking, so a logged-in patient always ends up with their own prices.
+export const useBrowseDoctors = (initialData?: BrowseDoctorsResponse, enabled: boolean = true) => {
+  const { token, initializing } = useAuth();
+
+  return useQuery<BrowseDoctorsResponse>({
+    // Fees depend on who is looking (guest: both prices; patient: their own), so the list is
+    // kept separately for guests and logged-in patients.
+    queryKey: [...browseDoctorsKeys.all, token ? "auth" : "guest"],
     queryFn: getBrowseDoctors,
-    initialData,
-    // Treat server data as stale so it is refreshed right away (a logged-in user may see more).
-    initialDataUpdatedAt: initialData ? 0 : undefined,
-    staleTime: 5 * 60 * 1000,
+    // Wait until the saved login is restored, so the first request already carries the token.
+    enabled: enabled && !initializing,
+    placeholderData: (previous) => previous ?? initialData,
+    staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 };

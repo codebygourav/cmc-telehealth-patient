@@ -6,6 +6,7 @@ interface SortDropdownProps {
 }
 
 const sortOptions = [
+  { value: 'recommended', label: 'Recommended' },
   { value: 'highest-rated', label: 'Highest Rated' },
   { value: 'price-low-high', label: 'Price: Low to High' },
   { value: 'next-available', label: 'Next Available' },

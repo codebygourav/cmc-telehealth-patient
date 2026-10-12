@@ -23,6 +23,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HeaderNavLinks } from "./HeaderNavLinks";
 import { HeaderUserProfileMenu } from "./HeaderUserProfileMenu";
+import { MobileSearch } from "./MobileSearch";
 import { NotificationDropdown } from "./NotificationDropdown";
 import FamilyViewBanner from "./FamilyViewBanner";
 import CallAlertBar from "./CallAlertBar";
@@ -126,6 +127,9 @@ export function Header() {
           isActivePath={isActivePath}
           onLogout={handleLogout}
         />
+
+        {/* Phones / tablets: search on the right of the logo (the menu is the bottom navigation). */}
+        <MobileSearch />
 
         <div className="hidden lg:flex items-center gap-3 ml-auto sm:gap-4">
           {!isGuest && (

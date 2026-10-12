@@ -13,6 +13,8 @@ interface PendingPaymentCardProps {
     rating?: number;
     consultationType?: string;
     fee?: string;
+    // Currency of the fee from the API ("$" for an international video consultation).
+    currencySymbol?: string;
     bookedForName?: string | null;
     onComplete: (appointmentId: string) => void;
     onDelete: (appointmentId: string) => void;
@@ -25,6 +27,7 @@ const PendingPaymentCard = ({
     rating,
     consultationType = "Video Call",
     fee = "0",
+    currencySymbol = "₹",
     bookedForName,
     onComplete,
     onDelete,
@@ -130,7 +133,7 @@ const PendingPaymentCard = ({
                             {isVideo ? "Video Call" : "General (In-Clinic)"}
                         </p>
                         <p className="text-xs text-slate-500 font-medium truncate">
-                            Fee: ₹{feeFormatted}
+                            Fee: {currencySymbol}{feeFormatted}
                         </p>
                     </div>
                 </div>
@@ -148,7 +151,7 @@ const PendingPaymentCard = ({
                     onClick={() => onComplete(appointment.id)}
                     className="flex-1 bg-[#064e3b] text-white hover:bg-[#043e2f] font-semibold text-xs sm:text-sm py-2.5 px-3 rounded-md transition-colors cursor-pointer shadow-2xs text-center truncate"
                 >
-                    Confirm &amp; Book (₹{feeFormatted})
+                    Confirm &amp; Book ({currencySymbol}{feeFormatted})
                 </button>
                 <button
                     type="button"

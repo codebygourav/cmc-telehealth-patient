@@ -31,7 +31,7 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
     const [searchTerm, setSearchTerm] = useState('');
     const [specialty, setSpecialty] = useState('all');
     const [consultationType, setConsultationType] = useState<ConsultationType>('all');
-    const [sortBy, setSortBy] = useState<SortOption>('highest-rated');
+    const [sortBy, setSortBy] = useState<SortOption>('recommended');
     const [bookingDoctorId, setBookingDoctorId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9;
@@ -43,6 +43,10 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
     });
 
     useEffect(() => {
+        // From the header search (phones): /find-doctors?search=…
+        const searchParam = searchParams.get('search');
+        if (searchParam !== null) setSearchTerm(searchParam);
+
         const consultationTypeParam = searchParams.get('consultationType');
         const specialtyParam = searchParams.get('specialty');
 
@@ -128,14 +132,26 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
         });
     }, [doctors, searchTerm, specialty, consultationType]);
 
+    // Lowest fee of a doctor across modes (doctors without a fee go last).
+    const lowestFee = (doctor: Doctor) => {
+        const b = doctor.fees_breakdown;
+        const fees = [b?.video_consultation, b?.clinic_visit?.general, b?.clinic_visit?.private].filter(
+            (fee): fee is number => typeof fee === 'number' && fee > 0
+        );
+        return fees.length ? Math.min(...fees) : Number.MAX_SAFE_INTEGER;
+    };
+
     // Sort doctors
     const sortedDoctors = useMemo(() => {
+        // "Recommended" keeps the order sent by the API: the order set in Admin → Doctors.
+        if (sortBy === 'recommended') return filteredDoctors;
+
         return [...filteredDoctors].sort((a: Doctor, b: Doctor) => {
             switch (sortBy) {
                 case 'highest-rated':
                     return (b.rating || 0) - (a.rating || 0);
                 case 'price-low-high':
-                    return (a.consultation_fee || 0) - (b.consultation_fee || 0);
+                    return lowestFee(a) - lowestFee(b);
                 case 'next-available':
                     // TODO: Implement availability sorting when data is available
                     return 0;
@@ -255,7 +271,7 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
                             {paginatedDoctors.map((doctor) => (
                                 <DoctorCard
                                     key={doctor.id}

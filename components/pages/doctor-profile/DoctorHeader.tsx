@@ -33,10 +33,14 @@ const DoctorHeader = ({ doctor }: DoctorHeaderProps) => {
     const years = Number(profile.years_experience) || 0;
     const totalReviews = Number(reviews?.total_reviews) || 0;
     const socialLinks = Object.entries(doctor.social_links || {}).filter(([, url]) => !!url);
+    const feeRange = (range: { min: number; max: number }, symbol: string) =>
+        range.min === range.max
+            ? `${symbol}${range.min.toLocaleString('en-IN')}`
+            : `${symbol}${range.min.toLocaleString('en-IN')} - ${symbol}${range.max.toLocaleString('en-IN')}`;
+    // Before login both prices are shown: the Indian fee and the international video fee.
     const feeLabel = fee
-        ? fee.min === fee.max
-            ? `₹${fee.min.toLocaleString('en-IN')}`
-            : `₹${fee.min.toLocaleString('en-IN')} - ₹${fee.max.toLocaleString('en-IN')}`
+        ? feeRange(fee, fee.currency_symbol || '₹') +
+          (fee.international ? ` · International video: ${feeRange(fee.international, fee.international.currency_symbol || '$')}` : '')
         : null;
     const hasInfo = years > 0 || languages.length > 0 || !!feeLabel;
 

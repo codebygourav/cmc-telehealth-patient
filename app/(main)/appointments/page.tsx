@@ -178,6 +178,7 @@ const AppointmentsPage = () => {
                                 onManageClick={handleManageAppointment}
                                 consultationType={app.consultation_type_label || app.schedule?.consultation_type_label}
                                 fee={app.fee_amount}
+                                currencySymbol={app.currency_symbol}
                                 joinUrl={app.join_url || app.video_consultation?.join_url}
                                 call_now={app.call_now}
                                 isRejoin={Boolean((app as any).call_is_rejoin)}
@@ -235,6 +236,7 @@ const AppointmentsPage = () => {
                                 onViewDetails={handleViewDetails}
                                 consultationType={app.consultation_type_label || app.schedule?.consultation_type_label}
                                 fee={app.fee_amount}
+                                currencySymbol={app.currency_symbol}
                                 statusLabel={app.status_label}
                             />
                         );
@@ -286,6 +288,7 @@ const AppointmentsPage = () => {
                         rating={transformToDoctor(app)?.rating}
                         consultationType={app.consultation_type_label || app.schedule?.consultation_type_label}
                         fee={app.fee_amount}
+                                currencySymbol={app.currency_symbol}
                         bookedForName={(app as any).booked_for?.name}
                         onComplete={(id) => router.push(`/appointments/${id}`)}
                         onDelete={(id) => setDeleteId(id)}

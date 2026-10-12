@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertCircle, ChevronRight, LogIn } from 'lucide-react';
+import { AlertCircle, ArrowRight, ChevronRight, LogIn, PhoneCall } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import CustomDialog from '@/components/custom/Dialogboxs';
@@ -144,6 +144,13 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
     // Both types are always offered; start on one that has schedules (in-clinic when both / neither do).
     useEffect(() => {
         if (appointmentType === null) {
+            // Opened from a doctor card with a mode chosen there (?type=video / ?type=in-person).
+            const requested = new URLSearchParams(window.location.search).get('type');
+            if (requested === 'video' || requested === 'in-person') {
+                setAppointmentType(requested === 'video' ? 'video' : 'in_person');
+                return;
+            }
+
             setAppointmentType(!hasInPersonSlots && hasVideoSlots ? 'video' : 'in_person');
         }
     }, [appointmentType, hasInPersonSlots, hasVideoSlots]);
@@ -260,6 +267,34 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
     };
 
     const isBookingDisabled = !appointmentType || !selectedSlot || isBooking || initializing;
+
+    // Nothing this visitor can book with this doctor (no OPD, or none offered for their country):
+    // no calendar or slots, only the notice and the way to reach support.
+    if (availableSlots.length === 0) {
+        return (
+            <div className="border-[#E7E8EB] border rounded-lg p-5 shadow-[0px_2px_4px_0px_#0000001A] space-y-4">
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900">
+                        <AlertCircle size={16} className="shrink-0" />
+                        No OPD schedule right now
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-amber-800">
+                        This doctor has no in-person or video OPD open for online booking at the moment. Please contact support for an appointment.
+                    </p>
+                </div>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full text-sm font-semibold btn-primary-cta-outline"
+                    onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                    <PhoneCall size={16} className="m-0" />
+                    Contact Support
+                    <ArrowRight size={18} strokeWidth={2.5} className="m-0" />
+                </Button>
+            </div>
+        );
+    }
 
     return (
         <div className="border-[#E7E8EB] border rounded-lg p-5 shadow-[0px_2px_4px_0px_#0000001A] space-y-5">

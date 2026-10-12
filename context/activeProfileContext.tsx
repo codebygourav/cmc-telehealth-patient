@@ -32,7 +32,7 @@ const ActiveProfileContext = createContext<ActiveProfileContextValue | undefined
 export const familyProfilesKey = (userId?: string) => ["family-profiles", userId] as const;
 
 export function ActiveProfileProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useAuth();
+    const { user, initializing } = useAuth();
     const queryClient = useQueryClient();
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -59,13 +59,18 @@ export function ActiveProfileProvider({ children }: { children: React.ReactNode 
     // profile choice (it is only kept for the login that made it).
     const previousUserId = useRef<string | null | undefined>(undefined);
     useEffect(() => {
+        // Page load: the saved login is still being restored. Going from "no user yet" to the
+        // saved user is not a change of account, and clearing here dropped the requests that had
+        // just started (e.g. the doctor list kept showing the guest prices after a reload).
+        if (initializing) return;
+
         const id = user?.id ?? null;
         if (previousUserId.current !== undefined && previousUserId.current !== id) {
             queryClient.clear();
             setActiveId(getActiveProfileId());
         }
         previousUserId.current = id;
-    }, [user?.id, queryClient]);
+    }, [user?.id, initializing, queryClient]);
 
     const { data, isPending, refetch } = useQuery({
         queryKey: familyProfilesKey(user?.id),

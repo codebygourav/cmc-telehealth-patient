@@ -2,7 +2,9 @@
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { CheckCircle2, Clock, Download, Printer, X } from "lucide-react";
+import { CheckCircle2, Clock, Download, Loader2, Printer, X } from "lucide-react";
+import { useState } from "react";
+import api from "@/lib/axios";
 
 export interface BookingConfirmationDetails {
     confirmed: boolean; // true = confirmed, false = awaiting doctor confirmation
@@ -57,6 +59,8 @@ const escapeHtml = (value: string) =>
     value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
 export default function BookingConfirmationModal({ open, details, onClose, onViewAppointments, viewAppointmentsLabel = "Go to My Appointments" }: BookingConfirmationModalProps) {
+    const [busy, setBusy] = useState<"download" | "print" | null>(null);
+
     if (!open || !details) return null;
 
     const rows = rowsFor(details);
@@ -68,7 +72,8 @@ export default function BookingConfirmationModal({ open, details, onClose, onVie
             : "Your appointment is confirmed. Please reach the clinic at least 45 minutes before your appointment."
         : "Your booking is awaiting the doctor's confirmation. The doctor will set the call time and you will receive an email.";
 
-    const downloadPdf = () => {
+    // Fallback only: used when the server slip cannot be loaded (e.g. offline).
+    const downloadLocalPdf = () => {
         const doc = new jsPDF();
         doc.setFillColor(1, 50, 32);
         doc.rect(0, 0, 210, 28, "F");
@@ -94,7 +99,8 @@ export default function BookingConfirmationModal({ open, details, onClose, onVie
         doc.save(`Booking-${details.bookingId}.pdf`);
     };
 
-    const print = () => {
+    // Fallback only: used when the server slip cannot be loaded.
+    const printLocal = () => {
         const win = window.open("", "_blank", "width=720,height=900");
         if (!win) return;
         const tableRows = rows
@@ -109,6 +115,64 @@ th{width:34%;background:#f9fafb;color:#4d4d4d}p{font-size:13px;color:#4d4d4d;mar
 </style></head><body><h1>${escapeHtml(title)}</h1><table>${tableRows}</table><p>${escapeHtml(note)}</p>
 <script>window.onload=function(){window.print();}</script></body></html>`);
         win.document.close();
+    };
+
+    // The slip is made by the server with the same letterhead and footer as every other PDF
+    // (prescription, receipt, medical record).
+    const fetchSlip = async (inline: boolean): Promise<Blob> => {
+        const response = await api.get(`/appointments/booking-slip/${encodeURIComponent(details.bookingId)}`, {
+            params: inline ? { inline: 1 } : undefined,
+            responseType: "blob",
+        });
+        const blob = response.data as Blob;
+        if (!blob || blob.type !== "application/pdf") throw new Error("Not a PDF");
+        return blob;
+    };
+
+    const downloadPdf = async () => {
+        setBusy("download");
+        try {
+            const url = URL.createObjectURL(await fetchSlip(false));
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Booking-${details.bookingId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        } catch {
+            downloadLocalPdf();
+        } finally {
+            setBusy(null);
+        }
+    };
+
+    const print = async () => {
+        setBusy("print");
+        try {
+            const url = URL.createObjectURL(await fetchSlip(true));
+            // A hidden frame prints the PDF itself (no pop-up window to be blocked).
+            const frame = document.createElement("iframe");
+            frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+            frame.src = url;
+            frame.onload = () => {
+                try {
+                    frame.contentWindow?.focus();
+                    frame.contentWindow?.print();
+                } catch {
+                    window.open(url, "_blank");
+                }
+            };
+            document.body.appendChild(frame);
+            setTimeout(() => {
+                frame.remove();
+                URL.revokeObjectURL(url);
+            }, 5 * 60_000);
+        } catch {
+            printLocal();
+        } finally {
+            setBusy(null);
+        }
     };
 
     return (
@@ -151,16 +215,18 @@ th{width:34%;background:#f9fafb;color:#4d4d4d}p{font-size:13px;color:#4d4d4d;mar
                     <button
                         type="button"
                         onClick={downloadPdf}
-                        className="flex items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary/90"
+                        disabled={busy !== null}
+                        className="flex items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
                     >
-                        <Download className="h-4 w-4" /> Download PDF
+                        {busy === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Download PDF
                     </button>
                     <button
                         type="button"
                         onClick={print}
-                        className="flex items-center justify-center gap-2 rounded-md border border-primary py-2.5 text-sm font-semibold text-primary hover:bg-primary/5"
+                        disabled={busy !== null}
+                        className="flex items-center justify-center gap-2 rounded-md border border-primary py-2.5 text-sm font-semibold text-primary hover:bg-primary/5 disabled:opacity-60"
                     >
-                        <Printer className="h-4 w-4" /> Print
+                        {busy === "print" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />} Print
                     </button>
                     {onViewAppointments && (
                         <button

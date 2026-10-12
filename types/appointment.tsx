@@ -67,6 +67,8 @@ export type AppointmentResponse = {
     consultation_type: "video" | "in-person";
     consultation_type_label: string;
     fee_amount: string;
+    currency?: string;
+    currency_symbol?: string;
     ratings_count: number;
     average_rating?: number;
     // Optional live-consultation fields

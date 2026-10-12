@@ -1,5 +1,6 @@
 "use client";
 
+import { isValidPhoneNumber, type CountryCode } from "libphonenumber-js";
 import React, { useEffect, useState } from "react";
 import { FormProvider, useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,9 +27,18 @@ const profileSchema = z
     gender: z.enum(["male", "female", "other"]),
     date_of_birth: z.string().min(1, "Date of birth is required"),
     country_iso: z.string().min(1, "Country is required"),
-    mobile_no: z.string().min(6, "Valid mobile number is required"),
+    mobile_no: z
+      .string()
+      .trim()
+      .min(1, "Mobile number is required")
+      .regex(/^\d+$/, "Enter digits only, without the country code"),
     is_existing_patient: z.enum(["yes", "no"]),
     existing_patient_id: z.string().optional(),
+  })
+  // The number must be a real number of the selected country (same check as the server).
+  .refine((data) => !/^\d+$/.test(data.mobile_no.trim()) || isValidPhoneNumber(data.mobile_no.trim(), data.country_iso as CountryCode), {
+    message: "Enter a valid mobile number for the selected country",
+    path: ["mobile_no"],
   })
   .refine(
     (data) => {
@@ -85,6 +95,13 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
       }
     });
   }, [methods]);
+
+  // The number's rules depend on the country: check it again when the country changes.
+  useEffect(() => {
+    if (methods.getValues("mobile_no")) {
+      methods.trigger("mobile_no");
+    }
+  }, [selectedCountryIso, methods]);
 
   // Clear existing_patient_id if user switches to "no"
   useEffect(() => {
@@ -263,11 +280,12 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
             <InputField
               name="mobile_no"
               label="Mobile Number"
-              placeholder={selectedCountry ? `${selectedCountry.code} 7325809632` : "7325809632"}
+              placeholder={selectedCountry ? `Number without ${selectedCountry.code}` : "Mobile number"}
               required
               disabled={isPending}
               type="tel"
-              maxLength={10}
+              // Longest national number of any country; the exact length is checked per country.
+              maxLength={15}
             />
           </div>
 

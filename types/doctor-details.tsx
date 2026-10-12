@@ -35,6 +35,10 @@ export type DoctorProfileSection =
 export interface DoctorConsultationFee {
   min: number;
   max: number;
+  // Currency this patient pays in ("₹" in India, "$" for international video consultations).
+  currency_symbol?: string;
+  // Only before login: the international (USD) video fee, shown next to the Indian fee.
+  international?: { min: number; max: number; currency_symbol: string } | null;
 }
 
 export interface DoctorAppointmentTypes {
@@ -74,6 +78,8 @@ export interface DoctorAvailabilitySlot {
   available: boolean;
   currency_symbol: string;
   consultation_fee: number;
+  // Only before login, on video slots: the international (USD) fee.
+  international_fee?: number | null;
   doctor_room: string | null;
   recurring_start_date: string;
   recurring_end_date: string;

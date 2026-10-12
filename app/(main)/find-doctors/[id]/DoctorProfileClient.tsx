@@ -8,6 +8,7 @@ import DoctorHeader from '@/components/pages/doctor-profile/DoctorHeader';
 import DoctorAbout from '@/components/pages/doctor-profile/DoctorAbout';
 import DoctorProfileSections from '@/components/pages/doctor-profile/DoctorProfileSections';
 import AppointmentBooking from '@/components/pages/doctor-profile/AppointmentBooking';
+import SupportContactFooter from '@/components/pages/doctor-profile/SupportContactFooter';
 import ReviewSection from '@/components/pages/doctor-profile/ReviewSection';
 import LoadingSkeleton from '@/components/pages/doctor-profile/LoadingSkeleton';
 import CustomDialog from '@/components/custom/Dialogboxs';
@@ -143,6 +144,12 @@ const DoctorProfile = ({ id, initialData }: DoctorProfileProps) => {
                     />
                 </div>
             </div>
+
+            {/* Hospital contact for the consultation modes this doctor offers (Admin → Settings → Support). */}
+            <SupportContactFooter
+                showInPerson={!!doctor.appointment_types?.in_person}
+                showVideo={!!doctor.appointment_types?.video}
+            />
 
             {/* Custom Dialog */}
             <CustomDialog
