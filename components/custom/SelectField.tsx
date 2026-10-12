@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useFormContext, Controller, RegisterOptions } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import SearchableSelect from "./SearchableSelect";
 
 export type SelectOption = {
   label: string;
@@ -175,7 +176,41 @@ const SelectField: React.FC<SelectFieldProps> = ({
         <p className="text-xs text-muted-foreground mb-2">{description}</p>
       )}
 
-      {hasFormContext && value === undefined ? (
+      {/* A plain list of options: the portal's searchable dropdown (drawer on phones). */}
+      {!groups && hasFormContext && value === undefined ? (
+        <Controller
+          name={name}
+          control={formContext.control}
+          rules={validation}
+          render={({ field }) => (
+            <SearchableSelect
+              id={name}
+              name={field.name}
+              value={field.value}
+              onChange={field.onChange}
+              options={options ?? []}
+              placeholder={placeholder}
+              title={label}
+              disabled={disabled}
+              invalid={!!errorMessage}
+              triggerClassName={triggerClassName}
+            />
+          )}
+        />
+      ) : !groups ? (
+        <SearchableSelect
+          id={name}
+          name={name}
+          value={value}
+          onChange={(next) => onChange?.(next)}
+          options={options ?? []}
+          placeholder={placeholder}
+          title={label}
+          disabled={disabled}
+          invalid={!!errorMessage}
+          triggerClassName={triggerClassName}
+        />
+      ) : hasFormContext && value === undefined ? (
         <Controller
           name={name}
           control={formContext.control}

@@ -226,24 +226,22 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
 
                             <div className='sm:max-w-[500px] w-full flex-col sm:flex-row md:flex-col lg:flex-row flex-1 flex !justify-between gap-2'>
                                 <SelectField
-                                    name="specialty"
+                                    name="consultationType"
                                     value={consultationType}
                                     onChange={(value) =>
                                         setConsultationType(value as ConsultationType)
                                     }
                                     options={consultationTypeOptions}
-                                    placeholder="Select specialty"
+                                    placeholder="Consultation type"
                                     className="w-full!"
-                                    triggerClassName="w-full !h-auto bg-transparent border border-light-gray rounded-md px-5 py-3.5 text-sm font-medium"
                                 />
                                 <SelectField
                                     name="specialty"
                                     value={specialty}
                                     onChange={setSpecialty}
                                     options={specialtyOptions}
-                                    placeholder="Select specialty"
+                                    placeholder="Specialty"
                                     className="w-full!"
-                                    triggerClassName="w-full !h-auto bg-transparent border border-light-gray rounded-md px-5 py-3.5 text-sm font-medium"
                                 />
                                 {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
                                     <button

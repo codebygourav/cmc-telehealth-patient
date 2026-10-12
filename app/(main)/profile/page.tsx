@@ -1,5 +1,6 @@
 "use client";
 
+import InstallAppButton from "@/components/InstallAppButton";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -92,6 +93,9 @@ function ProfilePageContent() {
             />
 
             <div className="container-max-width mx-auto w-full space-y-5">
+                {/* Install the portal as an app (Android, iPhone, computer). */}
+                <InstallAppButton appName="CMC Telehealth" />
+
                 {/* Managed By Primary Account Banner */}
                 {managedBy.length > 0 && !member && (
                     <section className="space-y-2">

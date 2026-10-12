@@ -1,78 +1,40 @@
 "use client";
 
 /**
- * "Install app" banner: lets the visitor add this portal to their phone / computer as an app.
+ * "Install app" banner: offers to add this portal to the phone / computer as an app.
  *  - Android / desktop Chrome, Edge: the Install button opens the browser's own install dialog.
- *  - iPhone / iPad (Safari has no install dialog): shows the two taps to add it to the Home Screen.
+ *  - iPhone / iPad Safari: shows the two taps to add it to the Home Screen.
  * Not shown when the portal already runs as an installed app, or for 14 days after "Not now".
+ * The same install is always available from the "Install app" button on the profile screen.
  */
 
+import { installApp, isIosNonSafari, useInstallState } from "@/lib/installApp";
 import { Download, Share, SquarePlus, X } from "lucide-react";
-import { useEffect, useState, useSyncExternalStore } from "react";
-
-// The browser's install event (not in the TypeScript DOM types yet).
-interface BeforeInstallPromptEvent extends Event {
-    prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { useState, useSyncExternalStore } from "react";
 
 const DISMISSED_KEY = "install_app_prompt_dismissed_at";
 const SNOOZE_MS = 14 * 24 * 60 * 60 * 1000;
 
-type Environment = "installed" | "snoozed" | "ios" | "other";
-
-// What this browser is, read once on the client (a plain string, so it is stable between renders).
-const readEnvironment = (): Environment => {
-    const standalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    if (standalone) return "installed";
-
+const readSnoozed = (): boolean => {
     try {
         const dismissedAt = Number(localStorage.getItem(DISMISSED_KEY) || 0);
-        if (dismissedAt && Date.now() - dismissedAt < SNOOZE_MS) return "snoozed";
+        return dismissedAt > 0 && Date.now() - dismissedAt < SNOOZE_MS;
     } catch {
-        // Storage blocked: just show the banner.
+        return false; // storage blocked: just show the banner
     }
-
-    const ua = navigator.userAgent;
-    const isIos = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
-    // On iOS only Safari can add to the Home Screen (not Chrome / Firefox / in-app browsers).
-    const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios|opios|fban|fbav|instagram/i.test(ua);
-
-    return isIos && isSafari ? "ios" : "other";
 };
 
 const subscribe = () => () => {};
 
 export default function InstallAppPrompt({ appName }: { appName: string }) {
-    const environment = useSyncExternalStore<Environment | null>(subscribe, readEnvironment, () => null);
-    const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+    const state = useInstallState();
+    const snoozed = useSyncExternalStore(subscribe, readSnoozed, () => true);
     const [closed, setClosed] = useState(false);
 
-    useEffect(() => {
-        const onBeforeInstall = (event: Event) => {
-            // Keep the browser's mini-infobar away and offer our own button instead.
-            event.preventDefault();
-            setInstallEvent(event as BeforeInstallPromptEvent);
-        };
-        const onInstalled = () => {
-            setInstallEvent(null);
-            setClosed(true);
-        };
+    const showIosSteps = state === "ios" && !isIosNonSafari();
+    const canInstall = state === "ready";
 
-        window.addEventListener("beforeinstallprompt", onBeforeInstall);
-        window.addEventListener("appinstalled", onInstalled);
-        return () => {
-            window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-            window.removeEventListener("appinstalled", onInstalled);
-        };
-    }, []);
-
-    const showIosSteps = environment === "ios";
-    const canInstall = environment === "other" && installEvent !== null;
-
-    if (closed || (!showIosSteps && !canInstall)) return null;
+    if (closed || snoozed || (!showIosSteps && !canInstall)) return null;
 
     const notNow = () => {
         try {
@@ -84,12 +46,10 @@ export default function InstallAppPrompt({ appName }: { appName: string }) {
     };
 
     const install = async () => {
-        if (!installEvent) return;
-        await installEvent.prompt();
-        const { outcome } = await installEvent.userChoice;
-        // The event can be used once; "dismissed" also snoozes our banner.
-        setInstallEvent(null);
-        if (outcome === "dismissed") notNow();
+        const installed = await installApp();
+        // Declined in the browser's dialog: do not ask again for a while.
+        if (installed) setClosed(true);
+        else notNow();
     };
 
     return (

@@ -8,15 +8,17 @@ interface SearchBarProps {
 const SearchBar = ({ value, onChange }: SearchBarProps) => {
     return (
         <div className="relative group w-full md:max-w-80">
-            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-outline-variant">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-outline-variant">
                 <Search size={16} color='#4D4D4D' />
             </div>
             <input
-                type="text"
+                type="search"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder="Search Doctor"
-                className="max-w-80 w-full border border-light-gray rounded-md pl-12 pr-5 py-3 outline-none"
+                aria-label="Search doctor"
+                // Same height, border and text as the filter dropdowns beside it.
+                className="h-12 w-full rounded-md border border-[#E2E5E9] bg-white pl-11 pr-4 text-sm font-medium outline-none transition-colors placeholder:text-[#8A8A8A] hover:border-[#C9CED6] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15"
             />
         </div>
     );

@@ -18,6 +18,8 @@ export interface Doctor {
   };
   currency_symbol?: string;
   is_international?: boolean;
+  // Next day with an open slot: the day only, never a time.
+  availability_status?: { key: 'today' | 'tomorrow' | 'later' | 'unavailable'; label: string; date: string | null };
   total_reviews?: number;
   is_test_doctor?: boolean;
   hospital?: string;
