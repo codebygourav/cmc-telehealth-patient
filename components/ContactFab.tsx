@@ -41,6 +41,7 @@ const ContactFab = () => {
                 type="button"
                 onClick={onClick}
                 aria-label="Contact us"
+                data-contact-fab
                 title="Contact us"
                 className={`group fixed right-4 z-40 flex h-12 sm:h-14 cursor-pointer ${aboveBottomNav ? "bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-5" : "bottom-5"} items-center gap-2 rounded-full bg-primary px-4 text-white shadow-[0_8px_20px_rgba(0,0,0,0.25)] transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary print:hidden`}
             >

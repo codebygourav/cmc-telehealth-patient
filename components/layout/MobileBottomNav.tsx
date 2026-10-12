@@ -51,6 +51,7 @@ export function MobileBottomNav({ isGuest, isActivePath, onMore, moreOpen, unrea
     return createPortal(
         <nav
             aria-label="Main"
+            data-bottom-nav
             className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur supports-backdrop-filter:bg-background/85 pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden"
         >
             <ul className="mx-auto flex max-w-xl items-stretch">

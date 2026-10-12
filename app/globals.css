@@ -923,6 +923,18 @@
     border-color: transparent !important;
   }
 }
+/* While a dialog or bottom sheet is open, the bottom navigation and the floating Contact us
+   button step aside: they are fixed to the screen and would otherwise cover the sheet's buttons. */
+body:has(.sheet-backdrop) [data-bottom-nav],
+body:has(.sheet-backdrop) [data-contact-fab],
+body:has([data-slot="dialog-content"]) [data-bottom-nav],
+body:has([data-slot="dialog-content"]) [data-contact-fab],
+body:has([data-slot="alert-dialog-content"]) [data-bottom-nav],
+body:has([data-slot="alert-dialog-content"]) [data-contact-fab],
+body:has([data-slot="sheet-content"]) [data-contact-fab] {
+  display: none !important;
+}
+
 /* Custom modals: bottom sheet on phones (wrapper .sheet-backdrop, panel .sheet-panel). */
 @media (max-width: 639px) {
   .sheet-backdrop { align-items: flex-end !important; padding: 0 !important; }
@@ -932,7 +944,8 @@
     max-height: 92dvh !important;
     overflow-y: auto !important;
     border-radius: 1rem 1rem 0 0 !important;
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Always some room under the last button, plus the phone's home-indicator area. */
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     padding-top: 0.75rem;
   }
   .sheet-panel::before {
