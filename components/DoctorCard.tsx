@@ -185,7 +185,7 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
     const available = status && status.key !== 'unavailable';
 
     return (
-        <article className="flex h-full flex-col rounded-2xl bg-white p-2 sm:p-5 md:p-5 lg:p-5  shadow-[0_2px_10px_rgba(16,24,40,0.06)] ring-1 ring-[#EEF0F2] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)]">
+        <article className="flex h-full flex-col rounded-2xl bg-white p-4 sm:p-5 md:p-5 lg:p-5  shadow-[0_2px_10px_rgba(16,24,40,0.06)] ring-1 ring-[#EEF0F2] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)]">
             <div className="flex h-full flex-col gap-3 sm:gap-4">
 
                 {/* Department and the next day with an open slot (the day only, never a time) */}
