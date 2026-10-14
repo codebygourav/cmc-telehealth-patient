@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useActiveProfile } from "@/context/activeProfileContext";
 
 export const useAppointments = (
-    filter: "today" | "upcoming" | "past" | "pending_payment",
+    filter: "all" | "today" | "upcoming" | "past" | "pending_payment",
     page: number = 1
 ) => {
     // The viewed profile is part of the key, so one profile's list never shows under another.

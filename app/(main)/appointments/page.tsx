@@ -18,7 +18,7 @@ import HeroSection from '@/components/hero-section';
 
 const AppointmentsPage = () => {
 
-    const [activeTab, setActiveTab] = useState<'today' | 'upcoming' | 'past' | 'pending_payment'>('today');
+    const [activeTab, setActiveTab] = useState<'all' | 'today' | 'upcoming' | 'past' | 'pending_payment'>('all');
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
     const queryClient = useQueryClient();
@@ -26,7 +26,7 @@ const AppointmentsPage = () => {
     // Open a tab from the URL, e.g. /appointments?tab=pending_payment
     useEffect(() => {
         const tab = new URLSearchParams(window.location.search).get('tab');
-        if (tab === 'pending_payment' || tab === 'past' || tab === 'upcoming') {
+        if (tab === 'all' || tab === 'pending_payment' || tab === 'past' || tab === 'upcoming' || tab === 'today') {
             setActiveTab(tab);
         }
     }, []);
@@ -124,15 +124,17 @@ const AppointmentsPage = () => {
     );
 
     // Empty State Component
-    const EmptyState = ({ type }: { type: 'today' | 'upcoming' | 'past' }) => (
+    const EmptyState = ({ type }: { type: 'all' | 'today' | 'upcoming' | 'past' }) => (
         <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
                 <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-surface-container-low">
                     <Calendar className="w-8 h-8 text-on-surface-variant/50" />
                 </div>
-                <h3 className="mb-1 text-lg font-bold text-on-surface">{type === 'today' ? 'No appointments today' : `No ${type} appointments`}</h3>
+                <h3 className="mb-1 text-lg font-bold text-on-surface">{type === 'all' ? 'No appointments found' : type === 'today' ? 'No appointments today' : `No ${type} appointments`}</h3>
                 <p className="text-sm text-on-surface-variant">
-                    {type === 'today'
+                    {type === 'all'
+                        ? 'Your appointments will appear here.'
+                        : type === 'today'
                         ? 'You have no appointments today.'
                         : type === 'upcoming'
                             ? 'You have no upcoming appointments scheduled.'
@@ -152,11 +154,12 @@ const AppointmentsPage = () => {
     // Upcoming Tab Content
     // "Today": every appointment dated today (done or not) until the day is over.
     // "Upcoming": from tomorrow on (the API splits them, see AppointmentController::index).
-    const UpcomingContent = ({ type = 'upcoming' }: { type?: 'today' | 'upcoming' }) => {
+    const UpcomingContent = ({ type = 'upcoming' }: { type?: 'all' | 'today' | 'upcoming' }) => {
         if (isLoading) return <LoadingState />;
         if (isError) return <ErrorState />;
 
-        const upcomingApps = type === 'today' ? (data?.data ?? []) : filterAppointments(data?.data);
+        // The All tab must retain every status, including past, cancelled and unpaid bookings.
+        const upcomingApps = type === 'all' || type === 'today' ? (data?.data ?? []) : filterAppointments(data?.data);
         const pagination = data?.pagination;
 
         if (upcomingApps.length === 0 && (!pagination || pagination.total === 0)) {
@@ -300,12 +303,17 @@ const AppointmentsPage = () => {
 
     // Reset to page 1 when tab changes
     const handleTabChange = (value: string) => {
-        setActiveTab(value as 'today' | 'upcoming' | 'past' | 'pending_payment');
+        setActiveTab(value as 'all' | 'today' | 'upcoming' | 'past' | 'pending_payment');
         setCurrentPage(1);
     };
 
     // Define tabs with dynamic content
     const tabs = [
+        {
+            key: 'all',
+            label: 'All',
+            content: <UpcomingContent type="all" />,
+        },
         {
             key: 'today',
             label: 'Today',
