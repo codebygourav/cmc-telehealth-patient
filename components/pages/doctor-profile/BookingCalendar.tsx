@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { DoctorAvailabilitySlot } from "@/types/doctor-details";
 
-export type DayState = "available" | "full" | "unavailable" | "past";
+export type DayState = "available" | "full" | "closed" | "unavailable" | "past";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -30,8 +30,10 @@ export const dayStateFor = (dateKey: string, slots: DoctorAvailabilitySlot[], to
     const daySlots = slots.filter((slot) => slot.date === dateKey);
     if (!daySlots.length) return "unavailable";
     if (daySlots.some(isSlotBookable)) return "available";
-    // Every slot closed for booking / over: not bookable any more (not "fully booked").
-    return daySlots.every((slot) => slot.is_past || slot.is_booking_closed) ? "past" : "full";
+    // Every session over: past. A session still running / to come but its booking close time
+    // reached: "Booking closed" (not "fully booked").
+    if (daySlots.every((slot) => slot.is_past)) return "past";
+    return daySlots.some((slot) => !slot.is_past && slot.is_booking_closed) ? "closed" : "full";
 };
 
 interface BookingCalendarProps {
@@ -124,16 +126,18 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                         <button
                             key={key}
                             type="button"
-                            disabled={state !== "available"}
+                            // A "booking closed" day can be opened to see its slots (marked "Booking closed").
+                            disabled={state !== "available" && state !== "closed"}
                             onClick={() => onSelectDate(key)}
                             aria-pressed={selected}
-                            aria-label={`${key} ${state === "available" ? "available" : state === "full" ? "fully booked" : state === "past" ? "past date" : "not available"}`}
-                            title={state === "full" ? "Fully booked" : state === "unavailable" ? "Not available" : undefined}
+                            aria-label={`${key} ${state === "available" ? "available" : state === "full" ? "fully booked" : state === "closed" ? "booking closed" : state === "past" ? "past date" : "not available"}`}
+                            title={state === "full" ? "Fully booked" : state === "closed" ? "Booking closed" : state === "unavailable" ? "Not available" : undefined}
                             className={cn(
                                 "h-12 rounded-md text-sm font-semibold transition-all",
                                 selected && "bg-primary text-white shadow-md",
                                 !selected && state === "available" && "border border-primary/60 bg-white text-primary hover:bg-primary/10 cursor-pointer",
                                 state === "full" && "bg-red-500 text-white cursor-not-allowed",
+                                !selected && state === "closed" && "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 cursor-pointer",
                                 state === "unavailable" &&
                                 "cursor-not-allowed text-[#9CA3AF] bg-[repeating-linear-gradient(135deg,#F3F4F6_0,#F3F4F6_4px,#E5E7EB_4px,#E5E7EB_6px)]",
                                 state === "past" && "cursor-not-allowed text-[#C4C7CC] line-through",
@@ -149,6 +153,7 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                 <LegendItem className="border border-primary/60 bg-white" label="Available" />
                 <LegendItem className="bg-primary" label="Selected" />
                 <LegendItem className="bg-red-500" label="Fully booked" />
+                <LegendItem className="border border-amber-300 bg-amber-50" label="Booking closed" />
                 <LegendItem
                     className="bg-[repeating-linear-gradient(135deg,#F3F4F6_0,#F3F4F6_3px,#D1D5DB_3px,#D1D5DB_5px)]"
                     label="Not available"
