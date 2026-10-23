@@ -3,6 +3,7 @@ import { Star, ChevronRight, Video, Hospital, Play } from 'lucide-react';
 import { Doctor, Appointment } from '@/types/appointment';
 import { useRouter } from 'next/navigation';
 import { getStatusColor } from '@/src/utils/getStatusColor';
+import DoctorReplacedNote, { DoctorReplacementInfo, SubstituteBadge } from './DoctorReplacedNote';
 
 interface UpcomingAppointmentCardProps {
     appointment: Appointment;
@@ -19,6 +20,8 @@ interface UpcomingAppointmentCardProps {
     statusLabel?: string;
     bookedForName?: string | null;
     isTestDoctor?: boolean;
+    // Another doctor took over this appointment.
+    doctorReplacement?: DoctorReplacementInfo | null;
 }
 
 // Concept B: Modular Bento Healthcare Capsule for Upcoming Appointments
@@ -36,6 +39,7 @@ const UpcomingAppointmentCard = ({
     statusLabel,
     bookedForName,
     isTestDoctor,
+    doctorReplacement,
 }: UpcomingAppointmentCardProps) => {
     const router = useRouter();
 
@@ -90,7 +94,9 @@ const UpcomingAppointmentCard = ({
                                     TEST
                                 </span>
                             )}
+                            <SubstituteBadge info={doctorReplacement} />
                         </h3>
+                        <DoctorReplacedNote info={doctorReplacement} compact className="mt-0.5" />
                         {/* Department (role) in small text; the rating only when the doctor has at least 1 review. */}
                         <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] leading-snug text-slate-500">
                             <span className="min-w-0 truncate" title={specialty}>{specialty}</span>

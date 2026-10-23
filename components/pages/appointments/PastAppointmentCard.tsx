@@ -2,6 +2,7 @@
 import { Video } from "lucide-react";
 import { Doctor, Appointment } from '@/types/appointment';
 import { getStatusColor } from '@/src/utils/getStatusColor';
+import DoctorReplacedNote, { DoctorReplacementInfo, SubstituteBadge } from './DoctorReplacedNote';
 
 interface PastAppointmentCardProps {
     appointment: Appointment;
@@ -12,6 +13,8 @@ interface PastAppointmentCardProps {
     // Currency of the fee from the API ("$" for an international video consultation).
     currencySymbol?: string;
     statusLabel?: string;
+    // Another doctor took over this appointment.
+    doctorReplacement?: DoctorReplacementInfo | null;
 }
 
 // Concept B: Modular Bento Healthcare Capsule for Past Appointments
@@ -22,7 +25,8 @@ const PastAppointmentCard = ({
     consultationType = "Video Call",
     fee = "0",
     currencySymbol = "₹",
-    statusLabel
+    statusLabel,
+    doctorReplacement,
 }: PastAppointmentCardProps) => {
 
     const doctorName = appointment.doctorName || doctor?.name || "Doctor";
@@ -68,7 +72,9 @@ const PastAppointmentCard = ({
                     <div className="min-w-0 flex-1">
                         <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug truncate" title={doctorName}>
                             {doctorName}
+                            <SubstituteBadge info={doctorReplacement} />
                         </h3>
+                        <DoctorReplacedNote info={doctorReplacement} compact className="mt-0.5" />
                         {/* Department (role) in small text; the rating only when the doctor has at least 1 review. */}
                         <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] leading-snug text-slate-500">
                             <span className="min-w-0 truncate" title={specialty}>{specialty}</span>

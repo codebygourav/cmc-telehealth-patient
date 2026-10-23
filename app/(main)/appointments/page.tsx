@@ -189,6 +189,7 @@ const AppointmentsPage = () => {
                                 statusLabel={(app as any).status_label}
                                 bookedForName={(app as any).booked_for?.name}
                                 isTestDoctor={Boolean((app as any).doctor?.is_test_doctor)}
+                                doctorReplacement={(app as any).doctor_replacement}
                             />
                         );
                     })}
@@ -241,6 +242,7 @@ const AppointmentsPage = () => {
                                 fee={app.fee_amount}
                                 currencySymbol={app.currency_symbol}
                                 statusLabel={app.status_label}
+                                doctorReplacement={(app as any).doctor_replacement}
                             />
                         );
                     })}

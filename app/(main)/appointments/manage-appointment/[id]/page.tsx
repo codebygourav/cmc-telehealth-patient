@@ -14,6 +14,7 @@ import { useAuth } from '@/context/userContext';
 import { Button } from '@/components/ui';
 
 // Components
+import DoctorReplacedNote from "@/components/pages/appointments/DoctorReplacedNote";
 import DoctorInfoCard from '@/components/pages/appointments/manage-appointment/DoctorInfoCard';
 import AppointmentInfo from '@/components/pages/appointments/manage-appointment/AppointmentInfo';
 import ReportsAndNotes from '@/components/pages/appointments/manage-appointment/ReportsAndNotes';
@@ -312,6 +313,7 @@ export default function ManageAppointment({ params }: PageProps) {
                         doctor={appointment?.doctor}
                         appointment_status={appointment?.status_label || ''}
                     />
+                    <DoctorReplacedNote info={(appointment as any)?.doctor_replacement} className="-mt-4" />
                     <AppointmentInfo
                         date={appointment?.schedule?.date_formatted}
                         time={appointment?.schedule?.time_formatted}

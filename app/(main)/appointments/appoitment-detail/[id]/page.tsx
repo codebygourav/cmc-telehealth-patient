@@ -1,5 +1,6 @@
 'use client';
 
+import DoctorReplacedNote from "@/components/pages/appointments/DoctorReplacedNote";
 import { fetchAppointmentById } from '@/api/appointment-detail';
 import AddReviewsDialouge from '@/components/pages/appointments/addReviewsDialouge';
 import { AppointmentInfoCards } from '@/components/pages/appointments/AppointmentInfoCards';
@@ -94,6 +95,9 @@ export default function AppointmentDetailPage() {
                             </div>
                         </div>
                     )}
+
+                    {/* Another doctor took over: the booked doctor and the attending doctor. */}
+                    <DoctorReplacedNote info={(data as any)?.doctor_replacement} className="mt-4" />
 
                     {data.prescriptions ? (
                         <PrescriptionSummary prescription={data.prescriptions} onViewDetail={() => setSelectedMedicineId(data.appointment_id || (id as string))} />
