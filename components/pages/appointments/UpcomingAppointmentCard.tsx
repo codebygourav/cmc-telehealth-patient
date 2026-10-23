@@ -3,7 +3,7 @@ import { Star, ChevronRight, Video, Hospital, Play } from 'lucide-react';
 import { Doctor, Appointment } from '@/types/appointment';
 import { useRouter } from 'next/navigation';
 import { getStatusColor } from '@/src/utils/getStatusColor';
-import DoctorReplacedNote, { DoctorReplacementInfo, SubstituteBadge } from './DoctorReplacedNote';
+import DoctorReplacedNote, { DoctorReplacementInfo } from './DoctorReplacedNote';
 
 interface UpcomingAppointmentCardProps {
     appointment: Appointment;
@@ -87,14 +87,13 @@ const UpcomingAppointmentCard = ({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug truncate" title={doctorName}>
+                        <h3 className="font-bold text-slate-900 text-base sm:text-lg leading-snug truncate" title={doctorName}>
                             {doctorName}
                             {isTestDoctor && (
                                 <span className="ml-1.5 rounded-md border border-amber-300 bg-amber-50 px-1.5 py-0.2 text-[10px] font-bold text-amber-700">
                                     TEST
                                 </span>
                             )}
-                            <SubstituteBadge info={doctorReplacement} />
                         </h3>
                         <DoctorReplacedNote info={doctorReplacement} compact className="mt-0.5" />
                         {/* Department (role) in small text; the rating only when the doctor has at least 1 review. */}

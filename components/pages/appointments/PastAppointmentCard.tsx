@@ -2,7 +2,7 @@
 import { Video } from "lucide-react";
 import { Doctor, Appointment } from '@/types/appointment';
 import { getStatusColor } from '@/src/utils/getStatusColor';
-import DoctorReplacedNote, { DoctorReplacementInfo, SubstituteBadge } from './DoctorReplacedNote';
+import DoctorReplacedNote, { DoctorReplacementInfo } from './DoctorReplacedNote';
 
 interface PastAppointmentCardProps {
     appointment: Appointment;
@@ -70,9 +70,8 @@ const PastAppointmentCard = ({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug truncate" title={doctorName}>
+                        <h3 className="font-bold text-slate-900 text-base sm:text-lg leading-snug truncate" title={doctorName}>
                             {doctorName}
-                            <SubstituteBadge info={doctorReplacement} />
                         </h3>
                         <DoctorReplacedNote info={doctorReplacement} compact className="mt-0.5" />
                         {/* Department (role) in small text; the rating only when the doctor has at least 1 review. */}

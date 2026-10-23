@@ -18,7 +18,7 @@ const shortDate = (info: DoctorReplacementInfo) =>
         ? `${info.original_date_formatted.replace(/^\w+, /, "").replace(/ \d{4}$/, "")}${info.original_time_formatted ? `, ${info.original_time_formatted.replace(/^0/, "")}` : ""}`
         : null;
 
-// Cards: one small line ("Replacing Dr. A"); appointment pages: the full box.
+// Cards: one small line ("In place of Dr. A"); appointment pages: the full box.
 export default function DoctorReplacedNote({ info, className = "", compact = false }: { info?: DoctorReplacementInfo | null; className?: string; compact?: boolean }) {
     if (!info?.is_replaced) return null;
     const was = shortDate(info);
@@ -27,7 +27,7 @@ export default function DoctorReplacedNote({ info, className = "", compact = fal
         return (
             <p className={`flex min-w-0 items-center gap-1 text-[11px] leading-snug text-amber-700 ${className}`} title={info.message}>
                 <ArrowRightLeft className="h-3 w-3 shrink-0" aria-hidden="true" />
-                <span className="truncate">Replacing {info.original_doctor_name || "your booked doctor"}</span>
+                <span className="truncate">In place of {info.original_doctor_name || "your booked doctor"}</span>
             </p>
         );
     }
@@ -46,16 +46,5 @@ export default function DoctorReplacedNote({ info, className = "", compact = fal
                 </p>
             </div>
         </div>
-    );
-}
-
-// Small badge next to the doctor's name.
-export function SubstituteBadge({ info }: { info?: DoctorReplacementInfo | null }) {
-    if (!info?.is_replaced) return null;
-
-    return (
-        <span className="ml-1.5 inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-1.5 py-px align-middle text-[10px] font-semibold text-amber-700">
-            Substitute
-        </span>
     );
 }
