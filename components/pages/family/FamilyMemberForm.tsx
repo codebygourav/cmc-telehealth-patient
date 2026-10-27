@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import type { FamilyMemberInput, FamilyProfile } from "@/api/family";
 import MemberLoginSection from "./MemberLoginSection";
+import FamilyWhatsAppField from "./FamilyWhatsAppField";
 import RelationCombobox from "./RelationCombobox";
 
 /** Relation select value for a relation typed by the user (saved as "other" + the typed label). */
@@ -23,11 +24,19 @@ export interface FamilyMemberFormValue {
     login_code_sent: boolean;
     login_email_verified: boolean;
     login_password: string;
+    // Their WhatsApp: the primary account's number (shared, while linked) or their own (verified by code).
+    login_phone_mode: "shared" | "separate";
+    login_phone_number: string;
+    login_phone_country: string;
+    login_phone_code_sent: boolean;
+    /** "+919876543210" once verified, else "". */
+    login_phone_verified: string;
 }
 
 export const emptyFamilyMember: FamilyMemberFormValue = {
     name: "", relationship: "", relationship_label: "", gender: "", age: "", phone: "", patient_type: "", unit_id: "",
     login_email: "", login_code_sent: false, login_email_verified: false, login_password: "",
+    login_phone_mode: "shared", login_phone_number: "", login_phone_country: "+91", login_phone_code_sent: false, login_phone_verified: "",
 };
 
 export const familyMemberFromProfile = (profile: FamilyProfile): FamilyMemberFormValue => ({
@@ -55,11 +64,12 @@ export const validateFamilyMember = (value: FamilyMemberFormValue): FamilyMember
     if (!value.gender) errors.gender = "Please select the gender.";
     const age = Number(value.age);
     if (value.age === "" || Number.isNaN(age) || age < 0 || age > 120) errors.age = "Please enter a valid age (0-120).";
-    if (!/^\d{10}$/.test(value.phone)) errors.phone = "Please enter a 10 digit phone number.";
+    if (value.login_phone_mode === "separate" && !value.login_phone_verified) errors.phone = "Please verify their WhatsApp number with the code, or choose \"Use my WhatsApp number\".";
+    else if (!/^\d{6,15}$/.test(value.phone)) errors.phone = "Please choose the WhatsApp number for this person.";
     if (!value.patient_type) errors.patient_type = "Please choose new or old patient.";
     if (value.patient_type === "old" && !value.unit_id.trim()) errors.unit_id = "Please enter the Unit ID (C Number).";
     if (value.login_email.trim()) {
-        if (!value.login_email_verified) errors.login_email = "Please verify this email with the code, or clear it.";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.login_email.trim())) errors.login_email = "Please enter a valid email, or leave it empty.";
         else if (value.login_password.length < 8) errors.login_password = "Password must be at least 8 characters.";
     }
     return errors;
@@ -72,8 +82,10 @@ export const toFamilyMemberInput = (value: FamilyMemberFormValue): FamilyMemberI
     gender: value.gender,
     age: Number(value.age),
     phone: value.phone,
+    country_code: value.login_phone_country || "+91",
     unit_id: value.patient_type === "old" ? value.unit_id.trim() || null : null,
-    ...(value.login_email.trim() && value.login_email_verified
+    // Their own login (optional): email + password. Their WhatsApp is the number chosen above.
+    ...(value.login_email.trim()
         ? { login_email: value.login_email.trim(), login_password: value.login_password }
         : {}),
 });
@@ -104,7 +116,7 @@ interface FamilyMemberFormProps {
     onEmailTaken?: (email: string) => void;
 }
 
-/** Name, relation, gender, age, phone, Unit ID and the member's own login (email verified by code). */
+/** Name, relation, gender, age, Unit ID, WhatsApp number (mine or theirs, verified) and an optional login. */
 export default function FamilyMemberForm({ value, onChange, errors = {}, relationships, idPrefix = "family", profile, onEmailTaken }: FamilyMemberFormProps) {
     const set = (key: keyof FamilyMemberFormValue, fieldValue: string) => onChange({ ...value, [key]: fieldValue });
     const relationOptions = Object.entries(relationships).filter(([key]) => key !== "self");
@@ -140,12 +152,6 @@ export default function FamilyMemberForm({ value, onChange, errors = {}, relatio
                     <input id={`${idPrefix}-age`} inputMode="numeric" className={cn(inputClass, errors.age && "border-destructive")} value={value.age}
                         onChange={(e) => set("age", e.target.value.replace(/\D/g, "").slice(0, 3))} placeholder="e.g. 35" />
                 </FormField>
-                <div className="col-span-2 min-w-0 @4xl:col-span-1">
-                    <FormField label="Phone Number" required error={errors.phone} htmlFor={`${idPrefix}-phone`}>
-                        <input id={`${idPrefix}-phone`} inputMode="numeric" className={cn(inputClass, errors.phone && "border-destructive")} value={value.phone}
-                            onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10 digit mobile number" />
-                    </FormField>
-                </div>
                 <div className="col-span-2 min-w-0">
                     <p className="mb-1 text-sm font-semibold text-[#1F1E1E]">Patient Type <span className="text-destructive">*</span></p>
                     <div className={cn("grid h-11 grid-cols-2 gap-1 rounded-md border bg-[#F5F6F8] p-1", errors.patient_type ? "border-destructive" : "border-[#E7E8EB]")}
@@ -172,6 +178,9 @@ export default function FamilyMemberForm({ value, onChange, errors = {}, relatio
                     </div>
                 )}
             </div>
+
+            {/* Their WhatsApp number (instead of a phone field): mine, or their own verified by a code. */}
+            <FamilyWhatsAppField value={value} onChange={onChange} errors={errors} idPrefix={idPrefix} profile={profile} />
 
             <MemberLoginSection value={value} onChange={onChange} errors={errors} idPrefix={idPrefix} profile={profile} onEmailTaken={onEmailTaken} />
         </div>

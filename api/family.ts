@@ -54,9 +54,13 @@ export interface FamilyMemberInput {
     gender: string;
     age: number;
     phone: string;
+    country_code?: string;
     unit_id?: string | null;
     login_email?: string;
     login_password?: string;
+    /** "shared" = the primary account's WhatsApp (while linked); "separate" = login_phone, verified by code. */
+    login_phone_mode?: "shared" | "separate";
+    login_phone?: string;
 }
 
 export const getFamilyProfiles = async (): Promise<FamilyProfilesResponse> => {
@@ -131,6 +135,17 @@ export const sendMemberLoginOtp = async (email: string) => {
 export const verifyMemberLoginOtp = async (email: string, otp: string) => {
     const { data } = await api.post("/patient/family-profiles/login-email/verify", { email, otp });
     return data;
+};
+
+// Member's own WhatsApp number (instead of the primary account's): code to it, then send it with the form.
+export const sendMemberLoginPhoneOtp = async (phone: string, countryCode: string) => {
+    const { data } = await api.post("/patient/family-profiles/login-phone/otp", { phone, country_code: countryCode });
+    return data;
+};
+
+export const verifyMemberLoginPhoneOtp = async (phone: string, countryCode: string, otp: string): Promise<string> => {
+    const { data } = await api.post("/patient/family-profiles/login-phone/verify", { phone, country_code: countryCode, otp });
+    return data?.data?.login_phone;
 };
 
 export const memberLoginEmailVerified = async (email: string): Promise<boolean> => {
