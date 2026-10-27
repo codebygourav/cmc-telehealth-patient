@@ -9,9 +9,21 @@ import { useRegister, SendEmailResponse } from "@/mutations/auth/useAuthMutation
 import { toast } from "sonner";
 import Link from "next/link";
 import AccountExistsNotice from "../AccountExistsNotice";
+import { COUNTRIES } from "@/constants/countries";
+import { toInternational, useAuthOptions } from "@/lib/loginId";
 
+// "email" holds the mobile number or the email (whichever method is chosen).
 const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  method: z.enum(["phone", "email"]),
+  country_iso: z.string(),
+  email: z.string().trim().min(1, "This field is required"),
+}).superRefine((data, ctx) => {
+  if (data.method === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    ctx.addIssue({ code: "custom", path: ["email"], message: "Invalid email address" });
+  }
+  if (data.method === "phone" && !/^\d{6,15}$/.test(data.email.replace(/[\s-]/g, ""))) {
+    ctx.addIssue({ code: "custom", path: ["email"], message: "Enter your mobile number (digits only, without the country code)" });
+  }
 });
 
 type RegisterValues = z.infer<typeof registerSchema>;
@@ -22,18 +34,33 @@ interface RegisterStepProps {
 
 const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
   const { mutate: register, isPending } = useRegister();
+  const options = useAuthOptions();
+  const emailAllowed = options.signup_methods.includes("email");
   const [verifiedLink, setVerifiedLink] = useState<{ email: string; message: string } | null>(null);
   const [existingAccount, setExistingAccount] = useState<{ email: string; message: string } | null>(null);
 
   const methods = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "" },
+    defaultValues: { method: "phone", country_iso: "IN", email: "" },
   });
+  const method = methods.watch("method");
+  const countryIso = methods.watch("country_iso");
 
-  const onSubmit = (data: RegisterValues) => {
+  const switchMethod = (next: "phone" | "email") => {
+    methods.reset({ ...methods.getValues(), method: next, email: "" });
     setExistingAccount(null);
     setVerifiedLink(null);
-    register(data, {
+  };
+
+  const onSubmit = (form: RegisterValues) => {
+    setExistingAccount(null);
+    setVerifiedLink(null);
+    const country = COUNTRIES.find((c) => c.iso === form.country_iso) || COUNTRIES[0];
+    // The mobile number goes with its country code; the API sends the code on WhatsApp.
+    const data = {
+      email: form.method === "phone" ? toInternational(country.code, form.email) : form.email.trim().toLowerCase(),
+    };
+    register({ login: data.email, ...data }, {
       onSuccess: (response: SendEmailResponse) => {
         const res: any = response;
         const message = res?.message?.toLowerCase() || "";
@@ -51,7 +78,7 @@ const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
         }
 
         if (response.success) {
-          toast.success(response.message || "OTP sent to your email!");
+          toast.success(response.message || "Verification code sent!");
           onSuccess(data.email, isVerified);
         } else if (isVerified) {
           if (typeof window !== "undefined") {
@@ -110,14 +137,52 @@ const RegisterStep: React.FC<RegisterStepProps> = ({ onSuccess }) => {
     <div className="space-y-6">
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5">
-          <InputField
-            name="email"
-            label="Email Address"
-            placeholder="example@mail.com"
-            required
-            disabled={isPending}
-            type="email"
-          />
+          {method === "phone" ? (
+            <div className="grid grid-cols-[minmax(0,9rem)_1fr] gap-3">
+              <div className="flex flex-col space-y-2">
+                <label htmlFor="register-country" className="text-sm font-medium text-muted-foreground font-source-sans">Country</label>
+                <select
+                  id="register-country"
+                  {...methods.register("country_iso")}
+                  disabled={isPending}
+                  className="flex h-10 w-full rounded-md border border-input bg-accent/30 px-2 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={`${c.iso}-${c.code}`} value={c.iso}>{c.flag} {c.code}</option>
+                  ))}
+                </select>
+              </div>
+              <InputField
+                name="email"
+                label="WhatsApp Number"
+                placeholder={countryIso === "IN" ? "98765 43210" : "Number without country code"}
+                required
+                disabled={isPending}
+                type="tel"
+                maxLength={18}
+              />
+            </div>
+          ) : (
+            <InputField
+              name="email"
+              label="Email Address"
+              placeholder="example@mail.com"
+              required
+              disabled={isPending}
+              type="email"
+            />
+          )}
+
+          {emailAllowed && (
+            <button
+              type="button"
+              onClick={() => switchMethod(method === "phone" ? "email" : "phone")}
+              disabled={isPending}
+              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              {method === "phone" ? "Sign up with email instead" : "Sign up with WhatsApp number instead"}
+            </button>
+          )}
 
           {existingAccount && <AccountExistsNotice email={existingAccount.email} message={existingAccount.message || undefined} />}
 

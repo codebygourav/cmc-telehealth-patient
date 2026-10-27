@@ -144,20 +144,14 @@ export function Header() {
               onLogout={handleLogout}
             />
           ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/auth/login"
-                className="px-4 py-2 text-sm font-semibold transition-colors border rounded-2xl border-border/70 text-foreground hover:bg-muted"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/register"
-                className="px-4 py-2 text-sm font-semibold transition-colors rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Register
-              </Link>
-            </div>
+            // One button: sign in and "Create new account" are on the same screen.
+            <Link
+              href="/auth/login"
+              // Same shape as the buttons on the sign-in screen.
+              className="inline-flex h-10 items-center rounded-lg px-5 text-sm font-semibold transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Sign in
+            </Link>
           )}
         </div>
       </div>

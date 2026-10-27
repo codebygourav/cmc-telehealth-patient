@@ -21,6 +21,7 @@ import { getCountryIsoFromName, getUserCountry } from "@/lib/location";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Globe } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePhoneStatus } from "@/components/auth/PhoneVerificationGate";
 import { toast } from "sonner";
 
 interface PatientRegion {
@@ -58,7 +59,11 @@ const PatientRegionPrompt = () => {
         retry: false,
     });
 
-    const needsDetails = !!region?.needs_details;
+    // Verifying the WhatsApp number asks for the country too: no separate question until that is
+    // done, and none after it (the country is saved with the number).
+    const { data: phoneStatus } = usePhoneStatus();
+    const waitingForPhone = !phoneStatus || phoneStatus.requires_phone_verification;
+    const needsDetails = !!region?.needs_details && !waitingForPhone;
 
     // Suggest the country the patient is browsing from; they confirm or change it.
     useEffect(() => {

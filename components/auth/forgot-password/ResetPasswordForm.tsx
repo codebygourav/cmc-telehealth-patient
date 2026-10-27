@@ -25,16 +25,21 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 interface ResetPasswordFormProps {
   email: string;
+  accountEmail?: string;
   resetToken: string;
   isManaged?: boolean;
   holderName?: string | null;
+  /** Same-screen flow: back to sign in instead of opening the login page. */
+  onDone?: () => void;
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   email,
+  accountEmail,
   resetToken,
   isManaged,
   holderName,
+  onDone,
 }) => {
   const { mutate, isPending } = useResetPassword();
   const router = useRouter();
@@ -52,6 +57,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     mutate(
       {
         email,
+        ...(accountEmail ? { account_email: accountEmail } : {}),
         reset_token: resetToken,
         password: data.password,
         password_confirmation: data.password_confirmation,
@@ -62,7 +68,8 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           toast.success(
             "Password reset successfully. Please login with your new password.",
           );
-          router.push("/auth/login");
+          if (onDone) onDone();
+          else router.push("/auth/login");
         },
         onError: (error: any) => {
           console.error(error);

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { DoctorProfileSection } from '@/types/doctor-details';
 import RichText from './RichText';
+import ReadMore from '@/components/ReadMore';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
     availability_info: CalendarClock,
@@ -51,6 +52,8 @@ const DoctorProfileSections = ({ sections }: { sections?: DoctorProfileSection[]
                             {section.title}
                         </h3>
 
+                        {/* Long sections open with "Read more" instead of one very long page. */}
+                        <ReadMore collapsedHeight={wide ? 260 : 200}>
                         {section.type === 'html' ? (
                             <div className={wide ? 'overflow-x-auto' : undefined}>
                                 <RichText html={section.html} />
@@ -67,6 +70,7 @@ const DoctorProfileSections = ({ sections }: { sections?: DoctorProfileSection[]
                                 ))}
                             </ul>
                         )}
+                        </ReadMore>
                     </section>
                 );
             })}

@@ -20,7 +20,8 @@ import AccountExistsNotice from "../AccountExistsNotice";
 
 const profileSchema = z
   .object({
-    email: z.string().email("Invalid email address"),
+    // Optional for mobile number sign-ups.
+    email: z.string().trim().refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     first_name: z.string().min(1, "First name is required"),
     last_name: z.string().min(1, "Last name is required"),
@@ -56,10 +57,23 @@ const profileSchema = z
 type ProfileValues = z.infer<typeof profileSchema>;
 
 interface CompleteProfileStepProps {
+  /** What they signed up with: mobile number ("+919876543210") or email. */
   email: string;
 }
 
-const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
+/** "+919876543210" → India + "9876543210" (longest matching dial code). */
+function splitPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  const country = [...COUNTRIES]
+    .sort((a, b) => b.code.length - a.code.length)
+    .find((c) => digits.startsWith(c.code.replace(/\D/g, "")));
+  return country ? { country, number: digits.slice(country.code.replace(/\D/g, "").length) } : null;
+}
+
+const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signupId }) => {
+  const phoneSignup = signupId !== "" && !signupId.includes("@");
+  const signupPhone = phoneSignup ? splitPhone(signupId) : null;
+  const email = phoneSignup ? "" : signupId;
   const router = useRouter();
   const { mutate: completeProfile, isPending } = useCompleteProfile();
   const { login } = useAuth();
@@ -86,15 +100,16 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
   const selectedCountryIso = methods.watch("country_iso");
   const selectedCountry = COUNTRIES.find((c) => c.iso === selectedCountryIso) || COUNTRIES[0];
 
-  // Auto-detect current location country on mount
+  // Auto-detect current location country on mount (mobile sign-ups keep their number's country)
   useEffect(() => {
+    if (phoneSignup) return;
     getUserCountry().then((detectedCountry) => {
       const iso = getCountryIsoFromName(detectedCountry);
       if (iso) {
         methods.setValue("country_iso", iso);
       }
     });
-  }, [methods]);
+  }, [methods, phoneSignup]);
 
   // The number's rules depend on the country: check it again when the country changes.
   useEffect(() => {
@@ -110,12 +125,16 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
     }
   }, [isExistingPatient, methods]);
 
-  // Prefill email if it changes
+  // Prefill what they signed up with (locked: it was verified by code)
   useEffect(() => {
     if (email) {
       methods.setValue("email", email);
     }
-  }, [email, methods]);
+    if (signupPhone) {
+      methods.setValue("country_iso", signupPhone.country.iso);
+      methods.setValue("mobile_no", signupPhone.number);
+    }
+  }, [email, signupPhone?.country.iso, signupPhone?.number, methods]);
 
   // Server errors go under their fields; anything without a field (or no field errors) is a toast.
   const showErrors = (err: any, fallback: string) => {
@@ -143,6 +162,9 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
 
     const payload: CompleteProfilePayload = {
       ...rest,
+      login: signupId,
+      email: phoneSignup ? (rest.email || undefined) : signupId,
+      ...(signupPhone ? { mobile_no: signupPhone.number } : {}),
       country_iso: countryObj.iso,
       country_code: countryObj.code,
       current_location: currentLocation,
@@ -208,15 +230,15 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
     <div className="space-y-6 max-h-[70vh] overflow-y-auto px-1 pr-2">
       <FormProvider {...methods}>
         {accountExists !== null && (
-          <AccountExistsNotice email={methods.getValues("email") || email} message={accountExists || undefined} />
+          <AccountExistsNotice email={methods.getValues("email") || signupId} message={accountExists || undefined} />
         )}
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5 pb-4">
           <InputField
             name="email"
-            label="Email Address"
+            label={phoneSignup ? "Email Address (optional)" : "Email Address"}
             placeholder="example@mail.com"
-            required
-            disabled={true} // Email is verified and locked
+            required={!phoneSignup}
+            disabled={!phoneSignup || isPending} // A verified email is locked
             type="email"
           />
 
@@ -266,7 +288,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
               </label>
               <select
                 {...methods.register("country_iso")}
-                disabled={isPending}
+                disabled={isPending || phoneSignup}
                 className="flex h-10 w-full rounded-md border border-input bg-accent/30 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 font-source-sans"
               >
                 {COUNTRIES.map((country) => (
@@ -282,7 +304,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email }) => {
               label="Mobile Number"
               placeholder={selectedCountry ? `Number without ${selectedCountry.code}` : "Mobile number"}
               required
-              disabled={isPending}
+              disabled={isPending || phoneSignup} // the verified sign-up number
               type="tel"
               // Longest national number of any country; the exact length is checked per country.
               maxLength={15}

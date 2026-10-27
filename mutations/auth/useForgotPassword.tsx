@@ -4,6 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 // Types for Send OTP
 interface SendOtpPayload {
   email: string;
+  /** WhatsApp number on several accounts: the email that picks the account. */
+  account_email?: string;
 }
 
 interface SendOtpResponse {
@@ -14,6 +16,8 @@ interface SendOtpResponse {
 interface VerifyOtpPayload {
   email: string;
   otp: string;
+  /** WhatsApp number on several accounts: the email that picks the account. */
+  account_email?: string;
 }
 
 interface VerifyOtpResponse {
@@ -30,6 +34,8 @@ interface VerifyOtpResponse {
 // Types for Reset Password
 interface ResetPasswordPayload {
   email: string;
+  /** WhatsApp number on several accounts: the email that picks the account. */
+  account_email?: string;
   reset_token: string;
   password: string;
   password_confirmation: string;
@@ -46,7 +52,7 @@ interface ResetPasswordResponse {
 export function useSendOtp() {
   return useMutation<SendOtpResponse, any, SendOtpPayload>({
     mutationFn: async (payload) => {
-      const { data } = await api.post("/auth/forgot-password/send-otp", payload);
+      const { data } = await api.post("/auth/forgot-password/send-otp", { login: payload.email, ...payload });
       return data;
     },
   });
@@ -58,7 +64,7 @@ export function useSendOtp() {
 export function useVerifyOtp() {
   return useMutation<VerifyOtpResponse, any, VerifyOtpPayload>({
     mutationFn: async (payload) => {
-      const { data } = await api.post("/auth/forgot-password/verify-otp", payload);
+      const { data } = await api.post("/auth/forgot-password/verify-otp", { login: payload.email, ...payload });
       return data;
     },
   });
@@ -70,7 +76,7 @@ export function useVerifyOtp() {
 export function useResetPassword() {
   return useMutation<ResetPasswordResponse, any, ResetPasswordPayload>({
     mutationFn: async (payload) => {
-      const { data } = await api.post("/auth/forgot-password/reset", payload);
+      const { data } = await api.post("/auth/forgot-password/reset", { login: payload.email, ...payload });
       return data;
     },
   });

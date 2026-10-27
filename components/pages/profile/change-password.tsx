@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { usePhoneStatus } from "@/components/auth/PhoneVerificationGate";
+import { useAuthOptions } from "@/lib/loginId";
 
 interface FieldErrors {
     current_password?: string;
@@ -52,7 +54,14 @@ export default function ChangePasswordForm() {
     const [sendingOtp, setSendingOtp] = useState(false);
     const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-    const userEmail = user?.email || "";
+    // Where the code goes: the verified WhatsApp number; email only when Admin allows email
+    // sign-up (Admin → WhatsApp Settings → Account sign-in).
+    const { data: phoneStatus } = usePhoneStatus();
+    const emailAllowed = useAuthOptions().signup_methods.includes("email");
+    const verifiedPhone = phoneStatus?.verified_phone ? `+${phoneStatus.verified_phone}` : "";
+    const codeByWhatsApp = !!verifiedPhone || !emailAllowed;
+    const userEmail = verifiedPhone || (emailAllowed ? user?.email || "" : "");
+    const channelText = codeByWhatsApp ? "WhatsApp number" : "email";
     const isManaged = managedBy.length > 0 || isManagedOtp;
     // The server always unlinks a managed member who changes their own password.
     const unlinkFromFamily = isManaged;
@@ -79,7 +88,7 @@ export default function ChangePasswordForm() {
 
     const handleSendOtp = async () => {
         if (!userEmail) {
-            toast.error("No account email found.");
+            toast.error("Please verify your WhatsApp number first (Basic Information → Verify number).");
             return;
         }
 
@@ -89,7 +98,7 @@ export default function ChangePasswordForm() {
             await api.post("/auth/forgot-password/send-otp", { email: userEmail });
             setCodeSent(true);
             setCooldown(60);
-            toast.success(`Verification code sent to ${userEmail}`);
+            toast.success(codeByWhatsApp ? `Code sent on WhatsApp to ${userEmail}` : `Verification code sent to ${userEmail}`);
         } catch (err: any) {
             const msg = err?.response?.data?.message || err?.response?.data?.errors?.message || "Failed to send verification code.";
             toast.error(msg);
@@ -100,7 +109,7 @@ export default function ChangePasswordForm() {
 
     const handleVerifyOtp = async () => {
         if (!otpCode || !/^\d{4,8}$/.test(otpCode.trim())) {
-            setErrors({ otp: "Please enter the verification code sent to your email." });
+            setErrors({ otp: `Please enter the verification code sent to your ${channelText}.` });
             return;
         }
 
@@ -255,7 +264,7 @@ export default function ChangePasswordForm() {
                     {mode === "standard" ? (
                         <span>Know your current password? Fill in the details below.</span>
                     ) : (
-                        <span>Forgot your current password? We send a code to your registered email.</span>
+                        <span>Forgot your current password? We send a code to your {codeByWhatsApp ? "verified WhatsApp number" : "registered email"}.</span>
                     )}
                 </div>
                 <button
@@ -401,13 +410,13 @@ export default function ChangePasswordForm() {
                 <div className="space-y-5">
                     {/* Row 1: Email Address + Send Code button */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="user_email" className="text-sm font-semibold text-[#1F1E1E]">Registered Email Address</Label>
+                        <Label htmlFor="user_email" className="text-sm font-semibold text-[#1F1E1E]">{codeByWhatsApp ? "Verified WhatsApp Number" : "Registered Email Address"}</Label>
                         <div className="flex gap-2">
                             <div className="relative min-w-0 flex-1">
                                 <Input
                                     id="user_email"
-                                    type="email"
-                                    value={userEmail}
+                                    type={codeByWhatsApp ? "tel" : "email"}
+                                    value={userEmail || "Not verified yet"}
                                     disabled
                                     readOnly
                                     className="h-11 global-radius-10 border-slate-200 bg-[#F5F6F8] pr-9 text-[#4D4D4D]"

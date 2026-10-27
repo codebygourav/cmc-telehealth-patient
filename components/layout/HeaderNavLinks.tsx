@@ -119,12 +119,8 @@ export function HeaderNavLinks({
 
                         <div className="shrink-0 border-t border-border/40 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
                             {isGuest ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}
-                                        className="flex h-12 items-center justify-center rounded-md border border-border/80 bg-background text-sm font-semibold text-foreground hover:bg-muted">Sign In</Link>
-                                    <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}
-                                        className="flex h-12 items-center justify-center rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90">Register</Link>
-                                </div>
+                                <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}
+                                    className="flex h-12 items-center justify-center rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90">Sign in</Link>
                             ) : (
                                 <button type="button" onClick={async () => { setMobileMenuOpen(false); await onLogout(); }}
                                     className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">

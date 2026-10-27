@@ -107,11 +107,8 @@ export default function Home() {
 								Sign in to see your upcoming appointments, reports and prescriptions.
 							</p>
 							<div className="flex gap-2">
-								<Button onClick={() => router.push("/auth/login")} variant="outline" className="global-radius">
-									Sign In
-								</Button>
-								<Button onClick={() => router.push("/auth/register")} className="global-radius bg-primary text-white hover:bg-primary/90">
-									Register
+								<Button onClick={() => router.push("/auth/login")} className="global-radius bg-primary text-white hover:bg-primary/90">
+									Sign in
 								</Button>
 							</div>
 						</div>

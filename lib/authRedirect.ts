@@ -6,6 +6,7 @@ const STORAGE_KEY = "@post_auth_redirect";
 export const isSafeRedirect = (path: string | null | undefined): path is string =>
     !!path && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/auth/");
 
+// Sign in and sign up share one screen; /auth/register opens "Create new account" on it.
 export const loginUrlWithRedirect = (path: string, mode: "login" | "register" = "login") =>
     `/auth/${mode}?redirect=${encodeURIComponent(path)}`;
 

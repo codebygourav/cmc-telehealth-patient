@@ -19,9 +19,11 @@ interface AuthLayoutProps {
     subtitle?: string;
     children: ReactNode;
     bannerImage?: string;
+    /** The form brings its own header (Back to Home + logo): no extra back link here. */
+    bare?: boolean;
 }
 
-const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps) => {
+const AuthLayout = ({ title, subtitle, children, bannerImage, bare = false }: AuthLayoutProps) => {
     if (bannerImage) {
         return (
             <div className="min-h-screen bg-linear-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 sm:p-6 lg:p-8">
@@ -44,10 +46,12 @@ const AuthLayout = ({ title, subtitle, children, bannerImage }: AuthLayoutProps)
                     </Link>
 
                     {/* Right 50%: Form Container */}
-                    <div className="flex flex-col justify-center py-8 px-6 sm:px-10 lg:px-12 w-full">
-                        <div className="mb-4">
-                            <BackToHome />
-                        </div>
+                    <div className={bare ? "flex flex-col py-6 px-5 sm:px-10 lg:px-12 w-full" : "flex flex-col justify-center py-8 px-6 sm:px-10 lg:px-12 w-full"}>
+                        {!bare && (
+                            <div className="mb-4">
+                                <BackToHome />
+                            </div>
+                        )}
                         {title && (
                             <div className="mb-6 text-center">
                                 <h2 className="text-2xl font-bold text-foreground">{title}</h2>

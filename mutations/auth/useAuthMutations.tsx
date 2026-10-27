@@ -3,7 +3,9 @@ import { useMutation } from "@tanstack/react-query";
 
 // Types for Register Step 1
 export interface SendEmailPayload {
+  /** Mobile number ("+919876543210") or email. */
   email: string;
+  login?: string;
 }
 
 export interface SendEmailResponse {
@@ -21,7 +23,9 @@ export interface SendEmailResponse {
 
 // Types for Verify OTP Step 2
 export interface VerifyOtpPayload {
+  /** Mobile number or email used to sign up. */
   email: string;
+  login?: string;
   otp: string;
   context?: string;
 }
@@ -37,7 +41,10 @@ export interface VerifyOtpResponse {
 
 // Types for Complete Profile Step 3
 export interface CompleteProfilePayload {
-  email: string;
+  /** What they signed up with (mobile number or email). */
+  login?: string;
+  /** Optional for mobile sign-ups. */
+  email?: string;
   password?: string;
   first_name: string;
   last_name: string;
@@ -83,7 +90,7 @@ export function useRegister() {
 export function useVerifyEmail() {
   return useMutation<VerifyOtpResponse, Error, VerifyOtpPayload>({
     mutationFn: async (payload) => {
-      const { data } = await api.post("/auth/verify-email", payload);
+      const { data } = await api.post("/auth/verify-email", { login: payload.email, ...payload });
       return data;
     },
   });

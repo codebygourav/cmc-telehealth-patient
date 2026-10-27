@@ -24,4 +24,6 @@ export interface User {
     mobile_no: string;
     address: Address;
     status: string;
+    phone_verified?: boolean;
+    requires_phone_verification?: boolean;
 }

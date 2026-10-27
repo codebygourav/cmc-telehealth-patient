@@ -1,6 +1,7 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import PatientRegionPrompt from "@/components/PatientRegionPrompt";
+import PhoneVerificationGate from "@/components/auth/PhoneVerificationGate";
 import { Toaster } from "sonner";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
             {/* Logged-in patients without a saved country are asked for it once (pricing). */}
             <PatientRegionPrompt />
+            {/* Accounts without a verified mobile number confirm it first (WhatsApp code). */}
+            <PhoneVerificationGate />
             <Toaster richColors position="top-right" />
             <Footer />
         </>

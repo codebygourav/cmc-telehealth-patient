@@ -20,14 +20,19 @@ const money = (amount: number, symbol: string) => `${symbol}${amount.toLocaleStr
 // "English, Hindi, Punjabi" → "Eng, Hin, Pun"
 const shortLanguages = (languages: string[]) => languages.map((language) => language.trim().slice(0, 3)).filter(Boolean).join(', ');
 
-/** Label / price pairs, laid out two to a row. */
+/** One fee per full-width row: what it is on the left, the amount on the right (same look in every tab). */
+const FeeLine = ({ label, amount }: Price) => (
+    <div className="flex items-center justify-between gap-3">
+        <dt className="text-sm font-medium text-[#374151]">{label}</dt>
+        <dd className="text-lg font-bold leading-tight tabular-nums text-[#111827]">{amount}</dd>
+    </div>
+);
+
+/** Label / price pairs (e.g. Private OPD and General OPD), one row each. */
 const PriceRow = ({ prices }: { prices: Price[] }) => (
-    <dl className="grid grid-cols-2 gap-x-5 gap-y-1.5 px-1">
-        {prices.map((price, index) => (
-            <div key={price.label} className="flex items-baseline justify-between gap-2">
-                <dt className={cn('text-xs', index === 0 ? 'font-semibold text-primary' : 'text-[#6B7280]')}>{price.label}</dt>
-                <dd className={cn('text-sm tabular-nums text-[#111827]', index === 0 ? 'font-bold' : 'font-medium')}>{price.amount}</dd>
-            </div>
+    <dl className="space-y-2 px-1">
+        {prices.map((price) => (
+            <FeeLine key={price.label} {...price} />
         ))}
     </dl>
 );
@@ -86,12 +91,15 @@ const VideoFee = ({ inr, usd, currency, onCurrency }: { inr?: string; usd?: stri
     if (!shown) return null;
 
     return (
-        <div className="flex items-end justify-between gap-3 px-1">
-            <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-primary">Consultation Fee</p>
-                <p className="text-lg font-bold leading-tight tabular-nums text-[#111827]">{shown}</p>
-            </div>
-            {both && <CurrencyToggle currency={currency} onCurrency={onCurrency} />}
+        <div className="space-y-2 px-1">
+            <dl>
+                <FeeLine label="Consultation Fee" amount={shown} />
+            </dl>
+            {both && (
+                <div className="flex justify-end">
+                    <CurrencyToggle currency={currency} onCurrency={onCurrency} />
+                </div>
+            )}
         </div>
     );
 };

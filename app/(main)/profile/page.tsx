@@ -12,6 +12,7 @@ import { leaveFamilyManager, familyApiError, type FamilyManager, type FamilyProf
 import PersonalInfoForm from "@/components/pages/profile/personal-info";
 import ManageAddressForm from "@/components/pages/profile/manage-address";
 import ChangePasswordForm from "@/components/pages/profile/change-password";
+import MobileNumberCard from "@/components/pages/profile/MobileNumberCard";
 import MemberLoginSection from "@/components/pages/family/MemberLoginSection";
 import { emptyFamilyMember } from "@/components/pages/family/FamilyMemberForm";
 import ProfileMedicalRecords from "@/components/pages/profile/profile-medical-records";
@@ -200,6 +201,8 @@ function ProfilePageContent() {
 
                             {user ? (
                                 <>
+                                    {/* Own account: the sign-in mobile number (changed with a WhatsApp code). */}
+                                    {activeTab === "basic" && !member && <MobileNumberCard />}
                                     {activeTab === "basic" && <PersonalInfoForm key={activeProfile?.patient_id ?? "own"} user={user} viewing={member} />}
                                     {activeTab === "address" && <ManageAddressForm user={user} />}
                                     {activeTab === "password" && (member

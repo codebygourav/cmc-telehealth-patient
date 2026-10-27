@@ -8,6 +8,7 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import InputField from "../custom/inputfield";
+import { isValidLoginId, LOGIN_ID_ERROR } from "@/lib/loginId";
 
 interface FieldProps {
   name: string;
@@ -22,6 +23,8 @@ interface AuthFormProps<T extends Record<string, any>> {
   buttonText: string;
   onSubmit: (data: T) => Promise<void>;
   showForgotPassword?: boolean;
+  /** Forgot password on the same screen (no page change). */
+  onForgotPassword?: () => void;
   alternateLink?: {
     text: string;
     href: string;
@@ -35,6 +38,7 @@ function AuthForm<T extends Record<string, any>>({
   buttonText,
   onSubmit,
   showForgotPassword = false,
+  onForgotPassword,
   alternateLink = null,
   defaultValues = {},
 }: AuthFormProps<T>) {
@@ -48,13 +52,16 @@ function AuthForm<T extends Record<string, any>>({
 
     if (field.type === "email") {
       schema = z.string().email("Invalid email address");
+    } else if (field.type === "login") {
+      // Mobile number (first choice) or email.
+      schema = z.string().trim().refine(isValidLoginId, LOGIN_ID_ERROR);
     } else if (field.type === "password" && field.name === "password") {
       schema = z.string().min(6, "Password must be at least 6 characters");
     } else {
       schema = z.string();
     }
 
-    if (field.required && field.type !== "email" && field.type !== "password") {
+    if (field.required && !["email", "login", "password"].includes(field.type)) {
       schema = (schema as z.ZodString).min(1, `${field.label} is required`);
     }
 
@@ -108,6 +115,7 @@ function AuthForm<T extends Record<string, any>>({
   };
 
   const getInputType = (field: FieldProps) => {
+    if (field.type === "login") return "text";
     if (field.type !== "password") return field.type;
     return showPasswords[field.name] ? "text" : "password";
   };
@@ -166,12 +174,22 @@ function AuthForm<T extends Record<string, any>>({
         {/* Forgot Password Link */}
         {showForgotPassword && (
           <div className="text-right mt-2">
-            <Link
-              href="/auth/forgot-password"
-              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
-            >
-              Forgot password?
-            </Link>
+            {onForgotPassword ? (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+              >
+                Forgot password?
+              </button>
+            ) : (
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            )}
           </div>
         )}
 

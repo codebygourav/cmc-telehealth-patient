@@ -2,7 +2,10 @@ import api from "@/lib/axios";
 import { useMutation } from "@tanstack/react-query";
 
 interface LoginPayload {
+    /** Mobile number or email. */
     email: string;
+    /** WhatsApp number on several accounts: the email that picks the account. */
+    account_email?: string;
     password: string;
     remember?: boolean;
     current_location?: string;
@@ -40,7 +43,7 @@ interface LoginResponse {
 export function useLogin() {
     return useMutation<LoginResponse, any, LoginPayload>({
         mutationFn: async (payload) => {
-            const { data } = await api.post("/auth/login", { ...payload, portal: "patient" });
+            const { data } = await api.post("/auth/login", { ...payload, login: payload.email, portal: "patient" });
             return data;
         },
     });

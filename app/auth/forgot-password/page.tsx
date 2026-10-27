@@ -1,99 +1,20 @@
 "use client";
-import AuthLayout from "@/components/auth/AuthLayout";
-import ResetPasswordForm from "@/components/auth/forgot-password/ResetPasswordForm";
-import SendOtpForm from "@/components/auth/forgot-password/SendOtpForm";
-import VerifyOtpForm from "@/components/auth/forgot-password/VerifyOtpForm";
-import { useState } from "react";
 
-type ForgotPasswordStep = "SEND_OTP" | "VERIFY_OTP" | "RESET_PASSWORD";
+import { openAuthScreen } from "@/components/auth/unified/AuthNav";
+import { rememberPostAuthRedirect } from "@/lib/authRedirect";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-const ForgotPasswordPage = () => {
-  const [step, setStep] = useState<ForgotPasswordStep>("SEND_OTP");
-  const [email, setEmail] = useState("");
-  const [resetToken, setResetToken] = useState("");
-  const [isManaged, setIsManaged] = useState(false);
-  const [holderName, setHolderName] = useState<string | null>(null);
+// Lives on the sign-in screen now: older links open that form there, with a clean address.
+export default function Page() {
+    const router = useRouter();
 
-  const handleSendOtpSuccess = (email: string) => {
-    setEmail(email);
-    setStep("VERIFY_OTP");
-  };
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        rememberPostAuthRedirect(params.get("redirect"));
+        openAuthScreen("forgot", params.get("email"));
+        router.replace("/auth/login");
+    }, [router]);
 
-  const handleVerifyOtpSuccess = (token: string, managed?: boolean, holder?: string | null) => {
-    setResetToken(token);
-    setIsManaged(Boolean(managed));
-    setHolderName(holder || null);
-    setStep("RESET_PASSWORD");
-  };
-
-  const handleBackToSendOtp = () => {
-    setStep("SEND_OTP");
-  };
-
-  const renderContent = () => {
-    switch (step) {
-      case "SEND_OTP":
-        return (
-          <div className="flex flex-col gap-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold font-source-sans mb-2">
-                Forgot Password?
-              </h1>
-              <p className="text-sm text-muted-foreground font-source-sans">
-                Enter your email address to receive a verification code.
-              </p>
-            </div>
-            <SendOtpForm onSuccess={handleSendOtpSuccess} />
-          </div>
-        );
-      case "VERIFY_OTP":
-        return (
-          <div className="flex flex-col gap-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold font-source-sans mb-2">
-                Verify OTP
-              </h1>
-              <p className="text-sm text-muted-foreground font-source-sans">
-                We've sent a 6-digit verification code to{" "}
-                <span className="font-semibold">{email}</span>.
-              </p>
-            </div>
-            <VerifyOtpForm
-              email={email}
-              onSuccess={handleVerifyOtpSuccess}
-              onBack={handleBackToSendOtp}
-            />
-          </div>
-        );
-      case "RESET_PASSWORD":
-        return (
-          <div className="flex flex-col gap-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold font-source-sans mb-2">
-                Reset Password
-              </h1>
-              <p className="text-sm text-muted-foreground font-source-sans">
-                Create a new password that you haven't used before.
-              </p>
-            </div>
-            <ResetPasswordForm
-              email={email}
-              resetToken={resetToken}
-              isManaged={isManaged}
-              holderName={holderName}
-            />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <AuthLayout title="" subtitle="">
-      {renderContent()}
-    </AuthLayout>
-  );
-};
-
-export default ForgotPasswordPage;
+    return null;
+}

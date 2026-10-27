@@ -17,12 +17,15 @@ type VerifyOtpFormData = z.infer<typeof verifyOtpSchema>;
 
 interface VerifyOtpFormProps {
   email: string;
-  onSuccess: (resetToken: string, isManaged?: boolean, holderName?: string | null) => void;
+  accountEmail?: string;
+  /** needsNewNumber: the code went to a number another account verified; this account adds its own next. */
+  onSuccess: (resetToken: string, isManaged?: boolean, holderName?: string | null, needsNewNumber?: boolean) => void;
   onBack?: () => void;
 }
 
 const VerifyOtpForm: React.FC<VerifyOtpFormProps> = ({
   email,
+  accountEmail,
   onSuccess,
   onBack,
 }) => {
@@ -38,13 +41,13 @@ const VerifyOtpForm: React.FC<VerifyOtpFormProps> = ({
 
   const onSubmit = async (data: VerifyOtpFormData) => {
     mutate(
-      { email, otp: data.otp },
+      { email, otp: data.otp, ...(accountEmail ? { account_email: accountEmail } : {}) },
       {
         onSuccess: (response) => {
           toast.success(response.message || "OTP verified successfully");
           const resetToken = response.data?.reset_token;
           if (resetToken) {
-            onSuccess(resetToken, response.data?.is_managed, response.data?.holder_name);
+            onSuccess(resetToken, response.data?.is_managed, response.data?.holder_name, Boolean((response.data as any)?.needs_new_number));
           } else {
             toast.error("No reset token returned from API");
           }
@@ -67,7 +70,7 @@ const VerifyOtpForm: React.FC<VerifyOtpFormProps> = ({
 
   const handleResend = () => {
     resendOtp(
-      { email, context: "forgot_password" },
+      { email, context: "forgot_password", ...(accountEmail ? { account_email: accountEmail } : {}) },
       {
         onSuccess: (response) => {
           toast.success(
