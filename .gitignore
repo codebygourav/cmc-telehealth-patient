@@ -10,6 +10,11 @@
 # Testing & Coverage
 /coverage
 /.nyc_output
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
 
 # Next.js Build Output
 /.next/
@@ -71,3 +76,14 @@ Thumbs.db
 .cache/
 tmp/
 temp/
+
+# AI Agent & Developer Docs (not needed in production)
+AGENTS.md
+CLAUDE.md
+README.md
+*.md
+!CHANGELOG.md
+
+# OS & Editor generated
+*.orig
+*.bak
