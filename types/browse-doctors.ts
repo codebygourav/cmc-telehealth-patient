@@ -1,5 +1,6 @@
 export interface Doctor {
   id: string;
+  slug?: string;
   name: string;
   speciality: string | { id: string; name: string; symptoms?: any[] };
   avatar: string;

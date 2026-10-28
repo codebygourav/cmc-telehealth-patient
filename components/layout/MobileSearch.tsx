@@ -100,7 +100,7 @@ export function MobileSearch() {
                             <>
                                 <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-[#8A8A8A]">Doctors</p>
                                 {doctors.map((doctor) => (
-                                    <button key={doctor.id} type="button" className={rowClass} onClick={() => go(`/find-doctors/${doctor.id}`)}>
+                                    <button key={doctor.id} type="button" className={rowClass} onClick={() => go(`/find-doctors/${doctor.slug || doctor.id}`)}>
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={doctor.avatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-[#E7E8EB]" referrerPolicy="no-referrer" />
                                         <span className="min-w-0 flex-1">

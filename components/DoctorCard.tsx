@@ -181,7 +181,9 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
     const openProfile = () => {
         if (onBook) onBook();
         const chosen = selected && modes.includes(selected) ? selected : modes.length === 1 ? modes[0] : null;
-        router.push(`/find-doctors/${doctor.id}${chosen ? `?type=${chosen}` : ''}`);
+        // Use the slug (e.g. "dr-bobby-john") when available, fall back to the UUID.
+        const profileId = doctor.slug || doctor.id;
+        router.push(`/find-doctors/${profileId}${chosen ? `?type=${chosen}` : ''}`);
     };
 
     const modeMeta: Record<Mode, { tab: string; title: string; subtitle: string; badge: string; feeLabel: string; icon: typeof Video; cta: string }> = {
@@ -387,7 +389,7 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
                     // Opens the doctor's profile at the hospital contact details.
                     <button
                         type="button"
-                        onClick={() => router.push(`/find-doctors/${doctor.id}#contact`)}
+                        onClick={() => router.push(`/find-doctors/${doctor.slug || doctor.id}#contact`)}
                         disabled={isLoading}
                         className="mt-auto flex h-11 sm:h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#EEF1F5] text-sm font-semibold text-[#374151] transition-colors hover:bg-[#E2E7ED] disabled:opacity-60"
                     >
