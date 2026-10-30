@@ -67,7 +67,7 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
     }, [searchParams]);
 
     const consultationTypeOptions = [
-        { value: "all", label: "All Types" },
+        { value: "all", label: "Select Appointment Type" },
         { value: "video", label: "Video Consultation" },
         { value: "in-person", label: "In-person Consultation" },
     ];

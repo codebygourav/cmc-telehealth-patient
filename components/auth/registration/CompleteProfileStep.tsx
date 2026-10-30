@@ -324,7 +324,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
 
             <div className="flex flex-col space-y-2">
               <label className="font-source-sans text-muted-foreground text-sm font-medium">
-                Is Existing Patient? <span className="text-destructive font-semibold ml-0.5">*</span>
+                Are you an existing patient? <span className="text-destructive font-semibold ml-0.5">*</span>
               </label>
               <Controller
                 name="is_existing_patient"
