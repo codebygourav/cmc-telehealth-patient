@@ -57,52 +57,7 @@ const SingleFee = ({ icon: Icon, title, subtitle, feeLabel, amount, extra }: { i
     </div>
 );
 
-type Currency = 'inr' | 'usd';
 
-/** The small ₹ INR / $ USD switch. */
-const CurrencyToggle = ({ currency, onCurrency }: { currency: Currency; onCurrency: (currency: Currency) => void }) => (
-    <div role="group" aria-label="Show the fee in" className="inline-flex shrink-0 rounded-lg bg-[#E9EDF1] p-0.5">
-        {([['inr', '₹ INR'], ['usd', '$ USD']] as const).map(([key, label]) => (
-            <button
-                key={key}
-                type="button"
-                aria-pressed={currency === key}
-                onClick={() => onCurrency(key)}
-                className={cn(
-                    'min-h-7 cursor-pointer rounded-md px-2 text-[11px] font-bold transition-colors',
-                    currency === key ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6B7280] hover:text-[#111827]'
-                )}
-            >
-                {label}
-            </button>
-        ))}
-    </div>
-);
-
-/**
- * Video consultation fee. When the doctor has both an Indian and an international price (shown
- * to visitors who are not logged in), a small ₹ INR / $ USD switch chooses which one is displayed.
- * A logged-in patient gets only their own price from the API, so there is no switch.
- */
-const VideoFee = ({ inr, usd, currency, onCurrency }: { inr?: string; usd?: string; currency: Currency; onCurrency: (currency: Currency) => void }) => {
-    const both = !!inr && !!usd;
-    const shown = both ? (currency === 'usd' ? usd : inr) : inr ?? usd;
-
-    if (!shown) return null;
-
-    return (
-        <div className="space-y-2 px-1">
-            <dl>
-                <FeeLine label="Consultation Fee" amount={shown} />
-            </dl>
-            {both && (
-                <div className="flex justify-end">
-                    <CurrencyToggle currency={currency} onCurrency={onCurrency} />
-                </div>
-            )}
-        </div>
-    );
-};
 
 /**
  * Phone tile: icon, what it is, and a fee on the right. `below` is a full-width row under it
@@ -162,19 +117,15 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
         if (typeof general === 'number') inPersonPrices.push({ label: 'General OPD', amount: money(general, symbol) });
     }
 
-    // Video: what the API sent for this visitor.
-    //  - Not logged in, doctor takes international payment: the Indian price and the international one.
-    //  - Logged-in patient: only their own price (₹ in India, $ for an international patient).
-    const videoPrice = typeof fees.video_consultation === 'number' ? money(fees.video_consultation, symbol) : undefined;
-    const overseasPrice = typeof fees.international?.video_consultation === 'number'
-        ? money(fees.international.video_consultation, fees.international?.currency_symbol || '$')
-        : undefined;
-    const videoInr = symbol === '$' ? undefined : videoPrice;
-    const videoUsd = symbol === '$' ? videoPrice : overseasPrice;
-    const [currency, setCurrency] = useState<Currency>('inr');
-    const videoFee = <VideoFee inr={videoInr} usd={videoUsd} currency={currency} onCurrency={setCurrency} />;
-    const videoBoth = !!videoInr && !!videoUsd;
-    const videoShown = videoBoth ? (currency === 'usd' ? videoUsd : videoInr) : videoInr ?? videoUsd;
+    // Video: resolved fee for this visitor based on their IP or account region.
+    const videoShown = typeof fees.video_consultation === 'number' ? money(fees.video_consultation, symbol) : undefined;
+    const videoFee = videoShown ? (
+        <div className="space-y-2 px-1">
+            <dl>
+                <FeeLine label="Consultation Fee" amount={videoShown} />
+            </dl>
+        </div>
+    ) : null;
 
     // The doctor's profile opens on the mode chosen here ("Appointment Type"): the tab the patient
     // picked, or the doctor's only mode. Without a choice the profile decides.
@@ -278,7 +229,6 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
                                 icon={Video}
                                 title={modeMeta.video.title}
                                 subtitle={modeMeta.video.subtitle}
-                                extra={videoBoth ? <CurrencyToggle currency={currency} onCurrency={setCurrency} /> : undefined}
                             >
                                 {videoShown && <CompactFee label={modeMeta.video.feeLabel} amount={videoShown} />}
                             </CompactTile>
@@ -322,8 +272,8 @@ const DoctorCard = ({ doctor, isLoading = false, onBook }: DoctorCardProps) => {
                     const meta = modeMeta[activeMode];
                     const Icon = meta.icon;
                     // Two prices to show: a titled block. One price: a tile with the fee on the right.
-                    const twoPrices = activeMode === 'video' ? !!videoInr && !!videoUsd : inPersonPrices.length > 1;
-                    const onlyPrice = activeMode === 'video' ? videoInr ?? videoUsd : inPersonPrices[0]?.amount;
+                    const twoPrices = activeMode === 'video' ? false : inPersonPrices.length > 1;
+                    const onlyPrice = activeMode === 'video' ? videoShown : inPersonPrices[0]?.amount;
 
                     return (
                         <div className={cn(panelClass, 'hidden sm:block')}>

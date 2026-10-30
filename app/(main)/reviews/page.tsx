@@ -145,35 +145,39 @@ export default function Page() {
 
                     {/* Pagination Section */}
                     {pagination && pagination.last_page > 1 && (
-                        <div className="flex flex-col sm:flex-row justify-center sm:justify-end items-center gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === 1 || isFetching}
-                                onClick={() => setPage((prev) => prev - 1)}
-                                className="w-24 sm:w-auto"
-                            >
-                                Previous
-                            </Button>
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-[#E7E8EB]">
+                            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left order-2 sm:order-1">
+                                Showing page {pagination.current_page} of {pagination.last_page} ({pagination.total || reviews.length} reviews)
+                            </p>
 
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs sm:text-sm text-muted-foreground">
-                                    Page {pagination.current_page} of {pagination.last_page}
+                            <div className="flex items-center justify-center gap-2 order-1 sm:order-2 w-full sm:w-auto">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={page === 1 || isFetching}
+                                    onClick={() => setPage((prev) => prev - 1)}
+                                    className="h-8 px-3 text-xs sm:text-sm rounded-lg disabled:opacity-30"
+                                >
+                                    Previous
+                                </Button>
+
+                                <span className="min-w-24 text-center text-xs sm:text-sm font-semibold text-foreground px-2.5 py-1.5 rounded-lg bg-[#F5F6F8] border border-[#E7E8EB] select-none flex items-center justify-center gap-1.5">
+                                    <span>Page {pagination.current_page} of {pagination.last_page}</span>
+                                    {isFetching && (
+                                        <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                                    )}
                                 </span>
-                                {isFetching && (
-                                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-muted-foreground" />
-                                )}
-                            </div>
 
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === pagination.last_page || isFetching}
-                                onClick={() => setPage((prev) => prev + 1)}
-                                className="w-24 sm:w-auto"
-                            >
-                                Next
-                            </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={page === pagination.last_page || isFetching}
+                                    onClick={() => setPage((prev) => prev + 1)}
+                                    className="h-8 px-3 text-xs sm:text-sm rounded-lg disabled:opacity-30"
+                                >
+                                    Next
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </>

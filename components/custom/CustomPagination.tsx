@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import {
     Pagination,
     PaginationContent,
@@ -43,8 +44,8 @@ export function CustomPagination({
     };
 
     return (
-        <Pagination className="mt-10">
-            <PaginationContent className="gap-2">
+        <Pagination className="mt-6 sm:mt-8">
+            <PaginationContent className="flex-wrap justify-center gap-1 sm:gap-1.5">
                 <PaginationItem>
                     <PaginationPrevious
                         href="#"
@@ -52,33 +53,41 @@ export function CustomPagination({
                             e.preventDefault();
                             if (currentPage > 1) onPageChange(currentPage - 1);
                         }}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"}
+                        className={cn(
+                            "h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm rounded-lg",
+                            currentPage === 1 ? "pointer-events-none opacity-40" : "cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"
+                        )}
                     />
                 </PaginationItem>
 
-                {getPageNumbers().map((page, index) => (
-                    <PaginationItem key={index}>
-                        {page === "ellipsis" ? (
-                            <PaginationEllipsis />
-                        ) : (
-                            <PaginationLink
-                                href="#"
-                                isActive={currentPage === page}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    onPageChange(page as number);
-                                }}
-                                className={
-                                    currentPage === page
-                                        ? "bg-[#013220] hover:bg-[#013220]/90 text-white border-none shadow-md transform scale-110 transition-all"
-                                        : "cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"
-                                }
-                            >
-                                {page}
-                            </PaginationLink>
-                        )}
-                    </PaginationItem>
-                ))}
+                {getPageNumbers().map((page, index) => {
+                    const isDistant = typeof page === "number" && Math.abs(page - currentPage) > 1 && page !== 1 && page !== totalPages;
+
+                    return (
+                        <PaginationItem key={index} className={cn(isDistant && "hidden sm:inline-flex")}>
+                            {page === "ellipsis" ? (
+                                <PaginationEllipsis className="h-8 w-6 sm:w-8" />
+                            ) : (
+                                <PaginationLink
+                                    href="#"
+                                    isActive={currentPage === page}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onPageChange(page as number);
+                                    }}
+                                    className={cn(
+                                        "h-8 w-8 sm:h-9 sm:w-9 text-xs sm:text-sm font-semibold rounded-lg p-0 flex items-center justify-center transition-all",
+                                        currentPage === page
+                                            ? "bg-primary hover:bg-primary/90 text-white shadow-xs"
+                                            : "cursor-pointer hover:bg-primary/10 hover:text-primary"
+                                    )}
+                                >
+                                    {page}
+                                </PaginationLink>
+                            )}
+                        </PaginationItem>
+                    );
+                })}
 
                 <PaginationItem>
                     <PaginationNext
@@ -87,7 +96,10 @@ export function CustomPagination({
                             e.preventDefault();
                             if (currentPage < totalPages) onPageChange(currentPage + 1);
                         }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"}
+                        className={cn(
+                            "h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm rounded-lg",
+                            currentPage === totalPages ? "pointer-events-none opacity-40" : "cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"
+                        )}
                     />
                 </PaginationItem>
             </PaginationContent>

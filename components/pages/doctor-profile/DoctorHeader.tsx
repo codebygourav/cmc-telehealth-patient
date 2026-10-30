@@ -37,10 +37,9 @@ const DoctorHeader = ({ doctor }: DoctorHeaderProps) => {
         range.min === range.max
             ? `${symbol}${range.min.toLocaleString('en-IN')}`
             : `${symbol}${range.min.toLocaleString('en-IN')} - ${symbol}${range.max.toLocaleString('en-IN')}`;
-    // Before login both prices are shown: the Indian fee and the international video fee.
+    // Single fee label based on the resolved patient currency (INR or USD)
     const feeLabel = fee
-        ? feeRange(fee, fee.currency_symbol || '₹') +
-          (fee.international ? ` · International video: ${feeRange(fee.international, fee.international.currency_symbol || '$')}` : '')
+        ? feeRange(fee, fee.currency_symbol || '₹')
         : null;
     const hasInfo = years > 0 || languages.length > 0 || !!feeLabel;
 

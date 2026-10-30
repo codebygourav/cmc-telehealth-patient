@@ -32,6 +32,24 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       config.headers["X-Patient-Profile"] = activeProfileId;
     }
   }
+
+  // Testing / DevTools override: allow simulating country via URL (?country=US) or localStorage
+  if (typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const country =
+      urlParams.get("country_iso") ||
+      urlParams.get("country") ||
+      localStorage.getItem("test_country_iso");
+    if (country) {
+      const code = country.trim().toUpperCase();
+      config.headers["X-Country-ISO"] = code;
+      config.headers["X-Country-Code"] = code;
+      config.params = {
+        ...config.params,
+        country_iso: code,
+      };
+    }
+  }
   return config;
 });
 

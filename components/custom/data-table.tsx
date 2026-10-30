@@ -259,41 +259,53 @@ export function DataTable<T>({
                 </Table>
                 {/* Pagination section */}
                 {onPageChange ? (
-                    <div className="flex flex-col w-full gap-3 px-5 py-5.5 m-0 border-light-gray-top  sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-xs text-muted-foreground">
-                            Showing {entriesFrom} to {entriesTo} of {totalItems} entries
+                    <div className="flex flex-col w-full gap-3 px-4 py-4 sm:px-5 sm:py-5 m-0 border-t border-[#E7E8EB] sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-muted-foreground text-center sm:text-left order-2 sm:order-1">
+                            Showing <span className="font-semibold text-foreground">{entriesFrom}</span> to{" "}
+                            <span className="font-semibold text-foreground">{entriesTo}</span> of{" "}
+                            <span className="font-semibold text-foreground">{totalItems}</span> entries
                         </p>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-1 sm:gap-1.5 order-1 sm:order-2 w-full sm:w-auto">
                             <Button
                                 type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                                 disabled={currentPage <= 1}
+                                className="h-8 px-2 sm:px-2.5 text-xs rounded-lg disabled:opacity-30"
                             >
                                 Prev
                             </Button>
 
-                            {pageNumbers.map((p) => (
-                                <Button
-                                    key={p}
-                                    type="button"
-                                    variant={p === currentPage ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => onPageChange(p)}
-                                    className={cn("h-8 w-8 px-0", p === currentPage && "hover:bg-primary/95")}
-                                >
-                                    {p}
-                                </Button>
-                            ))}
+                            {pageNumbers.map((p) => {
+                                const isDistant = Math.abs(p - currentPage) > 1 && p !== 1 && p !== safePageCount;
+
+                                return (
+                                    <Button
+                                        key={p}
+                                        type="button"
+                                        variant={p === currentPage ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => onPageChange(p)}
+                                        className={cn(
+                                            "h-8 w-8 px-0 text-xs rounded-lg font-semibold",
+                                            p === currentPage ? "bg-primary text-white shadow-xs hover:bg-primary/90" : "hover:bg-primary/10",
+                                            isDistant && "hidden sm:inline-flex"
+                                        )}
+                                    >
+                                        {p}
+                                    </Button>
+                                );
+                            })}
 
                             <Button
                                 type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => onPageChange(Math.min(safePageCount, currentPage + 1))}
                                 disabled={currentPage >= safePageCount}
+                                className="h-8 px-2 sm:px-2.5 text-xs rounded-lg disabled:opacity-30"
                             >
                                 Next
                             </Button>

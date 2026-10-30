@@ -75,26 +75,28 @@ export function MobileBottomNav({ isGuest, isActivePath, onMore, moreOpen, unrea
                     );
                 })}
 
-                <li className="flex flex-1">
-                    <button
-                        type="button"
-                        onClick={onMore}
-                        aria-haspopup="dialog"
-                        aria-expanded={moreOpen}
-                        className={cn(itemClass, "cursor-pointer", moreOpen || (!isGuest && !onATab) ? "text-primary" : "text-[#6B6B6B] hover:text-primary")}
-                    >
-                        <span aria-hidden className={cn("absolute top-0 h-0.5 w-8 rounded-full", !isGuest && !onATab ? "bg-primary" : "bg-transparent")} />
-                        <span className={cn("relative flex h-7 w-12 items-center justify-center rounded-full", !isGuest && !onATab && "bg-primary/10")}>
-                            <Menu className="h-5 w-5" />
-                            {unreadCount > 0 && (
-                                <span className="absolute right-2 top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background">
-                                    <span className="sr-only">{unreadCount} unread notifications</span>
-                                </span>
-                            )}
-                        </span>
-                        <span>More</span>
-                    </button>
-                </li>
+                {!isGuest && (
+                    <li className="flex flex-1">
+                        <button
+                            type="button"
+                            onClick={onMore}
+                            aria-haspopup="dialog"
+                            aria-expanded={moreOpen}
+                            className={cn(itemClass, "cursor-pointer", moreOpen || !onATab ? "text-primary" : "text-[#6B6B6B] hover:text-primary")}
+                        >
+                            <span aria-hidden className={cn("absolute top-0 h-0.5 w-8 rounded-full", !onATab ? "bg-primary" : "bg-transparent")} />
+                            <span className={cn("relative flex h-7 w-12 items-center justify-center rounded-full", !onATab && "bg-primary/10")}>
+                                <Menu className="h-5 w-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute right-2 top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background">
+                                        <span className="sr-only">{unreadCount} unread notifications</span>
+                                    </span>
+                                )}
+                            </span>
+                            <span>More</span>
+                        </button>
+                    </li>
+                )}
             </ul>
         </nav>,
         document.body

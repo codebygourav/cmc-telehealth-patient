@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import type { DoctorDetailResponse } from '@/types/doctor-details';
 import { useRouter } from 'next/navigation';
 import { useDoctorDetail } from '@/queries/useDoctorDetail';
@@ -13,7 +14,7 @@ import ReviewSection from '@/components/pages/doctor-profile/ReviewSection';
 import LoadingSkeleton from '@/components/pages/doctor-profile/LoadingSkeleton';
 import CustomDialog from '@/components/custom/Dialogboxs';
 import CustomTabs from '@/components/custom/CustomTabs';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HeroSection from '@/components/hero-section';
 
@@ -27,7 +28,6 @@ const DoctorProfile = ({ id, initialData }: DoctorProfileProps) => {
 
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
-    const [appointmentId, setAppointmentId] = useState<string>('');
     const [dialogState, setDialogState] = useState<{
         open: boolean;
         type: 'danger' | 'success';
@@ -46,15 +46,9 @@ const DoctorProfile = ({ id, initialData }: DoctorProfileProps) => {
     const { data, error, isPending: isLoading, refetch } = useDoctorDetail(id, initialData);
     const doctor = data?.data;
 
+    // The patient already confirmed the details in the booking modal: go straight to payment.
     const handleBookingSuccess = (appointmentId: string) => {
-        setDialogState({
-            open: true,
-            type: 'success',
-            title: 'Slot Reserved - Payment Required',
-            description: 'Your slot has been reserved. Please review your booking details and complete the payment to confirm your appointment.',
-            confirmText: 'Confirm & Pay',
-        });
-        setAppointmentId(appointmentId);
+        router.push(`/appointments/${appointmentId}`);
     };
 
     const handleBookingError = (error: string) => {
@@ -90,16 +84,23 @@ const DoctorProfile = ({ id, initialData }: DoctorProfileProps) => {
         <>
 
             <HeroSection
-                showBackButton
-                backHref="/find-doctors"
                 title="Doctor Detail"
                 description="Connect with world-class specialists curated for your health journey. Expert clinical care delivered with a human touch."
+                rightAction={
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
+                    >
+                        <ArrowLeft className="h-4 w-4 sm:h-4.5 sm:w-4.5 shrink-0" />
+                        <span>Back to Home</span>
+                    </Link>
+                }
             />
 
             <div className="container-max-width w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 {/* Left Column - Doctor Info */}
-                <div className="lg:col-span-7 space-y-8">
+                <div className="lg:col-span-8 space-y-8">
 
                     <DoctorHeader doctor={doctor} />
 
@@ -136,7 +137,7 @@ const DoctorProfile = ({ id, initialData }: DoctorProfileProps) => {
                 </div>
 
                 {/* Right Column - Booking */}
-                <div className="lg:col-span-5 sticky top-28">
+                <div className="lg:col-span-4 sticky top-28">
                     <AppointmentBooking
                         doctor={doctor}
                         onBookingSuccess={handleBookingSuccess}
@@ -158,20 +159,10 @@ const DoctorProfile = ({ id, initialData }: DoctorProfileProps) => {
                 type={dialogState.type}
                 title={dialogState.title}
                 description={dialogState.description}
-                confirmText={dialogState.confirmText || (dialogState.type === 'success' ? 'Confirm & Pay' : 'OK')}
+                confirmText={dialogState.confirmText || 'OK'}
                 cancelText="Cancel"
-                onConfirm={
-                    () => {
-                        setDialogState(prev => ({ ...prev, open: false }));
-                        if (dialogState.type === 'success' && appointmentId) {
-                            router.push(`/appointments/${appointmentId}`);
-                        }
-                    }
-                }
-                icon={dialogState.type === 'danger' ?
-                    <AlertCircle className="h-6 w-6 text-destructive" /> :
-                    <CheckCircle2 className="h-6 w-6 text-green-600" />
-                }
+                onConfirm={() => setDialogState(prev => ({ ...prev, open: false }))}
+                icon={<AlertCircle className="h-6 w-6 text-destructive" />}
             />
         </>
     );

@@ -108,7 +108,7 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                 </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 text-center">
+            <div className="grid grid-cols-7 gap-1 text-center items-center">
                 {WEEKDAYS.map((day) => (
                     <span key={day} className="py-1 text-[11px] font-semibold uppercase text-[#4D4D4D]">
                         {day}
@@ -116,7 +116,7 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                 ))}
 
                 {cells.map((key, index) => {
-                    if (!key) return <span key={`blank-${index}`} />;
+                    if (!key) return <span key={`blank-${index}`} className="w-full aspect-square sm:aspect-auto sm:h-12" />;
 
                     const state = dayStateFor(key, slots, todayKey);
                     const selected = key === selectedDate;
@@ -133,13 +133,13 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                             aria-label={`${key} ${state === "available" ? "available" : state === "full" ? "fully booked" : state === "closed" ? "booking closed" : state === "past" ? "past date" : "not available"}`}
                             title={state === "full" ? "Fully booked" : state === "closed" ? "Booking closed" : state === "unavailable" ? "Not available" : undefined}
                             className={cn(
-                                "h-12 rounded-md text-sm font-semibold transition-all",
+                                "w-full aspect-square sm:aspect-auto sm:h-12 flex items-center justify-center rounded-lg text-xs sm:text-sm font-semibold transition-all",
                                 selected && "bg-primary text-white shadow-md",
                                 !selected && state === "available" && "border border-primary/60 bg-white text-primary hover:bg-primary/10 cursor-pointer",
                                 state === "full" && "bg-red-500 text-white cursor-not-allowed",
                                 !selected && state === "closed" && "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 cursor-pointer",
                                 state === "unavailable" &&
-                                "cursor-not-allowed text-[#9CA3AF] bg-[repeating-linear-gradient(135deg,#F3F4F6_0,#F3F4F6_4px,#E5E7EB_4px,#E5E7EB_6px)]",
+                                "cursor-not-allowed text-[#9CA3AF] bg-[repeating-linear-gradient(135deg,#F3F4F6_0,#F3F4F6_4px,#E5E7EB_4px,#E5E7EB_6px)] border border-[#E5E7EB]",
                                 state === "past" && "cursor-not-allowed text-[#C4C7CC] line-through",
                             )}
                         >
@@ -149,20 +149,20 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
                 })}
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#E7E8EB] pt-3 text-xs text-[#4D4D4D]">
-                <LegendItem className="border border-primary/60 bg-white" label="Available" />
-                <LegendItem className="bg-primary" label="Selected" />
-                <LegendItem className="bg-red-500" label="Fully booked" />
-                <LegendItem className="border border-amber-300 bg-amber-50" label="Booking closed" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-2 border-t border-[#E7E8EB] pt-3 text-[11px] sm:text-xs text-[#4D4D4D]">
+                <LegendItem className="border border-primary/60 bg-white text-primary" label="Available" />
+                <LegendItem className="bg-primary text-white shadow-xs" label="Selected" />
+                <LegendItem className="bg-red-500 text-white" label="Fully booked" />
+                <LegendItem className="border border-amber-300 bg-amber-50 text-amber-700" label="Booking closed" />
                 <LegendItem
-                    className="bg-[repeating-linear-gradient(135deg,#F3F4F6_0,#F3F4F6_3px,#D1D5DB_3px,#D1D5DB_5px)]"
+                    className="border border-[#E5E7EB] bg-[repeating-linear-gradient(135deg,#F3F4F6_0,#F3F4F6_3px,#D1D5DB_3px,#D1D5DB_5px)]"
                     label="Not available"
                 />
                 <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-sm border border-[#C4C7CC] text-[9px] leading-none text-[#9CA3AF]">
+                    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-md border border-[#C4C7CC] text-[9px] leading-none text-[#9CA3AF]">
                         –
                     </span>
-                    Past date
+                    <span className="truncate">Past date</span>
                 </span>
             </div>
         </div>
@@ -171,7 +171,7 @@ export default function BookingCalendar({ slots, selectedDate, onSelectDate, mon
 
 const LegendItem = ({ className, label }: { className: string; label: string }) => (
     <span className="inline-flex items-center gap-1.5">
-        <span className={cn("h-3.5 w-3.5 rounded-sm", className)} />
-        {label}
+        <span className={cn("h-4 w-4 shrink-0 rounded-md", className)} />
+        <span className="truncate">{label}</span>
     </span>
 );

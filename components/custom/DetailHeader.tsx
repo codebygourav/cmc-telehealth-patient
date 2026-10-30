@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { goBackInPortal } from "@/lib/goBack";
 
 interface DetailHeaderProps {
   title: string;
@@ -24,15 +25,24 @@ export const DetailHeader = ({
     if (onBack) {
       onBack();
     } else {
-      router.back();
+      goBackInPortal(router);
     }
   };
 
+  // Phones: a "‹ Back" link above the title. From md: the round icon button beside it.
   return (
-    <header className={cn("flex items-center md:gap-4 gap-1 mb-8", className)}>
+    <header className={cn("flex flex-col items-start md:flex-row md:items-center md:gap-4 gap-1 mb-8", className)}>
       <button
         onClick={handleBack}
-        className="p-3 hover:bg-surface-container rounded-2xl transition-all text-primary"
+        className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 md:hidden"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        <span>Back</span>
+      </button>
+      <button
+        onClick={handleBack}
+        aria-label="Go back"
+        className="hidden md:block p-3 hover:bg-surface-container rounded-2xl transition-all text-primary"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>

@@ -9,13 +9,15 @@ import { useSettings } from '@/context/settingsContext';
 import DoctorCard from '@/components/DoctorCard';
 import LoadingSkeleton from '@/components/pages/find-doctor/LoadingSkeleton';
 import CustomDialog from '@/components/custom/Dialogboxs';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { ConsultationType, SortOption, Doctor, BrowseDoctorsResponse } from '@/types/browse-doctors';
 import SelectField from '@/components/custom/SelectField';
 
 import HeroSection from '@/components/hero-section';
 import PaginationControls from '@/components/ui/PaginationControls';
+import { DoctorFilterDrawer } from '@/components/pages/find-doctor/DoctorFilterDrawer';
 
 interface DialogState {
     open: boolean;
@@ -34,6 +36,7 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
     const [consultationType, setConsultationType] = useState<ConsultationType>('all');
     const [sortBy, setSortBy] = useState<SortOption>('recommended');
     const [bookingDoctorId, setBookingDoctorId] = useState<string | null>(null);
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     // Admin → Settings → Booking → Find Doctors page (20 when not set).
     const { settings } = useSettings();
@@ -217,9 +220,10 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                     description="Connect with world-class specialists curated for your health journey. Expert clinical care delivered with a human touch."
                 />
 
-                <div className='container-max-width w-full mx-auto'>
-                    <div className='flex items-center justify-between lg:flex-row flex-col'>
-
+                {/* scroll-mt: room for the sticky header when a page change scrolls back here. */}
+                <div id="find-a-doctor" className='container-max-width w-full mx-auto scroll-mt-24'>
+                    {/* Desktop Toolbar (hidden on mobile) */}
+                    <div className='hidden lg:flex items-center justify-between'>
                         <div className='lg:basis-1/5 basis-full lg:w-auto w-full'>
                             <h3 className='text-2xl font-semibold text-black'>Find a Doctor</h3>
                         </div>
@@ -249,16 +253,100 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                                 {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
                                     <button
                                         onClick={handleClearFilters}
-                                        className="text-sm text-left text-surface-tint font-semibold hover:underline transition-colors pr-4 w-40"
+                                        className="text-sm text-left text-surface-tint font-semibold hover:underline transition-colors pr-4 w-40 cursor-pointer"
                                     >
                                         Clear all
                                     </button>
                                 )}
                             </div>
+                        </div>
+                    </div>
 
+                    {/* Mobile Header (hidden on desktop) */}
+                    <div className="lg:hidden flex flex-col gap-2">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h3 className="text-xl font-bold text-black sm:text-2xl">Find a Doctor</h3>
+                                <p className="text-xs text-on-surface-variant font-medium mt-0.5">
+                                    Showing <span className="text-on-surface font-bold">{sortedDoctors.length} specialists</span> matching your criteria
+                                </p>
+                            </div>
 
+                            <div className="flex items-center gap-2 shrink-0">
+                                {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
+                                    <button
+                                        onClick={handleClearFilters}
+                                        className="text-xs font-semibold text-primary hover:underline px-2.5 py-1.5 rounded-lg bg-primary/10 cursor-pointer"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setFilterDrawerOpen(true)}
+                                    className={cn(
+                                        "relative flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none shadow-xs",
+                                        (searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all")
+                                            ? "bg-primary text-white border-primary shadow-sm"
+                                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                                    )}
+                                    aria-label="Filter doctors"
+                                >
+                                    <SlidersHorizontal className="h-4 w-4 shrink-0" />
+                                    <span>Filters</span>
+                                    {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
+                                        <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-white text-primary text-[10px] font-bold">
+                                            {(searchTerm.trim() ? 1 : 0) + (specialty !== "all" ? 1 : 0) + (consultationType !== "all" ? 1 : 0)}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
+                        {/* Active filter badges / chips on mobile view */}
+                        {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                {searchTerm.trim() !== '' && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                        Search: &ldquo;{searchTerm}&rdquo;
+                                        <button
+                                            type="button"
+                                            onClick={() => setSearchTerm('')}
+                                            aria-label="Clear search"
+                                            className="cursor-pointer hover:opacity-75"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </span>
+                                )}
+                                {consultationType !== "all" && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                        {consultationType === "video" ? "Video Consultation" : "In-Person Consultation"}
+                                        <button
+                                            type="button"
+                                            onClick={() => setConsultationType("all")}
+                                            aria-label="Clear appointment type"
+                                            className="cursor-pointer hover:opacity-75"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </span>
+                                )}
+                                {specialty !== "all" && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                        {specialtyOptions.find((o) => o.value === specialty)?.label || specialty}
+                                        <button
+                                            type="button"
+                                            onClick={() => setSpecialty("all")}
+                                            aria-label="Clear specialty"
+                                            className="cursor-pointer hover:opacity-75"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -266,7 +354,7 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                 <div className="container-max-width w-full mx-auto flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10">
 
                     <div className="flex-grow">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-6 md:mb-8">
+                        <div className="hidden lg:flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-6 md:mb-8">
                             <p className="text-on-surface-variant font-medium text-sm sm:text-base">
                                 Showing <span className="text-on-surface font-bold">{sortedDoctors.length} specialists</span> matching your criteria
                             </p>
@@ -302,7 +390,11 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                                 totalPages={Math.ceil(sortedDoctors.length / itemsPerPage)}
                                 totalItems={sortedDoctors.length}
                                 itemsPerPage={itemsPerPage}
-                                onPageChange={setCurrentPage}
+                                onPageChange={(page) => {
+                                    setCurrentPage(page);
+                                    // Start the new page at the top of the doctor list, not mid-way down.
+                                    document.getElementById('find-a-doctor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
                             />
                         )}
                     </div>
@@ -323,6 +415,21 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                     <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" /> :
                     <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                 }
+            />
+
+            {/* Mobile Filter Bottom Sheet Drawer */}
+            <DoctorFilterDrawer
+                open={filterDrawerOpen}
+                onOpenChange={setFilterDrawerOpen}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                consultationType={consultationType}
+                onConsultationTypeChange={(type) => setConsultationType(type)}
+                specialty={specialty}
+                onSpecialtyChange={setSpecialty}
+                specialtyOptions={specialtyOptions}
+                onClearFilters={handleClearFilters}
+                totalCount={sortedDoctors.length}
             />
         </>
     );

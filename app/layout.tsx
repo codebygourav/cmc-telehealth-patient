@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 import { Providers } from "./providers";
 import ContactFab from "@/components/ContactFab";
+import { PortalHistoryTracker } from "@/lib/goBack";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     <TooltipProvider>
                         {children}
                         {/* Floating "Contact us" button on every page. */}
+                        <PortalHistoryTracker />
                         <ContactFab />
                         {/* Offers to install the portal as an app. */}
                         <InstallAppPrompt appName="CMC Telehealth" />

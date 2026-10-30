@@ -174,21 +174,23 @@ export default function SearchableSelect({
 
             {open && asDrawer && (
                 <div
-                    className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                    className="sheet-backdrop fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
                     role="dialog"
                     aria-modal="true"
                     aria-label={title || placeholder}
                     onClick={(event) => event.target === event.currentTarget && close()}
                 >
-                    <div className="sheet-panel relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
-                        <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                    <div className="sheet-panel relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl max-h-[85dvh] flex flex-col">
+                        <div className="flex items-center justify-between px-4 pt-3 pb-1 border-b">
                             <h2 className="text-base font-semibold text-[#1F1E1E]">{title || placeholder}</h2>
                             <button type="button" onClick={close} aria-label="Close" className="cursor-pointer rounded-full p-1 text-gray-500 hover:bg-gray-100">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         {search}
-                        {list}
+                        <div className="overflow-y-auto flex-1 overscroll-contain">
+                            {list}
+                        </div>
                     </div>
                 </div>
             )}

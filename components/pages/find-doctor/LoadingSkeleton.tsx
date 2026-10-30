@@ -1,15 +1,14 @@
 const LoadingSkeleton = () => {
     return (
-        <div className="container-max-width w-full mx-auto space-y-12 animate-pulse">
+        <div className="container-max-width w-full mx-auto space-y-6 sm:space-y-8 animate-pulse">
 
             {/* Hero Section Skeleton */}
-            <section>
-                <div className="max-w-3xl">
-                    <div className="h-16 w-3/4 bg-gray-200 rounded-lg mb-4" />
-                    <div className="h-6 w-2/3 bg-gray-200 rounded-lg mb-8" />
-                    <div className="h-16 w-full bg-gray-200 rounded-2xl" />
+            <div className="-mx-5 -mt-5 sm:mt-0 sm:mx-auto w-[calc(100%+2.5rem)] sm:w-full container-max-width px-5 py-6 md:py-12 md:px-10 bg-[#F5F6F8] rounded-none sm:rounded-md border-b sm:border border-[#E7E8EB] mb-5">
+                <div className="max-w-[600px] mx-auto flex flex-col items-center justify-center">
+                    <div className="h-8 w-64 bg-gray-200 rounded mb-3" />
+                    <div className="h-4 w-80 max-w-full bg-gray-200 rounded" />
                 </div>
-            </section>
+            </div>
 
             <div className="flex flex-col lg:flex-row gap-10">
 

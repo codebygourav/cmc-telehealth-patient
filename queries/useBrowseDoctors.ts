@@ -12,11 +12,17 @@ export const browseDoctorsKeys = {
 // looking, so a logged-in patient always ends up with their own prices.
 export const useBrowseDoctors = (initialData?: BrowseDoctorsResponse, enabled: boolean = true) => {
   const { token, initializing } = useAuth();
+  const countryParam =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("country_iso") ||
+        new URLSearchParams(window.location.search).get("country") ||
+        localStorage.getItem("test_country_iso")
+      : null;
 
   return useQuery<BrowseDoctorsResponse>({
     // Fees depend on who is looking (guest: both prices; patient: their own), so the list is
-    // kept separately for guests and logged-in patients.
-    queryKey: [...browseDoctorsKeys.all, token ? "auth" : "guest"],
+    // kept separately for guests and logged-in patients, and re-fetched when country changes.
+    queryKey: [...browseDoctorsKeys.all, token ? "auth" : "guest", countryParam || "auto"],
     queryFn: getBrowseDoctors,
     // Wait until the saved login is restored, so the first request already carries the token.
     enabled: enabled && !initializing,

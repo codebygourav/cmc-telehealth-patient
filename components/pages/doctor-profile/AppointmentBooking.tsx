@@ -16,6 +16,7 @@ import BookingPatientDetails, {
 import AppointmentTypeSelector from './AppointmentTypeSelector';
 import BookingCalendar, { dayStateFor, isSlotBookable } from './BookingCalendar';
 import SlotPicker from './SlotPicker';
+import BookingConfirmDialog from './BookingConfirmDialog';
 import { useBookAppointment } from '@/mutations/useBookAppointment';
 import { useQueryClient } from '@tanstack/react-query';
 import { savedUnitIdKey } from '@/queries/useSavedUnitId';
@@ -82,6 +83,7 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
     const [patientDetails, setPatientDetails] = useState<BookingPatientDetailsValue>(emptyBookingPatientDetails);
     const [patientErrors, setPatientErrors] = useState<BookingPatientErrors>({});
     const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const queryClient = useQueryClient();
     const { viewedProfile, viewedFamily, familyMembers, relationships, maxProfiles } = useActiveProfile();
     // Booking works like being signed in to the viewed profile: "Myself" is that profile and the
@@ -218,6 +220,13 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
             return;
         }
         setBookingError(null);
+        // Show what is being booked first; the booking is sent from the confirmation modal.
+        setConfirmOpen(true);
+    };
+
+    const submitBooking = () => {
+        if (!selectedSlot) return;
+        const target = bookingTargetProfile(patientDetails, ownProfile, otherProfiles);
 
         // A saved Unit ID is already on the profile; otherwise an old patient gives it now (saved on the profile).
         const unitId = !target?.unit_id && patientDetails.patientType === 'old'
@@ -248,6 +257,7 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
                 queryClient.invalidateQueries({ queryKey: familyProfilesKey(user?.id) });
                 const appointmentId = response?.data?.appointment?.id;
                 const appointmentData = response?.data;
+                setConfirmOpen(false);
                 if (appointmentId && appointmentData) {
                     onBookingSuccess(appointmentId);
                 } else {
@@ -261,6 +271,7 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
                     : undefined;
                 const errorMessage = (typeof errors === 'string' ? errors : firstFieldError)
                     || error.response?.data?.message || error.message || 'Failed to book appointment. Please try again.';
+                setConfirmOpen(false);
                 setBookingError(errorMessage);
             },
         });
@@ -297,7 +308,7 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
     }
 
     return (
-        <div className="border-[#E7E8EB] border rounded-lg p-5 shadow-[0px_2px_4px_0px_#0000001A] space-y-5">
+        <div className="border-[#E7E8EB] border rounded-lg p-4 shadow-[0px_2px_4px_0px_#0000001A] space-y-5">
             <AppointmentTypeSelector
                 value={appointmentType}
                 onChange={setAppointmentType}
@@ -325,10 +336,10 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
 
                             {selectedDate && (
                                 <div className="space-y-3 border-t border-[#E7E8EB] pt-4">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex flex-wrap items-center justify-start gap-2">
                                         <h3 className="text-[#1F1E1E] text-base font-semibold">Select Time</h3>
-                                        <span className="text-base font-bold text-[#1F1E1E]">
-                                            {new Date(`${selectedDate}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
+                                        <span className="text-xs sm:text-sm font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                                            {new Date(`${selectedDate}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
                                         </span>
                                     </div>
                                     <SlotPicker
@@ -385,8 +396,12 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
                 {isBooking
                     ? "Booking..."
                     : isGuest
-                        ? "Sign in to Book"
-                        : `Book Appointment (${selectedSlot?.currency_symbol ? selectedSlot?.currency_symbol : ''}${selectedSlot?.consultation_fee || 0}.00)`}
+                        ? (selectedSlot
+                            ? `Sign in to Book (${selectedSlot.currency_symbol || '₹'}${typeof selectedSlot.consultation_fee === 'number' ? selectedSlot.consultation_fee.toLocaleString('en-IN') : (selectedSlot.consultation_fee || 0)})`
+                            : "Sign in to Book")
+                        : (selectedSlot
+                            ? `Book Appointment (${selectedSlot.currency_symbol || '₹'}${typeof selectedSlot.consultation_fee === 'number' ? selectedSlot.consultation_fee.toLocaleString('en-IN') : (selectedSlot.consultation_fee || 0)})`
+                            : "Book Appointment")}
                 {isGuest ? <LogIn size={14} color='#fff' strokeWidth={3} /> : <ChevronRight size={14} color='#fff' strokeWidth={3} />}
             </Button>
 
@@ -395,6 +410,16 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
                     You can browse freely. Sign in or register to book this appointment.
                 </p>
             )}
+
+            <BookingConfirmDialog
+                open={confirmOpen}
+                slot={selectedSlot}
+                doctorName={doctor.profile?.name || 'Doctor'}
+                patientName={bookingTargetProfile(patientDetails, ownProfile, otherProfiles)?.name || bookerName}
+                loading={isBooking}
+                onConfirm={submitBooking}
+                onClose={() => setConfirmOpen(false)}
+            />
 
             <CustomDialog
                 open={loginPromptOpen}

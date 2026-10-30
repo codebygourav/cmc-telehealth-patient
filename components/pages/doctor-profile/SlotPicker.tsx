@@ -56,7 +56,7 @@ export default function SlotPicker({ slots, selectedSlot, onSelectSlot }: SlotPi
                         {PERIOD_ICONS[period]}
                         {period}
                     </h4>
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                         {periodSlots.map((slot) => {
                             const bookable = isSlotBookable(slot);
                             const selected = selectedSlot?.id === slot.id && selectedSlot?.date === slot.date;
@@ -74,28 +74,28 @@ export default function SlotPicker({ slots, selectedSlot, onSelectSlot }: SlotPi
                                     disabled={!bookable}
                                     onClick={() => onSelectSlot(slot)}
                                     aria-pressed={selected}
+                                    title={`${slot.start_time} - ${slot.end_time} • ${slot.currency_symbol || "₹"}${slot.consultation_fee ?? 0} (${typeLabel})`}
                                     className={cn(
-                                        "flex flex-col items-center gap-0.5 rounded-lg border px-3 py-3 text-center transition-all",
+                                        "flex flex-col items-center justify-center gap-0.5 rounded-lg border px-2 py-2 text-center transition-all sm:px-3 sm:py-2.5",
                                         selected && "border-primary bg-primary text-white shadow-md",
                                         !selected && bookable && "border-[#D1D5DB] bg-white text-[#1F1E1E] hover:border-primary hover:bg-primary/5 cursor-pointer",
                                         !bookable && "cursor-not-allowed border-[#E7E8EB] bg-[#F5F6F8] text-[#9CA3AF]",
                                     )}
                                 >
-                                    <span className="flex items-center gap-1.5 text-sm font-bold">
+                                    <span className="flex items-center justify-center gap-1 text-[15px] sm:text-sm font-bold tracking-tight leading-snug">
                                         {slot.start_time} - {slot.end_time}
                                         {slot.is_child_only && (
-                                            <Baby className={cn("h-3.5 w-3.5", selected ? "text-white" : "text-primary")} aria-label="Children only" />
+                                            <Baby className={cn("h-3.5 w-3.5 shrink-0", selected ? "text-white" : "text-primary")} aria-label="Children only" />
                                         )}
                                     </span>
-                                    <span className={cn("text-xs", selected ? "text-white/85" : "text-[#4D4D4D]")}>
+                                    <span className={cn("hidden sm:inline-block text-[11px] sm:text-xs font-medium", selected ? "text-white/90" : "text-[#4D4D4D]")}>
                                         {slot.currency_symbol || "₹"}
-                                        {slot.consultation_fee ?? 0}
-                                        {slot.international_fee ? ` / $${slot.international_fee}` : ""} ({typeLabel})
+                                        {slot.consultation_fee ?? 0} ({typeLabel})
                                     </span>
                                     <span
                                         className={cn(
-                                            "mt-0.5 text-[11px] font-semibold",
-                                            selected ? "text-white" : !bookable ? "text-red-500" : left !== null && left <= 3 ? "text-amber-600" : "text-emerald-700",
+                                            "mt-0.5 text-xs sm:text-xs font-semibold leading-tight",
+                                            selected ? "text-white font-medium" : !bookable ? "text-red-500 font-semibold" : left !== null && left <= 3 ? "text-amber-600 font-semibold" : "text-emerald-700 font-semibold",
                                         )}
                                     >
                                         {slot.is_past
@@ -109,7 +109,7 @@ export default function SlotPicker({ slots, selectedSlot, onSelectSlot }: SlotPi
                                                         : "Available"}
                                     </span>
                                     {bookable && closesToday(slot) && (
-                                        <span className={cn("text-[10px]", selected ? "text-white/80" : "text-[#8A8A8A]")}>
+                                        <span className={cn("hidden sm:inline-block text-[9px] sm:text-[10px] leading-tight", selected ? "text-white/80" : "text-[#8A8A8A]")}>
                                             Book by {closesToday(slot)}
                                         </span>
                                     )}

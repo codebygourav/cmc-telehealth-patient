@@ -16,8 +16,9 @@ export default async function DoctorProfilePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const sp = await searchParams;
   const initialData = id
-    ? await fetchForVisitor<DoctorDetailResponse>(`/patient/browse-doctor/${encodeURIComponent(id)}`)
+    ? await fetchForVisitor<DoctorDetailResponse>(`/patient/browse-doctor/${encodeURIComponent(id)}`, { searchParams: sp })
     : undefined;
 
   const slug = initialData?.data?.slug;
