@@ -263,14 +263,10 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                     </div>
 
                     {/* Mobile Header (hidden on desktop) */}
-                    <div className="lg:hidden flex flex-col gap-2">
+                    <div className="lg:hidden flex flex-col">
+                        {/* Title and the filter icon on one line; the result count below, full width. */}
                         <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <h3 className="text-xl font-bold text-black sm:text-2xl">Find a Doctor</h3>
-                                <p className="text-xs text-on-surface-variant font-medium mt-0.5">
-                                    Showing <span className="text-on-surface font-bold">{sortedDoctors.length} specialists</span> matching your criteria
-                                </p>
-                            </div>
+                            <h3 className="text-xl font-bold text-black sm:text-2xl">Find a Doctor</h3>
 
                             <div className="flex items-center gap-2 shrink-0">
                                 {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
@@ -285,23 +281,26 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
                                     type="button"
                                     onClick={() => setFilterDrawerOpen(true)}
                                     className={cn(
-                                        "relative flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none shadow-xs",
+                                        "relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all cursor-pointer select-none shadow-xs",
                                         (searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all")
                                             ? "bg-primary text-white border-primary shadow-sm"
                                             : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                                     )}
                                     aria-label="Filter doctors"
+                                    title="Filters"
                                 >
                                     <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                                    <span>Filters</span>
                                     {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (
-                                        <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-white text-primary text-[10px] font-bold">
+                                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full border border-primary bg-white text-primary text-[10px] font-bold">
                                             {(searchTerm.trim() ? 1 : 0) + (specialty !== "all" ? 1 : 0) + (consultationType !== "all" ? 1 : 0)}
                                         </span>
                                     )}
                                 </button>
                             </div>
                         </div>
+                        <p className="text-xs text-on-surface-variant font-medium">
+                            Showing <span className="text-on-surface font-bold">{sortedDoctors.length} specialists</span> matching your criteria
+                        </p>
 
                         {/* Active filter badges / chips on mobile view */}
                         {(searchTerm.trim() !== '' || specialty !== "all" || consultationType !== "all") && (

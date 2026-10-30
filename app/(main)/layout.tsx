@@ -10,7 +10,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <Header />
             {/* Extra space at the bottom on phones / tablets, for the bottom navigation. */}
             {/* Phones / tablets: as tall as the content (no empty gap above the footer). */}
-            <div className="flex-1 lg:min-h-screen px-5 sm:px-5 pt-5 pb-24 lg:pb-5 mx-auto w-full">
+            <div className="flex-1 lg:min-h-screen px-4 sm:px-5 pt-5 pb-24 lg:pb-5 mx-auto w-full">
                 {children}
             </div>
             {/* Logged-in patients without a saved country are asked for it once (pricing). */}

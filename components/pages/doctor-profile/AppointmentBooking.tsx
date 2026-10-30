@@ -308,7 +308,7 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
     }
 
     return (
-        <div className="border-[#E7E8EB] border rounded-lg p-4 shadow-[0px_2px_4px_0px_#0000001A] space-y-5">
+        <div className="border-[#E7E8EB] border rounded-lg p-2 shadow-[0px_2px_4px_0px_#0000001A] space-y-5">
             <AppointmentTypeSelector
                 value={appointmentType}
                 onChange={setAppointmentType}
