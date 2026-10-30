@@ -24,7 +24,7 @@ const AppointmentTypeSelector = ({
 }: AppointmentTypeSelectorProps) => (
     <div className="space-y-2.5">
         <h3 className="text-[#1F1E1E] text-base sm:text-lg font-semibold">Appointment Type</h3>
-        <div role="tablist" aria-label="Appointment type" className="grid grid-cols-2 gap-1 sm:gap-1.5 rounded-xl border border-[#E7E8EB] bg-[#F5F6F8] p-1 sm:p-1.5">
+        <div role="tablist" aria-label="Appointment type" className="grid grid-cols-2 sm:gap-1.5 rounded-xl border border-[#E7E8EB] bg-[#F5F6F8] p-1 sm:p-1.5">
             {OPTIONS.map(({ value: type, label, hint, mobileHint, Icon }) => {
                 const active = value === type;
                 const hasSlots = type === 'in_person' ? inPersonAvailable : videoAvailable;
@@ -53,14 +53,15 @@ const AppointmentTypeSelector = ({
                         </span>
                         <span className="min-w-0 flex-1">
                             <span className="block text-xs sm:text-sm font-semibold leading-tight break-words">{label}</span>
-                            <span className={cn('mt-0.5 block text-[10px] sm:text-[11px] leading-tight', active ? 'text-white/80' : 'text-[#737373]')}>
+                            {/* Same small size for every hint, active or not (set on each span: nested spans picked up a larger size). */}
+                            <span className={cn('mt-0.5 block text-[10px] sm:text-[11px] font-normal leading-tight', active ? 'text-white/80' : 'text-[#737373]')}>
                                 {hasSlots ? (
                                     <>
-                                        <span className="sm:hidden">{mobileHint}</span>
-                                        <span className="hidden sm:inline">{hint}</span>
+                                        <span className="text-[10px] font-normal leading-tight sm:hidden">{mobileHint}</span>
+                                        <span className="hidden text-[11px] font-normal leading-tight sm:inline">{hint}</span>
                                     </>
                                 ) : (
-                                    'No schedules yet'
+                                    <span className="text-[10px] sm:text-[11px] font-normal leading-tight">No schedules yet</span>
                                 )}
                             </span>
                         </span>
