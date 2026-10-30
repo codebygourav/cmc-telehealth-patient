@@ -6,7 +6,7 @@ import VerifyOtpForm from "@/components/auth/forgot-password/VerifyOtpForm";
 import { Button } from "@/components/ui/button";
 import { COUNTRIES } from "@/constants/countries";
 import api from "@/lib/axios";
-import { toInternational } from "@/lib/loginId";
+import { isEmailLogin, toInternational } from "@/lib/loginId";
 import { cn } from "@/lib/utils";
 import { useSendOtp } from "@/mutations/auth/useForgotPassword";
 import { AlertCircle, Loader2, MessageCircle } from "lucide-react";
@@ -53,6 +53,10 @@ export default function ForgotPasswordFlow({ onDone, initialLogin = "" }: { onDo
 
     const country = COUNTRIES.find((c) => c.iso === countryIso) || COUNTRIES[0];
     const accountEmail = email.trim().toLowerCase();
+    // First step: WhatsApp number or email. A number goes straight to WhatsApp; the email is asked
+    // only when that number is on several separate accounts.
+    const [identifier, setIdentifier] = useState(initialLogin);
+    const [needEmail, setNeedEmail] = useState(false);
     const go = (next: Step) => { setError(null); setStep(next); };
 
     const sendWhatsAppCode = (to: string) => {
@@ -75,15 +79,10 @@ export default function ForgotPasswordFlow({ onDone, initialLogin = "" }: { onDo
     );
 
     if (step === "email") {
-        const next = async () => {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountEmail)) {
-                setError("Enter the email of your account.");
-                return;
-            }
+        const lookupEmail = async (value: string) => {
             setBusy(true);
-            setError(null);
             try {
-                const { data } = await api.post("/auth/forgot-password/lookup", { account_email: accountEmail });
+                const { data } = await api.post("/auth/forgot-password/lookup", { account_email: value });
                 setSavedTaken(Boolean(data?.data?.saved_phone_taken));
                 if (data?.data?.has_verified_phone) {
                     setMaskedVerified(data.data.verified_phone_masked || "");
@@ -102,17 +101,65 @@ export default function ForgotPasswordFlow({ onDone, initialLogin = "" }: { onDo
             }
         };
 
+        const next = () => {
+            const value = identifier.trim();
+            setError(null);
+            if (isEmailLogin(value)) {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    setError("Enter a valid email address.");
+                    return;
+                }
+                setEmail(value);
+                lookupEmail(value.toLowerCase());
+                return;
+            }
+            const digits = value.replace(/\D/g, "");
+            if (digits.length < 8) {
+                setError("Enter your WhatsApp number or email.");
+                return;
+            }
+            if (needEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountEmail)) {
+                setError("Enter the email of your account.");
+                return;
+            }
+            // "+44…" as typed; a number without "+" is Indian (+91).
+            const to = value.startsWith("+") ? `+${digits}` : toInternational("+91", digits);
+            sendOtp({ email: to, ...(needEmail ? { account_email: accountEmail } : {}) }, {
+                onSuccess: (res: any) => {
+                    if (!needEmail) setEmail("");
+                    setTarget(to);
+                    setSentTo(res?.data?.sent_to || to);
+                    go("verify");
+                },
+                onError: (err: any) => {
+                    const code = err?.response?.data?.code;
+                    if (code === "ACCOUNT_EMAIL_REQUIRED") setNeedEmail(true);
+                    setError(apiMessage(err, "Could not send the code. Please try again."));
+                },
+            });
+        };
+        const working = busy || isPending;
+
         return (
             <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); next(); }}>
-                <StepHeading title="Forgot password?" subtitle="Enter the email of your account." />
+                <StepHeading title="Forgot password?" subtitle="Enter your WhatsApp number or email. We will send you a code." />
                 <div className="space-y-1.5">
-                    <label htmlFor="fp-email" className="text-sm font-medium text-muted-foreground">Email <span className="text-destructive">*</span></label>
-                    <input id="fp-email" type="email" autoComplete="email" value={email} disabled={busy}
-                        onChange={(e) => { setEmail(e.target.value); setError(null); }} placeholder="name@mail.com" className={cn(fieldClass, error && "border-destructive")} />
+                    <label htmlFor="fp-id" className="text-sm font-medium text-muted-foreground">WhatsApp Number or Email <span className="text-destructive">*</span></label>
+                    <input id="fp-id" type="text" autoComplete="username" value={identifier} disabled={working}
+                        onChange={(e) => { setIdentifier(e.target.value); setNeedEmail(false); setError(null); }}
+                        placeholder="e.g. 98765 43210 or name@mail.com" className={cn(fieldClass, error && !needEmail && "border-destructive")} />
                 </div>
+                {needEmail && (
+                    <div className="space-y-1.5">
+                        <label htmlFor="fp-account-email" className="text-sm font-medium text-muted-foreground">Email of your account <span className="text-destructive">*</span></label>
+                        <input id="fp-account-email" type="email" autoComplete="email" value={email} disabled={working}
+                            onChange={(e) => { setEmail(e.target.value); setError(null); }} placeholder="name@mail.com" className={fieldClass} />
+                        <p className="text-xs text-muted-foreground">This WhatsApp number is on more than one account; your email tells us which one is yours.</p>
+                    </div>
+                )}
                 {error && <ErrorLine message={error} />}
-                <Button type="submit" className="h-11 w-full" disabled={busy}>
-                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                <Button type="submit" className="h-11 w-full" disabled={working}>
+                    {working && <Loader2 className="h-4 w-4 animate-spin" />}
                     Continue
                 </Button>
             </form>
@@ -257,7 +304,7 @@ export default function ForgotPasswordFlow({ onDone, initialLogin = "" }: { onDo
                 <VerifyOtpForm
                     email={target}
                     accountEmail={accountEmail}
-                    onBack={() => go(maskedVerified ? "verified" : "phone")}
+                    onBack={() => go(maskedVerified ? "verified" : identifier && !isEmailLogin(identifier.trim()) ? "email" : "phone")}
                     onSuccess={(token, isManaged, holderName, needsNewNumber) => {
                         setResetToken(token);
                         setManaged({ isManaged: Boolean(isManaged), holderName: holderName || null });

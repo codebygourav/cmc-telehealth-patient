@@ -9,6 +9,8 @@ interface Settings {
   faviconUrl: string | null;
   primaryColor: string;
   secondaryColor: string;
+  /** Find Doctors: doctors on each page (Admin → Settings → Booking → Find Doctors page). */
+  findDoctorsPerPage: number;
 }
 
 interface SettingsContextType {
@@ -22,6 +24,7 @@ const defaultSettings: Settings = {
   faviconUrl: null,
   primaryColor: "#055bd9",
   secondaryColor: "#055bd9bf",
+  findDoctorsPerPage: 20,
 };
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -50,12 +53,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           // Append 'bf' for 75% opacity dynamic secondary color
           const secondaryColor = cleanHex + "bf";
 
+          const perPage = Number(data.patient_portal?.find_doctors_per_page);
           setSettings({
             appName,
             logoUrl,
             faviconUrl,
             primaryColor,
             secondaryColor,
+            // Not set (or an older server without it): 20.
+            findDoctorsPerPage: Number.isFinite(perPage) && perPage >= 3 ? Math.min(perPage, 60) : 20,
           });
 
           // 1. Dynamic CSS variables injection into document root

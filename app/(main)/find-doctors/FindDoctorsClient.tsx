@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useBrowseDoctors } from '@/queries/useBrowseDoctors';
 import { useDepartmentsAndSymptoms } from '@/queries/useDepartmentsAndSymptoms';
 import SearchBar from '@/components/pages/find-doctor/searchBar'
+import { useSettings } from '@/context/settingsContext';
 import DoctorCard from '@/components/DoctorCard';
 import LoadingSkeleton from '@/components/pages/find-doctor/LoadingSkeleton';
 import CustomDialog from '@/components/custom/Dialogboxs';
@@ -34,7 +35,9 @@ const FindDoctorsContent = ({ initialData }: { initialData?: BrowseDoctorsRespon
     const [sortBy, setSortBy] = useState<SortOption>('recommended');
     const [bookingDoctorId, setBookingDoctorId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 9;
+    // Admin → Settings → Booking → Find Doctors page (20 when not set).
+    const { settings } = useSettings();
+    const itemsPerPage = settings.findDoctorsPerPage || 20;
     const [dialogState, setDialogState] = useState<DialogState>({
         open: false,
         type: 'danger',
