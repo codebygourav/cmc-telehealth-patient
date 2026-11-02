@@ -1,4 +1,4 @@
-import { Building2, Video } from 'lucide-react';
+import { Building2, Check, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type AppointmentType = 'in_person' | 'video';
@@ -11,21 +11,26 @@ interface AppointmentTypeSelectorProps {
     videoAvailable?: boolean;
 }
 
-const OPTIONS: { value: AppointmentType; label: string; hint: string; mobileHint: string; Icon: typeof Building2 }[] = [
-    { value: 'in_person', label: 'In-Clinic Visit', hint: 'Visit at hospital', mobileHint: 'At hospital', Icon: Building2 },
-    { value: 'video', label: 'Video Consultation', hint: 'Consult online from home', mobileHint: 'Consult online', Icon: Video },
+const OPTIONS: { value: AppointmentType; label: string; hint: string; Icon: typeof Building2 }[] = [
+    { value: 'in_person', label: 'In-Clinic Visit', hint: 'Visit the hospital for your appointment', Icon: Building2 },
+    { value: 'video', label: 'Video Consultation', hint: 'Consult with the doctor online from home', Icon: Video },
 ];
 
+/**
+ * Stacked option cards (radio style) so patients clearly see they must choose one type.
+ */
 const AppointmentTypeSelector = ({
     value,
     onChange,
     inPersonAvailable = true,
     videoAvailable = true,
 }: AppointmentTypeSelectorProps) => (
-    <div className="space-y-2.5">
-        <h3 className="text-[#1F1E1E] text-base sm:text-lg font-semibold">Appointment Type</h3>
-        <div role="tablist" aria-label="Appointment type" className="grid grid-cols-2 sm:gap-1.5 rounded-xl border border-[#E7E8EB] bg-[#F5F6F8] p-1 sm:p-1.5">
-            {OPTIONS.map(({ value: type, label, hint, mobileHint, Icon }) => {
+    <div className="rounded-2xl border border-[#E7E8EB] bg-[#FAFAFA] p-3 sm:p-4">
+        <h3 className="text-[#1F1E1E] text-base sm:text-lg font-semibold">Select Your Appointment Type</h3>
+        <p className="mt-1 mb-3 text-xs sm:text-sm text-[#737373]">Choose one option to continue.</p>
+
+        <div role="radiogroup" aria-label="Appointment type" className="space-y-2.5">
+            {OPTIONS.map(({ value: type, label, hint, Icon }) => {
                 const active = value === type;
                 const hasSlots = type === 'in_person' ? inPersonAvailable : videoAvailable;
 
@@ -33,37 +38,44 @@ const AppointmentTypeSelector = ({
                     <button
                         key={type}
                         type="button"
-                        role="tab"
-                        aria-selected={active}
+                        role="radio"
+                        aria-checked={active}
                         onClick={() => onChange(type)}
                         className={cn(
-                            'group flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-2 text-left transition-all sm:gap-2.5 sm:px-3 sm:py-2.5',
+                            'flex w-full cursor-pointer items-start gap-3 rounded-xl border p-2 text-left transition-all sm:px-4 sm:py-3.5',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                             active
-                                ? 'bg-primary text-white shadow-xs'
-                                : 'text-[#4D4D4D] hover:bg-white hover:text-[#1F1E1E] hover:shadow-xs',
+                                ? 'border-primary bg-success/10 shadow-xs'
+                                : 'border-[#E7E8EB] bg-white hover:border-primary/50 hover:shadow-xs',
                         )}
                     >
+                        <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-2">
+                                <Icon size={20} className={active ? 'text-primary' : 'text-[#4D4D4D]'} />
+                                <span className="text-sm sm:text-base font-semibold text-[#1F1E1E]">{label}</span>
+                            </span>
+                            <span className={cn('mt-1.5 block text-xs sm:text-[13px]', active ? 'text-primary' : 'text-[#737373]')}>
+                                {hasSlots ? hint : 'No schedules yet'}
+                            </span>
+                            <span
+                                className={cn(
+                                    'mt-1.5 block text-[11px] font-semibold uppercase tracking-wide',
+                                    active ? 'text-primary' : 'text-[#737373]',
+                                )}
+                            >
+                                {active ? 'Selected' : 'Tap to select'}
+                            </span>
+                        </span>
+
+                        {/* Radio indicator */}
                         <span
+                            aria-hidden
                             className={cn(
-                                'flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
-                                active ? 'bg-white/20' : 'border border-[#E7E8EB] bg-white group-hover:border-primary/40',
+                                'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors',
+                                active ? 'bg-primary' : 'bg-[#9CA3AF]/70',
                             )}
                         >
-                            <Icon size={15} className={active ? 'text-white' : 'text-primary'} />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                            <span className="block text-xs sm:text-sm font-semibold leading-tight break-words">{label}</span>
-                            {/* Same small size for every hint, active or not (set on each span: nested spans picked up a larger size). */}
-                            <span className={cn('mt-0.5 block text-[10px] sm:text-[11px] font-normal leading-tight', active ? 'text-white/80' : 'text-[#737373]')}>
-                                {hasSlots ? (
-                                    <>
-                                        <span className="text-[10px] font-normal leading-tight sm:hidden">{mobileHint}</span>
-                                        <span className="hidden text-[11px] font-normal leading-tight sm:inline">{hint}</span>
-                                    </>
-                                ) : (
-                                    <span className="text-[10px] sm:text-[11px] font-normal leading-tight">No schedules yet</span>
-                                )}
-                            </span>
+                            {active && <Check size={12} strokeWidth={3} className="text-white" />}
                         </span>
                     </button>
                 );
