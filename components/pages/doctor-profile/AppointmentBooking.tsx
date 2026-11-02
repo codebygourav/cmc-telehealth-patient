@@ -337,11 +337,13 @@ const AppointmentBooking = ({ doctor, onBookingSuccess }: AppointmentBookingProp
                             {selectedDate && (
                                 <div className="space-y-3 border-t border-[#E7E8EB] pt-4">
                                     <div className="flex flex-wrap items-center justify-start gap-2">
-                                        <h3 className="text-[#1F1E1E] text-base font-semibold">Select Time</h3>
-                                        <span className="text-xs sm:text-sm font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                                        <h3 className="text-[#1F1E1E] text-base font-semibold">Selected Date : </h3>
+                                        <span className="text-xs sm:text-sm font-semibold text-black font-bold">
                                             {new Date(`${selectedDate}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
                                         </span>
                                     </div>
+                                    <h3 className="text-[#1F1E1E] text-base font-semibold">Please Select Time Slot Below :</h3>
+
                                     <SlotPicker
                                         slots={slotsForSelectedDate}
                                         selectedSlot={selectedSlot}
