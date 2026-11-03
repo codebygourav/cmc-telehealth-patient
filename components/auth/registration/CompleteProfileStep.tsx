@@ -160,10 +160,11 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
 
     const currentLocation = await getUserCountry(countryObj.name);
 
+    const targetEmail = methods.getValues("email") || signupId || rest.email;
     const payload: CompleteProfilePayload = {
       ...rest,
-      login: signupId,
-      email: phoneSignup ? (rest.email || undefined) : signupId,
+      login: targetEmail,
+      email: phoneSignup ? (rest.email || undefined) : targetEmail,
       ...(signupPhone ? { mobile_no: signupPhone.number } : {}),
       country_iso: countryObj.iso,
       country_code: countryObj.code,
@@ -175,6 +176,12 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
     setAccountExists(null);
     completeProfile(payload, {
       onSuccess: async (response: CompleteProfileResponse) => {
+        try {
+          localStorage.removeItem("setup_token");
+        } catch {
+          // ignore
+        }
+
         if (response.success) {
           toast.success(response.message || "Profile completed successfully!");
 
@@ -238,7 +245,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
             label={phoneSignup ? "Email Address (optional)" : "Email Address"}
             placeholder="example@mail.com"
             required={!phoneSignup}
-            disabled={!phoneSignup || isPending} // A verified email is locked
+            disabled={(!phoneSignup && !!signupId) || isPending} // A verified email is locked
             type="email"
           />
 

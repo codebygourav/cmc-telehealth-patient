@@ -9,9 +9,17 @@ const CompleteProfilePage = () => {
 
     useEffect(() => {
         if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('email') || params.get('login');
             const storedEmail = localStorage.getItem('reg_email');
-            if (storedEmail) {
-                setEmail(storedEmail);
+            const emailToUse = fromUrl || storedEmail || "";
+            if (emailToUse) {
+                setEmail(emailToUse);
+                try {
+                    localStorage.setItem('reg_email', emailToUse);
+                } catch {
+                    // ignore
+                }
             }
         }
     }, []);

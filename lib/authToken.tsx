@@ -19,7 +19,16 @@ export const getAuthToken = () => {
             .find((value) => value.startsWith("patient_token="));
         const cookieToken = cookie ? decodeURIComponent(cookie.split("=").slice(1).join("=")) : null;
 
-        return stored && cookieToken && stored === cookieToken ? stored : null;
+        if (stored && cookieToken && stored === cookieToken) {
+            return stored;
+        }
+
+        const setupToken = localStorage.getItem("setup_token");
+        if (setupToken) {
+            return setupToken;
+        }
+
+        return null;
     } catch {
         return null;
     }

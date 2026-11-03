@@ -37,6 +37,7 @@ export default function SignInForm({ onForgotPassword, initialLogin = "" }: { on
     const { login } = useAuth();
     const { mutate: signIn, isPending, isError, error } = useLogin();
     const [verifiedLink, setVerifiedLink] = useState<string | null>(null);
+    const [loginTargetEmail, setLoginTargetEmail] = useState<string>(initialLogin);
     // WhatsApp number on more than one account: the email of the account is asked too.
     const [needEmail, setNeedEmail] = useState(false);
     const [accountEmail, setAccountEmail] = useState("");
@@ -45,6 +46,7 @@ export default function SignInForm({ onForgotPassword, initialLogin = "" }: { on
     const handleLogin = async (formData: LoginFormData): Promise<void> => {
         setVerifiedLink(null);
         setAccountEmailError(null);
+        if (formData.email) setLoginTargetEmail(formData.email);
         if (needEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountEmail.trim())) {
             setAccountEmailError("Enter the email of your account");
             return;
@@ -104,15 +106,34 @@ export default function SignInForm({ onForgotPassword, initialLogin = "" }: { on
                         resolve();
                         return;
                     }
-                    const status = data?.errors?.status || data?.data?.status || "";
-                    if (data?.code === "ALREADY_VERIFIED" || status === "verified") {
-                        const sent = err?.config?.data ? JSON.parse(err.config.data).email : "";
+                    const status = data?.errors?.status || data?.data?.status || data?.status || "";
+                    const code = data?.code || "";
+                    const message = data?.errors?.message || data?.message || (err as any)?.message || "";
+
+                    const isProfileIncomplete =
+                        code === "PROFILE_INCOMPLETE" ||
+                        code === "ALREADY_VERIFIED" ||
+                        status === "verified" ||
+                        status === "profile_incomplete" ||
+                        message.toLowerCase().includes("complete your");
+
+                    if (isProfileIncomplete) {
+                        const emailSent =
+                            data?.errors?.email ||
+                            data?.email ||
+                            (err?.config?.data
+                                ? (JSON.parse(err.config.data).email || JSON.parse(err.config.data).login)
+                                : "") ||
+                            formData.email ||
+                            initialLogin;
+                        const token = data?.errors?.token || data?.token || "";
                         try {
-                            if (sent) localStorage.setItem("reg_email", sent);
+                            if (emailSent) localStorage.setItem("reg_email", emailSent);
+                            if (token) localStorage.setItem("setup_token", token);
                         } catch {
                             // storage unavailable
                         }
-                        setVerifiedLink(data?.errors?.message || data?.message || "Already verified. Please complete your profile.");
+                        setVerifiedLink(message || "Please complete your patient profile.");
                     }
                     resolve();
                 },
@@ -132,9 +153,12 @@ export default function SignInForm({ onForgotPassword, initialLogin = "" }: { on
                 </div>
             )}
             {verifiedLink && (
-                <div className="flex flex-col gap-2 rounded-lg border border-primary/10 bg-primary/5 p-3 text-left">
-                    <p className="text-sm text-foreground">{verifiedLink}</p>
-                    <Link href="/auth/complete-profile" className="w-fit text-sm font-semibold text-primary hover:underline">
+                <div className="flex flex-col gap-2 rounded-xl border border-primary/20 bg-primary/5 p-4 text-left shadow-xs">
+                    <p className="text-sm font-medium text-foreground">{verifiedLink}</p>
+                    <Link
+                        href={`/auth/complete-profile${loginTargetEmail || accountEmail ? `?email=${encodeURIComponent(loginTargetEmail || accountEmail)}` : ''}`}
+                        className="inline-flex items-center gap-1.5 w-fit text-sm font-semibold text-primary hover:underline"
+                    >
                         Complete your profile →
                     </Link>
                 </div>
