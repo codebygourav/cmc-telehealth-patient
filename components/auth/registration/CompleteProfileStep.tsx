@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCompleteProfile, CompleteProfileResponse, CompleteProfilePayload } from "@/mutations/auth/useAuthMutations";
 import { COUNTRIES } from "@/constants/countries";
 import { getUserCountry, getCountryIsoFromName } from "@/lib/location";
+import { toInternational } from "@/lib/loginId";
 import { toast } from "sonner";
 import { useAuth } from "@/context/userContext";
 import { consumePostAuthRedirect } from "@/lib/authRedirect";
@@ -61,13 +62,58 @@ interface CompleteProfileStepProps {
   email: string;
 }
 
-/** "+919876543210" → India + "9876543210" (longest matching dial code). */
-function splitPhone(value: string) {
-  const digits = value.replace(/\D/g, "");
-  const country = [...COUNTRIES]
-    .sort((a, b) => b.code.length - a.code.length)
-    .find((c) => digits.startsWith(c.code.replace(/\D/g, "")));
-  return country ? { country, number: digits.slice(country.code.replace(/\D/g, "").length) } : null;
+/**
+ * Splits a phone number into country and national number.
+ * - If string starts with "+", dial code is matched and stripped.
+ * - 12-digit Indian number "91..." strips "91".
+ * - 10-digit numbers (like "6280788413" in India) retain all 10 digits without stripping "62" as Indonesia.
+ */
+function splitPhone(value: string, fallbackCountryIso = "IN") {
+  const raw = (value || "").trim();
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+
+  // 1. Explicit international format with leading "+"
+  if (raw.startsWith("+")) {
+    const country = [...COUNTRIES]
+      .sort((a, b) => b.code.length - a.code.length)
+      .find((c) => digits.startsWith(c.code.replace(/\D/g, "")));
+    if (country) {
+      return {
+        country,
+        number: digits.slice(country.code.replace(/\D/g, "").length),
+      };
+    }
+  }
+
+  // 2. 12-digit Indian number with 91 prefix without "+"
+  if (digits.length === 12 && digits.startsWith("91")) {
+    const india = COUNTRIES.find((c) => c.iso === "IN") || COUNTRIES[0];
+    return { country: india, number: digits.slice(2) };
+  }
+
+  // 3. Standard 10-digit national number (e.g. 6280788413 in India)
+  if (digits.length === 10) {
+    const defaultCountry = COUNTRIES.find((c) => c.iso === fallbackCountryIso) || COUNTRIES[0];
+    return { country: defaultCountry, number: digits };
+  }
+
+  // 4. Fallback for longer numbers without + if matching dial code leaves a valid local number
+  if (digits.length > 10) {
+    const country = [...COUNTRIES]
+      .sort((a, b) => b.code.length - a.code.length)
+      .find((c) => digits.startsWith(c.code.replace(/\D/g, "")));
+    if (country) {
+      const nationalPart = digits.slice(country.code.replace(/\D/g, "").length);
+      if (nationalPart.length >= 7) {
+        return { country, number: nationalPart };
+      }
+    }
+  }
+
+  // 5. Default fallback to national number for fallback country
+  const fallback = COUNTRIES.find((c) => c.iso === fallbackCountryIso) || COUNTRIES[0];
+  return { country: fallback, number: digits };
 }
 
 const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signupId }) => {
@@ -133,6 +179,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
     if (signupPhone) {
       methods.setValue("country_iso", signupPhone.country.iso);
       methods.setValue("mobile_no", signupPhone.number);
+      methods.clearErrors("mobile_no");
     }
   }, [email, signupPhone?.country.iso, signupPhone?.number, methods]);
 
@@ -160,12 +207,16 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
 
     const currentLocation = await getUserCountry(countryObj.name);
 
-    const targetEmail = methods.getValues("email") || signupId || rest.email;
+    const mobileNum = data.mobile_no || signupPhone?.number || rest.mobile_no;
+    const targetLogin = phoneSignup
+      ? toInternational(countryObj.code, mobileNum)
+      : (methods.getValues("email") || signupId || rest.email);
+
     const payload: CompleteProfilePayload = {
       ...rest,
-      login: targetEmail,
-      email: phoneSignup ? (rest.email || undefined) : targetEmail,
-      ...(signupPhone ? { mobile_no: signupPhone.number } : {}),
+      login: targetLogin,
+      email: phoneSignup ? (rest.email || undefined) : targetLogin,
+      mobile_no: mobileNum,
       country_iso: countryObj.iso,
       country_code: countryObj.code,
       current_location: currentLocation,
@@ -178,6 +229,7 @@ const CompleteProfileStep: React.FC<CompleteProfileStepProps> = ({ email: signup
       onSuccess: async (response: CompleteProfileResponse) => {
         try {
           localStorage.removeItem("setup_token");
+          localStorage.removeItem("reg_email");
         } catch {
           // ignore
         }

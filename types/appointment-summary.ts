@@ -47,6 +47,7 @@ export interface AppointmentPayment {
   payment_id: string | null;
   key_id: string | null;
   currency: string;
+  currency_symbol: string;
   consultation_fee: string;
   consultation_fee_formatted: string;
   admin_fee: string;

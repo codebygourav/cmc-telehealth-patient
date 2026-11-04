@@ -45,6 +45,11 @@ const VerifyOtpStep: React.FC<VerifyOtpStepProps> = ({ email, onSuccess, onBack 
       {
         onSuccess: (response: VerifyOtpResponse) => {
           if (response.success) {
+            try {
+              if (email) localStorage.setItem('reg_email', email);
+            } catch {
+              // ignore
+            }
             toast.success(response.message || "Email verified successfully!");
             onSuccess();
           } else {

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import CompleteProfileStep from "@/components/auth/registration/CompleteProfileStep";
+import api from "@/lib/axios";
 
 const CompleteProfilePage = () => {
     const [email, setEmail] = useState("");
@@ -11,6 +12,12 @@ const CompleteProfilePage = () => {
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             const fromUrl = params.get('email') || params.get('login');
+
+            // Strip any query parameter immediately so the URL address bar stays clean
+            if (window.location.search) {
+                window.history.replaceState(null, "", window.location.pathname);
+            }
+
             const storedEmail = localStorage.getItem('reg_email');
             const emailToUse = fromUrl || storedEmail || "";
             if (emailToUse) {
@@ -20,6 +27,22 @@ const CompleteProfilePage = () => {
                 } catch {
                     // ignore
                 }
+            } else {
+                // If not in local storage, fetch user details using the backend setup_token / auth token
+                api.get('/auth/status')
+                    .then((res) => {
+                        const data = res?.data?.data;
+                        const resolved = data?.phone || data?.email || data?.login;
+                        if (resolved) {
+                            setEmail(resolved);
+                            try {
+                                localStorage.setItem('reg_email', resolved);
+                            } catch {
+                                // ignore
+                            }
+                        }
+                    })
+                    .catch(() => {});
             }
         }
     }, []);

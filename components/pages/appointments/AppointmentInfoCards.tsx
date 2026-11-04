@@ -256,7 +256,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                 <div className="flex justify-between items-center flex-wrap gap-2">
                                     <span className="text-sm text-[#4D4D4D]">Additional Discount</span>
                                     <span className="text-sm text-[#4D4D4D] font-bold">
-                                        {payment?.discount_formatted || "₹0.00"}
+                                        {payment?.discount_formatted || `${payment?.currency_symbol || (payment?.currency === "USD" ? "$" : "₹")}0.00`}
                                     </span>
                                 </div>
 
@@ -269,8 +269,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                                 </p>
                                                 <div className="flex items-center gap-1">
                                                     <span className="text-3xl text-[#1F1E1E] font-bold">
-                                                        {payment?.total_formatted?.includes('₹') ? '₹' : ''}
-                                                        {payment?.total_formatted?.replace(/[^\d.]/g, '') || "0"}
+                                                        {payment?.total_formatted || `${payment?.currency_symbol || (payment?.currency === "USD" ? "$" : "₹")}${payment?.total ?? 0}`}
                                                     </span>
                                                 </div>
                                             </div>

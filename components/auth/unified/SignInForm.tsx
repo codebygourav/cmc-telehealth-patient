@@ -120,13 +120,17 @@ export default function SignInForm({ onForgotPassword, initialLogin = "" }: { on
                     if (isProfileIncomplete) {
                         const emailSent =
                             data?.errors?.email ||
+                            data?.errors?.login ||
+                            data?.errors?.phone ||
                             data?.email ||
+                            data?.login ||
+                            data?.phone ||
                             (err?.config?.data
                                 ? (JSON.parse(err.config.data).email || JSON.parse(err.config.data).login)
                                 : "") ||
                             formData.email ||
                             initialLogin;
-                        const token = data?.errors?.token || data?.token || "";
+                        const token = data?.errors?.token || data?.token || data?.errors?.setup_token || data?.setup_token || "";
                         try {
                             if (emailSent) localStorage.setItem("reg_email", emailSent);
                             if (token) localStorage.setItem("setup_token", token);
@@ -156,7 +160,7 @@ export default function SignInForm({ onForgotPassword, initialLogin = "" }: { on
                 <div className="flex flex-col gap-2 rounded-xl border border-primary/20 bg-primary/5 p-4 text-left shadow-xs">
                     <p className="text-sm font-medium text-foreground">{verifiedLink}</p>
                     <Link
-                        href={`/auth/complete-profile${loginTargetEmail || accountEmail ? `?email=${encodeURIComponent(loginTargetEmail || accountEmail)}` : ''}`}
+                        href="/auth/complete-profile"
                         className="inline-flex items-center gap-1.5 w-fit text-sm font-semibold text-primary hover:underline"
                     >
                         Complete your profile →
