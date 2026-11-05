@@ -241,11 +241,16 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
 
       const razorpayKeyId = doctor.razorpay_key_id;
       const razorpayOrderId = doctor.razorpay_order_id;
+      const paymentCurrency = String(doctor.payment?.currency || doctor.currency || "INR").toUpperCase();
+      const paymentAmountPaise = Number(doctor.payment?.amount_paise);
+      const amountPaise = Number.isFinite(paymentAmountPaise) && paymentAmountPaise > 0
+        ? paymentAmountPaise
+        : Math.round(Number(doctor.payment?.total || 0) * 100);
 
       const options = {
         key: razorpayKeyId,
-        amount: doctor.payment.total, // already in paise
-        currency: doctor.payment.currency,
+        amount: amountPaise,
+        currency: paymentCurrency === "USD" ? "USD" : "INR",
         name: "Cmc Telehealth",
         description: doctor?.doctor?.name,
         order_id: razorpayOrderId,
