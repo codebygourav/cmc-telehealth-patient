@@ -242,14 +242,14 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                 <div className="flex justify-between items-center flex-wrap gap-2">
                                     <span className="text-sm text-[#4D4D4D]">Consultation Fee</span>
                                     <span className="text-sm text-[#4D4D4D]">
-                                        {payment?.consultation_fee_formatted || "₹0.00"}
+                                        {payment?.consultation_fee_formatted || `${payment?.currency_symbol || (payment?.currency === "USD" ? "$" : "₹")}0.00`}
                                     </span>
                                 </div>
                                 {payment?.admin_fee && (
                                     <div className="flex justify-between items-center flex-wrap gap-2">
                                         <span className="text-sm text-[#4D4D4D]">Admin Fee</span>
                                         <span className="text-sm text-[#4D4D4D] font-bold">
-                                            {payment?.admin_fee_formatted || "₹0.00"}
+                                            {payment?.admin_fee_formatted || `${payment?.currency_symbol || (payment?.currency === "USD" ? "$" : "₹")}0.00`}
                                         </span>
                                     </div>
                                 )}

@@ -12,7 +12,7 @@ const authRoutes = [
 
 // Browsable without login: doctors list, doctor details, contact form and legal pages.
 // The dashboard, booking and everything personal need login.
-const publicRoutes = ["/find-doctors", "/contact-us", "/privacy-policy", "/terms-conditions"];
+const publicRoutes = ["/find-doctors", "/contact-us", "/privacy-policy", "/terms-conditions", "/pricing-test"];
 
 const isPublicRoute = (path: string) =>
   publicRoutes.some((route) => path === route || path.startsWith(`${route}/`));
@@ -21,6 +21,16 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("patient_token")?.value;
   const role = request.cookies.get("patient_role")?.value;
   const path = request.nextUrl.pathname;
+
+  // International preview: /find-doctors_<key> → browse (and book) as an international patient.
+  // The key is checked by the API (INTERNATIONAL_PREVIEW_ENABLED / INTERNATIONAL_PREVIEW_KEY in its .env).
+  const preview = path.match(/^\/find-doctors_([A-Za-z0-9_-]{1,128})\/?$/);
+  if (preview) {
+    const target = new URL(`/pricing-test/${preview[1]}`, request.url);
+    target.searchParams.set("mode", "international");
+    target.searchParams.set("next", "/find-doctors");
+    return NextResponse.redirect(target);
+  }
 
   const isAuthRoute = authRoutes.some((route) => path.startsWith(route));
 

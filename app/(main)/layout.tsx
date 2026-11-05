@@ -1,5 +1,6 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import PricingTestBanner from "@/components/PricingTestBanner";
 import PatientRegionPrompt from "@/components/PatientRegionPrompt";
 import PhoneVerificationGate from "@/components/auth/PhoneVerificationGate";
 import { Toaster } from "sonner";
@@ -7,6 +8,7 @@ import { Toaster } from "sonner";
 export default function MainLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
+            <PricingTestBanner />
             <Header />
             {/* Extra space at the bottom on phones / tablets, for the bottom navigation. */}
             {/* Phones / tablets: as tall as the content (no empty gap above the footer). */}

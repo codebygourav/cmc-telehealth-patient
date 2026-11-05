@@ -1,6 +1,7 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { getAuthToken } from "./authToken";
 import { getActiveProfileId } from "./activeProfile";
+import { getPricingTest } from "./pricingTest";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(
   /\/+$/,
@@ -33,22 +34,11 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     }
   }
 
-  // Testing / DevTools override: allow simulating country via URL (?country=US) or localStorage
-  if (typeof window !== "undefined") {
-    const urlParams = new URLSearchParams(window.location.search);
-    const country =
-      urlParams.get("country_iso") ||
-      urlParams.get("country") ||
-      localStorage.getItem("test_country_iso");
-    if (country) {
-      const code = country.trim().toUpperCase();
-      config.headers["X-Country-ISO"] = code;
-      config.headers["X-Country-Code"] = code;
-      config.params = {
-        ...config.params,
-        country_iso: code,
-      };
-    }
+  // Pricing test (secret link from Admin → International Payments, see app/pricing-test).
+  // The API ignores it unless test mode is on and the secret matches.
+  const pricingTest = getPricingTest();
+  if (pricingTest) {
+    config.headers["X-Pricing-Test"] = `${pricingTest.secret}:${pricingTest.mode}`;
   }
   return config;
 });
