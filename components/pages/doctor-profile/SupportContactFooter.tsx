@@ -9,11 +9,22 @@ import api from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import { Hospital, Mail, MapPin, Phone, Video } from "lucide-react";
 
+interface ContactItem {
+    value: string;
+    label?: string | null;
+}
+
 interface SupportContact {
-    phone?: string;
-    email?: string;
+    phone?: string;   // first number (older API)
+    email?: string;   // first email (older API)
+    phones?: ContactItem[];
+    emails?: ContactItem[];
     address?: string;
 }
+
+/** Every number / email: the lists, or the single older value. */
+const phonesOf = (c?: SupportContact): ContactItem[] => c?.phones?.length ? c.phones : c?.phone ? [{ value: c.phone }] : [];
+const emailsOf = (c?: SupportContact): ContactItem[] => c?.emails?.length ? c.emails : c?.email ? [{ value: c.email }] : [];
 
 interface SupportContactResponse {
     video: SupportContact;
@@ -25,7 +36,10 @@ interface SupportContactFooterProps {
     showVideo: boolean;
 }
 
-const hasContact = (contact?: SupportContact) => !!contact && (!!contact.phone || !!contact.email || !!contact.address);
+const hasContact = (contact?: SupportContact) => !!contact && (phonesOf(contact).length > 0 || emailsOf(contact).length > 0 || !!contact.address);
+
+const Label = ({ text }: { text?: string | null }) =>
+    text ? <span className="ml-1.5 rounded bg-light-gray px-1.5 py-0.5 text-xs font-normal text-[#4D4D4D]">{text}</span> : null;
 
 const ContactBlock = ({ title, icon: Icon, contact }: { title: string; icon: typeof Video; contact: SupportContact }) => (
     <div className="flex-1 min-w-0 rounded-lg border border-[#E7E8EB] bg-white p-4">
@@ -34,22 +48,28 @@ const ContactBlock = ({ title, icon: Icon, contact }: { title: string; icon: typ
             {title}
         </h3>
         <ul className="mt-3 space-y-2 text-sm text-[#4D4D4D]">
-            {contact.phone && (
-                <li className="flex items-start gap-2">
+            {phonesOf(contact).map((p) => (
+                <li key={`p-${p.value}`} className="flex items-start gap-2">
                     <Phone size={14} className="mt-0.5 shrink-0" />
-                    <a href={`tel:${contact.phone.replace(/[^+\d]/g, "")}`} className="font-medium text-black hover:text-primary hover:underline">
-                        {contact.phone}
-                    </a>
+                    <span>
+                        <a href={`tel:${p.value.replace(/[^+\d]/g, "")}`} className="font-medium text-black hover:text-primary hover:underline">
+                            {p.value}
+                        </a>
+                        <Label text={p.label} />
+                    </span>
                 </li>
-            )}
-            {contact.email && (
-                <li className="flex items-start gap-2">
+            ))}
+            {emailsOf(contact).map((e) => (
+                <li key={`e-${e.value}`} className="flex items-start gap-2">
                     <Mail size={14} className="mt-0.5 shrink-0" />
-                    <a href={`mailto:${contact.email}`} className="break-all font-medium text-black hover:text-primary hover:underline">
-                        {contact.email}
-                    </a>
+                    <span className="min-w-0">
+                        <a href={`mailto:${e.value}`} className="break-all font-medium text-black hover:text-primary hover:underline">
+                            {e.value}
+                        </a>
+                        <Label text={e.label} />
+                    </span>
                 </li>
-            )}
+            ))}
             {contact.address && (
                 <li className="flex items-start gap-2">
                     <MapPin size={14} className="mt-0.5 shrink-0" />
