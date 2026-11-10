@@ -99,6 +99,7 @@ export interface AppointmentDetailData {
   can_add_review: boolean;
   razorpay_key_id: string;
   razorpay_order_id: string;
+  razorpay_notes?: Record<string, string>;
   payment: AppointmentPayment;
   medical_reports: AppointmentMedicalReport[];
   prescriptions: AppointmentPrescription | null;

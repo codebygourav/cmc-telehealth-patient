@@ -254,6 +254,8 @@ const AppointmentSummaryPage = ({ params }: PageProps) => {
         name: "Cmc Telehealth",
         description: doctor?.doctor?.name,
         order_id: razorpayOrderId,
+        // Appointment details: shown as this payment's notes in the Razorpay dashboard.
+        notes: (doctor as any)?.razorpay_notes || {},
 
         handler: async function (response: any) {
           if (
