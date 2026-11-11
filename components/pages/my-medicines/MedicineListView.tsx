@@ -80,8 +80,8 @@ export const MedicineListView = ({ onViewDetail }: MedicineListViewProps) => {
             ) : (
                 <EmptyState
                     icon={<Pill />}
-                    title="No medicines found"
-                    description={`You don't have any ${activeTab} medications at the moment.`}
+                    title="Nothing here yet"
+                    description={`You don't have any ${activeTab} medicines or doctor's notes at the moment.`}
                 />
             )}
         </div>
@@ -90,6 +90,9 @@ export const MedicineListView = ({ onViewDetail }: MedicineListViewProps) => {
 
 const VisitCard = ({ items, onView }: { items: Prescription[]; onView: () => void }) => {
     const first = items[0];
+    // A visit with notes / medical record / next visit but no medicine.
+    const medicines = items.filter((item) => !item.is_consultation_only);
+    const notesOnly = medicines.length === 0;
     const doctor = first.doctor_name ? (/^dr/i.test(first.doctor_name.trim()) ? first.doctor_name : `Dr. ${first.doctor_name}`) : "Doctor";
 
     return (
@@ -103,14 +106,23 @@ const VisitCard = ({ items, onView }: { items: Prescription[]; onView: () => voi
                     <p className="text-sm text-muted-foreground">{first.appointment_date || "Consultation"}</p>
                 </div>
                 <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                    {items.length} medicine{items.length === 1 ? "" : "s"}
+                    {notesOnly ? "Doctor's notes" : `${medicines.length} medicine${medicines.length === 1 ? "" : "s"}`}
                 </span>
             </div>
 
             {first.diagnosis && <p className="mt-3 text-sm text-[#4D4D4D]"><span className="font-semibold">Diagnosis:</span> {first.diagnosis}</p>}
 
+            {notesOnly && (
+                <div className="mt-3 flex-1 space-y-1.5 text-sm text-[#4D4D4D]">
+                    {first.notes && <p className="line-clamp-3"><span className="font-semibold">Notes:</span> {first.notes}</p>}
+                    {first.instructions_by_doctor && <p className="line-clamp-3"><span className="font-semibold">Instructions:</span> {first.instructions_by_doctor}</p>}
+                    {first.next_visit_date && <p><span className="font-semibold">Next visit:</span> {first.next_visit_date}</p>}
+                    {!first.notes && !first.instructions_by_doctor && !first.next_visit_date && <p>The doctor added notes for this visit.</p>}
+                </div>
+            )}
+
             <ul className="mt-3 flex-1 space-y-1.5">
-                {items.slice(0, 4).map((item, i) => (
+                {medicines.slice(0, 4).map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                         <Pill className="mt-0.5 size-4 shrink-0 text-primary" />
                         <span className="min-w-0">
@@ -119,13 +131,13 @@ const VisitCard = ({ items, onView }: { items: Prescription[]; onView: () => voi
                         </span>
                     </li>
                 ))}
-                {items.length > 4 && <li className="pl-6 text-xs text-muted-foreground">+{items.length - 4} more</li>}
+                {medicines.length > 4 && <li className="pl-6 text-xs text-muted-foreground">+{medicines.length - 4} more</li>}
             </ul>
 
             <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-3">
                 <button type="button" onClick={onView}
                     className="inline-flex h-9 items-center gap-1 rounded-lg bg-primary px-3 text-sm font-semibold text-white hover:opacity-90">
-                    View prescription <ChevronRight className="size-4" />
+                    {notesOnly ? "View details" : "View prescription"} <ChevronRight className="size-4" />
                 </button>
                 {first.pdf_url && (
                     <a href={first.pdf_url} target="_blank" rel="noopener noreferrer"

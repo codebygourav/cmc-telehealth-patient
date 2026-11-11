@@ -114,7 +114,24 @@ export const PrescriptionDocument = ({ data }: { data: MedicineDetailsData }) =>
                 </section>
             )}
 
-            {!data.pdf_url && data.medicines.length === 0 && details.length === 0 && (
+            {/* Patient medical record written by the doctor */}
+            {(data.medical_record?.length ?? 0) > 0 && (
+                <section className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
+                    <h3 className="mb-3 flex items-center gap-2 text-base font-semibold text-[#1F1E1E]">
+                        <NotebookPen className="size-5 text-primary" /> Medical record
+                    </h3>
+                    <div className="divide-y divide-gray-100">
+                        {data.medical_record!.map(({ label, value }) => (
+                            <div key={label} className="grid grid-cols-1 gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[200px_1fr] sm:gap-4">
+                                <p className="text-sm font-semibold text-[#4D4D4D]">{label}</p>
+                                <p className="whitespace-pre-line text-sm text-[#1F1E1E]">{value}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {!data.pdf_url && data.medicines.length === 0 && details.length === 0 && !(data.medical_record?.length) && (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground"><FileText className="size-4" /> The doctor has not added a prescription yet.</p>
             )}
         </div>

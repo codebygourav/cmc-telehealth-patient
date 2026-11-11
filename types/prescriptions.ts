@@ -17,6 +17,9 @@ export interface Prescription {
   status?: string;
   appointment_date?: string | null;
   diagnosis?: string | null;
+  /** Visit with notes / record / next visit but no medicine. */
+  is_consultation_only?: boolean;
+  notes?: string | null;
 }
 
 export interface GetPrescriptionsResponse {
@@ -66,6 +69,8 @@ export interface MedicineDetailsData {
   diagnosis?: string | null;
   order_investigation?: string | null;
   notes?: string | string[] | null;
+  /** Patient medical record written by the doctor (chief complaint, history, examination…). */
+  medical_record?: { label: string; value: string }[];
 }
 
 export interface MedicineDetailsResponse {
