@@ -1,18 +1,19 @@
-import { fetchAppointments } from "@/api/appointments";
+import { fetchAppointments, type AppointmentListOptions } from "@/api/appointments";
 import { useQuery } from "@tanstack/react-query";
 import { useActiveProfile } from "@/context/activeProfileContext";
 
 export const useAppointments = (
     filter: "all" | "today" | "upcoming" | "past" | "pending_payment",
-    page: number = 1
+    page: number = 1,
+    options: AppointmentListOptions = {}
 ) => {
     // The viewed profile is part of the key, so one profile's list never shows under another.
     const { activeProfile } = useActiveProfile();
     const profileKey = activeProfile?.patient_id ?? "self";
 
     return useQuery({
-        queryKey: ["appointments", profileKey, filter, page],
-        queryFn: () => fetchAppointments(filter, page),
+        queryKey: ["appointments", profileKey, filter, page, options],
+        queryFn: () => fetchAppointments(filter, page, options),
         // Keep the old page only while paging the same tab; a new tab shows the loader instead of
         // the previous tab's appointments.
         placeholderData: (previous, previousQuery) =>

@@ -9,9 +9,8 @@ import { deleteUnpaidAppointment } from '@/api/appointments';
 import UpcomingAppointmentCard from '@/components/pages/appointments/UpcomingAppointmentCard';
 import PastAppointmentCard from '@/components/pages/appointments/PastAppointmentCard';
 import CustomTabs from '@/components/custom/CustomTabs';
-import { CustomPagination } from '@/components/custom/CustomPagination';
 import { useAppointments } from '@/queries/useAppointments';
-import { Loader2, Calendar } from 'lucide-react';
+import { Loader2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { AppointmentResponse } from '@/types/appointment';
 import { useRouter } from 'next/navigation';
 import HeroSection from '@/components/hero-section';
@@ -47,10 +46,28 @@ const AppointmentsPage = () => {
         }
     };
     const [currentPage, setCurrentPage] = useState(1);
+    // Search / status / type / page size: applied by the server over ALL appointments.
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [perPage, setPerPage] = useState<number | 'all' | undefined>(undefined); // undefined = admin default
+    useEffect(() => {
+        const timer = setTimeout(() => { setDebouncedSearch(searchQuery.trim()); setCurrentPage(1); }, 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
     const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
 
     // Fetch appointments based on active tab and page
-    const { data, isLoading, isError, error } = useAppointments(activeTab, currentPage);
+    const { data, isLoading, isError, error } = useAppointments(activeTab, currentPage, {
+        search: debouncedSearch,
+        status: statusFilter,
+        consultationType: typeFilter,
+        perPage,
+        hideCancelled: activeTab === 'upcoming',
+    });
+    const listMeta = data as any;
+    const hasFilters = !!debouncedSearch || statusFilter !== 'all' || typeFilter !== 'all';
     const router = useRouter();
 
     const handleManageAppointment = (appointmentId: string) => {
@@ -146,9 +163,73 @@ const AppointmentsPage = () => {
 
     // Filter appointments based on active tab
     // The API already handles filtering by "upcoming" or "past", but we also filter out cancelled ones
-    const filterAppointments = (appointments: AppointmentResponse[] | undefined) => {
-        if (!appointments) return [];
-        return appointments.filter(app => app.status !== 'cancelled');
+    // The server already applied tab, search and filters (cancelled hidden on Upcoming / Past).
+    const filterAppointments = (appointments: AppointmentResponse[] | undefined) => appointments ?? [];
+
+    const renderNoMatch = () => (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Calendar className="w-12 h-12 text-muted-foreground/40 mb-3" />
+            <p className="font-semibold text-foreground">No appointments match your search or filters</p>
+            <button type="button" className="mt-2 text-sm font-semibold text-primary hover:underline"
+                onClick={() => { setSearchQuery(''); setStatusFilter('all'); setTypeFilter('all'); setCurrentPage(1); }}>
+                Clear search and filters
+            </button>
+        </div>
+    );
+
+    const renderListFooter = (pagination: { total: number; per_page: number; current_page: number; last_page: number }) => {
+        const page = pagination.current_page || currentPage;
+        const size = pagination.per_page || 10;
+        const last = pagination.last_page || 1;
+        const from = pagination.total === 0 ? 0 : (page - 1) * size + 1;
+        const to = Math.min(page * size, pagination.total);
+        const btn = "flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-foreground";
+
+        return (
+            <div className="mt-2 flex flex-col items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 sm:flex-row sm:justify-between">
+                {/* Showing X to Y of N */}
+                <p className="text-sm text-muted-foreground">
+                    Showing <span className="font-semibold text-foreground">{from}</span> to{" "}
+                    <span className="font-semibold text-foreground">{to}</span> of{" "}
+                    <span className="font-semibold text-foreground">{pagination.total}</span> appointments
+                </p>
+
+                {/* Page size (admin setting) */}
+                {(listMeta?.per_page_options?.length ?? 0) > 0 && (
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                        Show
+                        <select
+                            value={String(perPage ?? listMeta?.default_per_page ?? size)}
+                            onChange={(e) => { setPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value)); setCurrentPage(1); }}
+                            className="h-9 rounded-lg border border-border bg-white px-2.5 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                        >
+                            {(listMeta.per_page_options as number[]).map((n) => <option key={n} value={n}>{n}</option>)}
+                            {listMeta?.allow_all && <option value="all">All</option>}
+                        </select>
+                        per page
+                    </label>
+                )}
+
+                {/* First / previous / page / next / last */}
+                <div className="flex items-center gap-1.5">
+                    <button type="button" className={btn} onClick={() => handlePageChange(1)} disabled={page <= 1} aria-label="First page">
+                        <ChevronsLeft className="h-4 w-4" />
+                    </button>
+                    <button type="button" className={btn} onClick={() => handlePageChange(page - 1)} disabled={page <= 1} aria-label="Previous page">
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <span className="px-2 text-sm text-muted-foreground whitespace-nowrap">
+                        Page <span className="font-semibold text-foreground">{page}</span> of <span className="font-semibold text-foreground">{last}</span>
+                    </span>
+                    <button type="button" className={btn} onClick={() => handlePageChange(page + 1)} disabled={page >= last} aria-label="Next page">
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+                    <button type="button" className={btn} onClick={() => handlePageChange(last)} disabled={page >= last} aria-label="Last page">
+                        <ChevronsRight className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     // Upcoming Tab Content
@@ -163,7 +244,7 @@ const AppointmentsPage = () => {
         const pagination = data?.pagination;
 
         if (upcomingApps.length === 0 && (!pagination || pagination.total === 0)) {
-            return <EmptyState type={type} />;
+            return hasFilters ? renderNoMatch() : <EmptyState type={type} />;
         }
 
         return (
@@ -195,20 +276,7 @@ const AppointmentsPage = () => {
                     })}
                 </div>
 
-                {pagination && pagination.total > 0 && (
-                    <div className="flex flex-col items-center gap-4 py-8">
-                        <CustomPagination
-                            currentPage={pagination.current_page || currentPage}
-                            totalPages={pagination.last_page || 1}
-                            onPageChange={handlePageChange}
-                        />
-                        <p className="text-xs text-muted-foreground font-medium">
-                            Showing <span className="text-foreground">{(currentPage - 1) * (pagination.per_page || 10) + 1}</span> to{" "}
-                            <span className="text-foreground">{Math.min(currentPage * (pagination.per_page || 10), pagination.total)}</span> of{" "}
-                            <span className="text-foreground">{pagination.total}</span> appointments
-                        </p>
-                    </div>
-                )}
+                {pagination && pagination.total > 0 && renderListFooter(pagination)}
             </div>
         );
     };
@@ -223,7 +291,7 @@ const AppointmentsPage = () => {
         const pagination = data?.pagination;
 
         if (pastApps.length === 0 && (!pagination || pagination.total === 0)) {
-            return <EmptyState type="past" />;
+            return hasFilters ? renderNoMatch() : <EmptyState type="past" />;
         }
 
         return (
@@ -248,20 +316,7 @@ const AppointmentsPage = () => {
                     })}
                 </div>
 
-                {pagination && pagination.total > 0 && (
-                    <div className="flex flex-col items-center gap-4 py-8">
-                        <CustomPagination
-                            currentPage={pagination.current_page || currentPage}
-                            totalPages={pagination.last_page || 1}
-                            onPageChange={handlePageChange}
-                        />
-                        <p className="text-xs text-muted-foreground font-medium">
-                            Showing <span className="text-foreground">{(currentPage - 1) * (pagination.per_page || 10) + 1}</span> to{" "}
-                            <span className="text-foreground">{Math.min(currentPage * (pagination.per_page || 10), pagination.total)}</span> of{" "}
-                            <span className="text-foreground">{pagination.total}</span> appointments
-                        </p>
-                    </div>
-                )}
+                {pagination && pagination.total > 0 && renderListFooter(pagination)}
             </div>
         );
     };
@@ -306,6 +361,7 @@ const AppointmentsPage = () => {
     // Reset to page 1 when tab changes
     const handleTabChange = (value: string) => {
         setActiveTab(value as 'all' | 'today' | 'upcoming' | 'past' | 'pending_payment');
+        setStatusFilter('all'); // statuses differ per tab
         setCurrentPage(1);
     };
 
@@ -345,6 +401,36 @@ const AppointmentsPage = () => {
                 description='Connect with world-class specialists curated for your health journey. Expert clinical care delivered with a human touch.'
             />
             <div className="space-y-6 container-max-width mx-auto w-full">
+                {activeTab !== 'pending_payment' && (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_200px_200px]">
+                        <input
+                            type="search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search doctor, date (12 Nov 2026), month (Nov), video / clinic…"
+                            className="h-11 w-full rounded-lg border border-border bg-white px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                        />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                            className="h-11 rounded-lg border border-border bg-white px-3 text-sm outline-none focus:border-primary"
+                        >
+                            <option value="all">All statuses</option>
+                            {((listMeta?.status_options ?? []) as { value: string; label: string; count: number }[]).map((o) => (
+                                <option key={o.value} value={o.value}>{o.label} ({o.count})</option>
+                            ))}
+                        </select>
+                        <select
+                            value={typeFilter}
+                            onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
+                            className="h-11 rounded-lg border border-border bg-white px-3 text-sm outline-none focus:border-primary"
+                        >
+                            <option value="all">Video and in-person</option>
+                            <option value="video">Video</option>
+                            <option value="in-person">In-person</option>
+                        </select>
+                    </div>
+                )}
                 <CustomTabs
                     variant="pill"
                     activeTabBg="#013220"
