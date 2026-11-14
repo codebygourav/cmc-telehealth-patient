@@ -14,6 +14,7 @@ import { Loader2, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRig
 import { AppointmentResponse } from '@/types/appointment';
 import { useRouter } from 'next/navigation';
 import HeroSection from '@/components/hero-section';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AppointmentsPage = () => {
 
@@ -59,7 +60,7 @@ const AppointmentsPage = () => {
     const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
 
     // Fetch appointments based on active tab and page
-    const { data, isLoading, isError, error } = useAppointments(activeTab, currentPage, {
+    const { data, isLoading: firstLoad, isFetching, isPlaceholderData, isError, error } = useAppointments(activeTab, currentPage, {
         search: debouncedSearch,
         status: statusFilter,
         consultationType: typeFilter,
@@ -67,6 +68,8 @@ const AppointmentsPage = () => {
         hideCancelled: activeTab === 'upcoming',
     });
     const listMeta = data as any;
+    // Skeleton while new results load (search, filter, page, page size or tab).
+    const isLoading = firstLoad || isPlaceholderData;
     const hasFilters = !!debouncedSearch || statusFilter !== 'all' || typeFilter !== 'all';
     const router = useRouter();
 
@@ -119,14 +122,30 @@ const AppointmentsPage = () => {
     };
 
     // Loading Component
-    const LoadingState = () => (
-        <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-                <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-primary" />
-                <p className="text-on-surface-variant">Loading appointments...</p>
+    const LoadingState = () => {
+        const count = Math.min(Number(perPage === 'all' ? 6 : (perPage ?? listMeta?.default_per_page ?? 6)), 6);
+        return (
+            <div className="mt-3 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="Loading appointments">
+                {Array.from({ length: count }).map((_, i) => (
+                    <div key={i} className="rounded-2xl border border-border bg-white p-5">
+                        <div className="flex items-center gap-3">
+                            <Skeleton className="h-12 w-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-3 w-1/2" />
+                            </div>
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                            <Skeleton className="h-20 w-full rounded-xl" />
+                            <Skeleton className="h-20 w-full rounded-xl" />
+                        </div>
+                        <Skeleton className="mt-4 h-11 w-full rounded-lg" />
+                    </div>
+                ))}
             </div>
-        </div>
-    );
+        );
+    };
 
     // Error Component
     const ErrorState = () => (
@@ -401,6 +420,11 @@ const AppointmentsPage = () => {
                 description='Connect with world-class specialists curated for your health journey. Expert clinical care delivered with a human touch.'
             />
             <div className="space-y-6 container-max-width mx-auto w-full">
+                {isFetching && (
+                    <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground" role="status">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Loading appointments…
+                    </p>
+                )}
                 {activeTab !== 'pending_payment' && (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_200px_200px]">
                         <input

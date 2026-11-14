@@ -16,8 +16,10 @@ export const useAppointments = (
         queryFn: () => fetchAppointments(filter, page, options),
         // Keep the old page only while paging the same tab; a new tab shows the loader instead of
         // the previous tab's appointments.
+        // Previous result kept while the next loads (the page shows a skeleton meanwhile, and keeps
+        // the pagination totals); never from another profile.
         placeholderData: (previous, previousQuery) =>
-            previousQuery?.queryKey[1] === profileKey && previousQuery?.queryKey[2] === filter ? previous : undefined,
+            previousQuery?.queryKey[1] === profileKey ? previous : undefined,
         staleTime: 60 * 1000,
         retry: 0,
         // Today's list follows the call state (joinable / rejoin after the doctor reopens it).
