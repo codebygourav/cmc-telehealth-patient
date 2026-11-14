@@ -18,6 +18,8 @@ interface UpcomingAppointmentCardProps {
     isRejoin?: boolean;
     status?: string;
     statusLabel?: string;
+    /** Failed booking (payment did not go through): view only. */
+    failureReason?: string | null;
     bookedForName?: string | null;
     isTestDoctor?: boolean;
     // Another doctor took over this appointment.
@@ -37,6 +39,7 @@ const UpcomingAppointmentCard = ({
     isRejoin = false,
     status,
     statusLabel,
+    failureReason,
     bookedForName,
     isTestDoctor,
     doctorReplacement,
@@ -167,6 +170,20 @@ const UpcomingAppointmentCard = ({
             </div>
 
             {/* 3. Bottom Action Bar */}
+            {status === "failed" ? (
+                <>
+                    <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-800">
+                        {failureReason || "The payment for this booking did not go through."}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => router.push(`/appointments/appoitment-detail/${appointment.id}`)}
+                        className="w-full bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-md transition-colors cursor-pointer"
+                    >
+                        View details
+                    </button>
+                </>
+            ) : (
             <div className="flex items-center gap-2 pt-0.5">
                 {canJoinCall ? (
                     <>
@@ -196,6 +213,7 @@ const UpcomingAppointmentCard = ({
                     </button>
                 )}
             </div>
+            )}
         </div>
     );
 };

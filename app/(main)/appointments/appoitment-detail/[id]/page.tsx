@@ -4,7 +4,7 @@ import DoctorReplacedNote from "@/components/pages/appointments/DoctorReplacedNo
 import { fetchAppointmentById } from '@/api/appointment-detail';
 import AddReviewsDialouge from '@/components/pages/appointments/addReviewsDialouge';
 import { AppointmentInfoCards } from '@/components/pages/appointments/AppointmentInfoCards';
-import { Pill } from 'lucide-react';
+import { AlertCircle, Pill } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SheetDialog from '@/components/custom/SheetDialog';
@@ -73,6 +73,16 @@ export default function AppointmentDetailPage() {
 
                     {/* LEFT COLUMN - Main Content */}
                     <div className="space-y-6 lg:col-span-3">
+                        {(data as any)?.is_failed && (
+                            <div className="flex gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-900" role="alert">
+                                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                                <div>
+                                    <p className="font-semibold">This appointment failed</p>
+                                    <p className="mt-1 text-sm">{(data as any)?.failure_reason || "The payment for this booking did not go through, so the appointment was not booked."}</p>
+                                    <p className="mt-2 text-xs text-rose-800/80">You can view the details below. Files, notes and other actions are not available for a failed appointment. To see the doctor, please book a new appointment.</p>
+                                </div>
+                            </div>
+                        )}
                         <AppointmentInfoCards data={data} />
                     </div>
                 </div>
@@ -107,6 +117,7 @@ export default function AppointmentDetailPage() {
                         </div>
                     )}
 
+                    {!(data as any)?.is_failed && (
                     <div className="mt-6">
                         <MedicineActionPlan
                             showConclusion={false}
@@ -115,6 +126,7 @@ export default function AppointmentDetailPage() {
                             footerActionGridClassName="grid-cols-1"
                         />
                     </div>
+                    )}
 
                     {/* Full prescription (medicines, timings, notes) in a drawer: bottom sheet on phones. */}
                     <SheetDialog
@@ -127,7 +139,7 @@ export default function AppointmentDetailPage() {
                         {selectedMedicineId && <PrescriptionDetailBody appointmentId={selectedMedicineId} />}
                     </SheetDialog>
 
-                    <AddReviewsDialouge
+                    {!(data as any)?.is_failed && <AddReviewsDialouge
                         appointmentStatus={data?.status}
                         hasExistingReview={false}
                         doctorName={data?.doctor?.name}
@@ -135,7 +147,7 @@ export default function AppointmentDetailPage() {
                         canSubmit={data?.can_add_review}
                         appointmentId={data?.appointment_id}
                         onSubmit={(result) => console.log(result)}
-                    />
+                    />}
 
                 </div>
             </div>

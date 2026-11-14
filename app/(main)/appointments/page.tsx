@@ -287,6 +287,7 @@ const AppointmentsPage = () => {
                                 isRejoin={Boolean((app as any).call_is_rejoin)}
                                 status={app.status}
                                 statusLabel={(app as any).status_label}
+                                failureReason={(app as any).failure_reason}
                                 bookedForName={(app as any).booked_for?.name}
                                 isTestDoctor={Boolean((app as any).doctor?.is_test_doctor)}
                                 doctorReplacement={(app as any).doctor_replacement}

@@ -265,6 +265,11 @@ export default function ManageAppointment({ params }: PageProps) {
     // Not found (wrong / old link, or it belongs to another profile): never show an empty or
     // placeholder appointment — go to My Appointments.
     const notFound = !isLoading && (!!error || !appointment);
+    // Failed booking: nothing to manage (no uploads, call or changes) → view-only details page.
+    const isFailedBooking = !!(appointment as any)?.is_failed || (appointment as any)?.status === 'failed';
+    useEffect(() => {
+        if (isFailedBooking) router.replace(`/appointments/appoitment-detail/${appointmentId}`);
+    }, [isFailedBooking, appointmentId, router]);
     useEffect(() => {
         if (!notFound) return;
         toast.error('This appointment was not found in your account. If it was booked for a family member, switch to their profile.', { duration: 7000 });
