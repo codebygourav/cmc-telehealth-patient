@@ -1,5 +1,6 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { getAuthToken } from "./authToken";
+import { getTurnstileToken, needsTurnstile } from "./turnstile";
 import { getActiveProfileId } from "./activeProfile";
 import { getPricingTest } from "./pricingTest";
 
@@ -16,7 +17,13 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  // Sign-in, sign-up and OTP requests: invisible captcha token for the API.
+  if (needsTurnstile(config.url, config.method)) {
+    const captcha = await getTurnstileToken();
+    if (captcha) config.headers["X-Turnstile-Token"] = captcha;
+  }
+
   if (!config.baseURL && !(config.url || "").startsWith("http")) {
     throw new Error(
       "NEXT_PUBLIC_API_BASE_URL is not configured in the running app. Restart or rebuild the frontend after updating frontend/patient/.env.",

@@ -81,7 +81,7 @@
     "glob": "^14.0.6",
     "express-rate-limit": "^8.7.5",
     "hono": "^4.13.20",
-    "@hono/node-server": "^1.19.19",
+    "@hono/node-server": "^2.1.11",
     "follow-redirects": "^1.16.3",
     "minimatch": "^11.0.9"
   }
