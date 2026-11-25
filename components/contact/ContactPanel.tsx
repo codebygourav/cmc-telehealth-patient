@@ -76,7 +76,8 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
         if (!form.first_name.trim()) found.first_name = "First name is required.";
         if (!form.email.trim()) found.email = "Email is required.";
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = "Enter a valid email address.";
-        if (form.phone.trim() && !/^\+?[0-9\s\-()]{7,20}$/.test(form.phone.trim())) found.phone = "Enter a valid phone number.";
+        if (!form.phone.trim()) found.phone = "Phone number is required.";
+        else if (!/^\+?[0-9\s\-()]{7,20}$/.test(form.phone.trim())) found.phone = "Enter a valid phone number.";
         if (!form.message.trim()) found.message = "Please write your message.";
         return found;
     };
@@ -95,7 +96,7 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
                 first_name: form.first_name.trim(),
                 last_name: form.last_name.trim() || null,
                 email: form.email.trim(),
-                phone: form.phone.trim() || null,
+                phone: form.phone.trim(),
                 message: form.message.trim(),
             });
             setTyped((current) => ({ ...current, message: "" }));
@@ -167,7 +168,7 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {field("email", "Email", true, { type: "email", maxLength: 150, autoComplete: "email" })}
-                {field("phone", "Phone number", false, { type: "tel", inputMode: "tel", maxLength: 20, autoComplete: "tel", placeholder: "+91 98765 43210" })}
+                {field("phone", "Phone number", true, { type: "tel", inputMode: "tel", maxLength: 20, autoComplete: "tel", placeholder: "+91 98765 43210" })}
             </div>
 
             <div>
@@ -192,6 +193,10 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
             </div>
 
             {formError && <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>}
+
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900" role="note">
+                <span className="font-semibold">Special note:</span> Please ensure that you enter your details correctly, especially your email address and phone number, before submitting the form. This will help our team contact you and provide the assistance you need.
+            </div>
 
             <Button type="submit" disabled={sending} className="w-full text-sm font-semibold btn-primary-cta">
                 <Send size={16} className="m-0" />
