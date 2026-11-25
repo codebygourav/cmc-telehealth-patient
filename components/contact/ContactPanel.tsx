@@ -14,7 +14,7 @@ import { ArrowRight, CheckCircle2, CornerDownRight, Loader2, MessageSquareText, 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 
-type Fields = { first_name: string; last_name: string; email: string; message: string };
+type Fields = { first_name: string; last_name: string; email: string; phone: string; message: string };
 type Errors = Partial<Record<keyof Fields, string>>;
 
 // The support team's reply to an inquiry.
@@ -57,11 +57,12 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
-    const account = (user ?? {}) as { id?: string; first_name?: string; last_name?: string; name?: string; email?: string };
+    const account = (user ?? {}) as { id?: string; first_name?: string; last_name?: string; name?: string; email?: string; phone?: string; mobile?: string };
     const form: Fields = {
         first_name: typed.first_name ?? account.first_name ?? account.name?.split(" ")[0] ?? "",
         last_name: typed.last_name ?? account.last_name ?? account.name?.split(" ").slice(1).join(" ") ?? "",
         email: typed.email ?? account.email ?? "",
+        phone: typed.phone ?? account.phone ?? account.mobile ?? "",
         message: typed.message ?? "",
     };
 
@@ -75,6 +76,7 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
         if (!form.first_name.trim()) found.first_name = "First name is required.";
         if (!form.email.trim()) found.email = "Email is required.";
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.email = "Enter a valid email address.";
+        if (form.phone.trim() && !/^\+?[0-9\s\-()]{7,20}$/.test(form.phone.trim())) found.phone = "Enter a valid phone number.";
         if (!form.message.trim()) found.message = "Please write your message.";
         return found;
     };
@@ -93,6 +95,7 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
                 first_name: form.first_name.trim(),
                 last_name: form.last_name.trim() || null,
                 email: form.email.trim(),
+                phone: form.phone.trim() || null,
                 message: form.message.trim(),
             });
             setTyped((current) => ({ ...current, message: "" }));
@@ -162,7 +165,10 @@ export function ContactForm({ onSent }: { onSent?: () => void }) {
                 {field("first_name", "First name", true, { maxLength: 100, autoComplete: "given-name" })}
                 {field("last_name", "Last name", false, { maxLength: 100, autoComplete: "family-name" })}
             </div>
-            {field("email", "Email", true, { type: "email", maxLength: 150, autoComplete: "email" })}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {field("email", "Email", true, { type: "email", maxLength: 150, autoComplete: "email" })}
+                {field("phone", "Phone number", false, { type: "tel", inputMode: "tel", maxLength: 20, autoComplete: "tel", placeholder: "+91 98765 43210" })}
+            </div>
 
             <div>
                 <label htmlFor={`${uid}-message`} className="mb-1.5 block text-sm font-medium text-slate-700">
