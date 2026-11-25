@@ -1,4 +1,5 @@
 "use client"
+import MissingFileReupload from "@/components/common/MissingFileReupload";
 import { useEffect, useState } from 'react';
 import { FileText, Plus, MoreVertical, Eye, Edit3, Trash2, CalendarX2, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -161,6 +162,9 @@ export default function ReportsAndNotes({
                                     <div>
                                         <h4 className="font-semibold text-[#1f1e1e] text-sm mb-1">{report.title}</h4>
                                         <p className="text-[10px] text-[#4D4D4D]">{report.date}</p>
+                                        {report.fileMissing && (
+                                            <div className="mt-2"><MissingFileReupload reportId={report.id} compact /></div>
+                                        )}
                                     </div>
                                     <div className="relative" data-report-menu>
                                         <button

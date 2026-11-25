@@ -135,7 +135,8 @@ export default function ManageAppointment({ params }: PageProps) {
                     date: r.report_date || '',
                     type: r.type_label || r.type || 'General',
                     fileName: r.file_url ? r.file_url.split('/').pop() || 'report.pdf' : 'report.pdf',
-                    fileUrl: r.file_url
+                    fileUrl: r.file_url,
+                    fileMissing: !!r.file_missing,
                 }));
                 setReports(mappedReports);
             }

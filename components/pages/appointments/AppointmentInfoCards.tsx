@@ -1,5 +1,6 @@
 "use client";
 
+import MissingFileReupload from "@/components/common/MissingFileReupload";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Stethoscope, Calendar, User, CreditCard, FileText, Eye, Download } from "lucide-react";
 import { getStatusColor } from "@/src/utils/getStatusColor";
@@ -210,6 +211,9 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                             </p>
                                         </div>
                                     </div>
+                                    {report.file_missing ? (
+                                        <span className="shrink-0 ml-2"><MissingFileReupload reportId={report.id} compact /></span>
+                                    ) : (
                                     <a
                                         href={report.file_url}
                                         target="_blank"
@@ -218,6 +222,7 @@ export const AppointmentInfoCards = ({ data }: AppointmentInfoCardsProps) => {
                                     >
                                         <Eye size={18} color="var(--primary)" />
                                     </a>
+                                    )}
                                 </div>
                             ))}
                         </div>

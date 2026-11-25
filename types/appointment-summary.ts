@@ -71,6 +71,7 @@ export interface AppointmentMedicalReport {
   report_date_formatted?: string;
   status?: string;
   file_url?: string;
+  file_missing?: boolean;
   doctor_name?: string;
   files?: {
     url: string;

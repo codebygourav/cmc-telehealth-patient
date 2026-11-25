@@ -6,6 +6,8 @@ export interface Report {
     fileName: string;
     fileUrl?: string;
     file?: File;
+    /** Saved, but the file is no longer on the server. */
+    fileMissing?: boolean;
 }
 
 export interface MedicalRecord {
@@ -36,6 +38,8 @@ export interface MedicalReport {
     report_date: string;
     report_date_formatted: string;
     file_url: string;
+    /** In the database but the file is not on the server: offer a re-upload. */
+    file_missing?: boolean;
     file_name: string;
     status: string;
     doctor: MedicalReportDoctor;

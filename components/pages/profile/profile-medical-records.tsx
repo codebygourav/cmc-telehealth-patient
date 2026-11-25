@@ -1,5 +1,6 @@
 "use client";
 
+import MissingFileReupload from "@/components/common/MissingFileReupload";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -120,7 +121,9 @@ export default function ProfileMedicalRecords({ user }: ProfileMedicalRecordsPro
                                 >
                                     <Trash2 className="h-3.5 w-3.5" /> Remove
                                 </button>
-                                {record.file_url && (
+                                {record.file_missing ? (
+                                    <MissingFileReupload reportId={record.id} compact />
+                                ) : record.file_url && (
                                     <a
                                         href={record.file_url}
                                         target="_blank"

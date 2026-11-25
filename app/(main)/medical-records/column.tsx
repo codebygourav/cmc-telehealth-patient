@@ -1,5 +1,6 @@
 'use client';
 
+import MissingFileReupload from "@/components/common/MissingFileReupload";
 import { Button } from '@/components/ui/button';
 import { StatusBadge, StatusBadgeStatus } from "@/components/custom/StatusBadge";
 import { MedicalReport } from '@/types/medical-reports';
@@ -21,6 +22,9 @@ function ActionCell({ row }: { row: { original: MedicalReport } }) {
     const timeStatus = record.doctor?.appointment_time_status;
     return (
         <div className="flex flex-nowrap items-center gap-2">
+            {record.file_missing ? (
+                <MissingFileReupload reportId={record.id} />
+            ) : (
             <Button
                 type="button"
                 className="inline-flex items-center gap-2 h-9 btn-primary-cta global-radius span-12"
@@ -31,6 +35,7 @@ function ActionCell({ row }: { row: { original: MedicalReport } }) {
                 View Report
                 <ChevronRight className="w-3.5 h-3.5 m-0" />
             </Button>
+            )}
        
             {appointmentId && (
                 <Button
