@@ -54,6 +54,7 @@ export default function Notifications() {
     const { data: totalUnread = 0 } = useUnreadCount();
     const queryClient = useQueryClient();
     const {
+        permission,
         subscription,
         loading: pushLoading,
         subscribeToPush,
@@ -185,19 +186,24 @@ export default function Notifications() {
                                 size="sm"
                                 className="h-10 px-3 text-sm flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-md"
                                 onClick={subscription ? unsubscribeFromPush : subscribeToPush}
-                                disabled={pushLoading}
+                                disabled={pushLoading || permission === "denied"}
                             >
                                 {pushLoading ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : permission === "denied" ? (
+                                    <>
+                                        <BellOff className="h-4 w-4 text-red-500" />
+                                        Notifications Blocked
+                                    </>
                                 ) : subscription ? (
                                     <>
                                         <BellOff className="h-4 w-4 text-red-500" />
-                                        Disable Desktop Push
+                                        Disable Notifications
                                     </>
                                 ) : (
                                     <>
                                         <Bell className="h-4 w-4 text-primary" />
-                                        Enable Desktop Push
+                                        Enable Notifications
                                     </>
                                 )}
                             </Button>

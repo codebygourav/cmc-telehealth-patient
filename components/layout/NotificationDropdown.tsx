@@ -26,11 +26,20 @@ import {
   Video,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { showNativeNotification, usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function NotificationDropdown() {
   const queryClient = useQueryClient();
+  const {
+    permission,
+    subscription,
+    loading: pushLoading,
+    subscribeToPush,
+    unsubscribeFromPush,
+    isSupported,
+  } = usePushNotifications();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [readingId, setReadingId] = useState<string | null>(null);
@@ -40,6 +49,64 @@ export function NotificationDropdown() {
   const { data: totalUnread = 0 } = useUnreadCount();
 
   const notifications = notificationsData?.data ?? [];
+
+  useEffect(() => {
+    if (!notifications || notifications.length === 0) return;
+
+    let storedNotifiedIds: string[] = [];
+    try {
+      const stored = localStorage.getItem("patient_notified_push_ids");
+      if (stored) {
+        storedNotifiedIds = JSON.parse(stored);
+      }
+    } catch {
+      storedNotifiedIds = [];
+    }
+
+    const updatedNotifiedSet = new Set(storedNotifiedIds);
+    let newNotificationsFound = false;
+
+    notifications.forEach((item: any) => {
+      if (!item.is_read && !updatedNotifiedSet.has(item.id)) {
+        updatedNotifiedSet.add(item.id);
+        newNotificationsFound = true;
+
+        showNativeNotification(item.title || "New Notification", {
+          body: item.desc || "",
+          tag: String(item.id),
+          requireInteraction: true,
+          data: {
+            url: "/notifications",
+            join_url: item.join_url,
+            appointment_id: item.appointment_id,
+            title: item.title,
+            created_at: item.created_at,
+          },
+          ...(item.join_url
+            ? {
+                actions: [
+                  {
+                    action: "join_call",
+                    title: "Join Call",
+                  },
+                ],
+              }
+            : {}),
+        });
+      }
+    });
+
+    if (newNotificationsFound) {
+      try {
+        localStorage.setItem(
+          "patient_notified_push_ids",
+          JSON.stringify(Array.from(updatedNotifiedSet).slice(-100))
+        );
+      } catch (e) {
+        console.error("Failed to update notified ids cache:", e);
+      }
+    }
+  }, [notifications]);
 
   const toggleExpand = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -149,6 +216,48 @@ export function NotificationDropdown() {
             >
               {isMarkingAll ? "Updating..." : "Mark all read"}
             </button>
+          </div>
+
+          {/* Push Notification Toggle Banner */}
+          <div className="relative flex items-center justify-between px-4 py-3 bg-slate-100/80 dark:bg-muted/50 border-b border-border/40 gap-3">
+            <div className="flex flex-col pr-4">
+              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Bell className="h-3.5 w-3.5 text-primary" />
+                Push Alerts
+              </span>
+              <span className="text-[11px] text-muted-foreground font-medium leading-tight mt-0.5">
+                {permission === "denied"
+                  ? "Notifications blocked in app/browser"
+                  : subscription
+                    ? "Push notifications are active"
+                    : "Enable instant alerts for appointments"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={subscription ? "outline" : "default"}
+                className="h-8 text-xs px-3 rounded-lg font-bold shadow-xs shrink-0"
+                disabled={!isSupported || pushLoading || permission === "denied"}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (subscription) {
+                    await unsubscribeFromPush();
+                  } else {
+                    await subscribeToPush();
+                  }
+                }}
+              >
+                {pushLoading
+                  ? "..."
+                  : permission === "denied"
+                    ? "Blocked"
+                    : subscription
+                      ? "Disable"
+                      : "Enable"}
+              </Button>
+            </div>
           </div>
 
           {/* Items Section */}

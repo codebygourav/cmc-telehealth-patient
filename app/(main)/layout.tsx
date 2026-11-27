@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import PricingTestBanner from "@/components/PricingTestBanner";
 import PatientRegionPrompt from "@/components/PatientRegionPrompt";
 import PhoneVerificationGate from "@/components/auth/PhoneVerificationGate";
+import { PushNotificationBanner } from "@/components/ui/PushNotificationBanner";
 import { Toaster } from "sonner";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -10,6 +11,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <>
             <PricingTestBanner />
             <Header />
+            <PushNotificationBanner />
             {/* Extra space at the bottom on phones / tablets, for the bottom navigation. */}
             {/* Phones / tablets: as tall as the content (no empty gap above the footer). */}
             <div className="flex-1 lg:min-h-screen px-4 sm:px-5 pt-5 pb-24 lg:pb-5 mx-auto w-full">
