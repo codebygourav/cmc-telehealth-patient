@@ -95,7 +95,7 @@ function ProfilePageContent() {
 
             <div className="container-max-width mx-auto w-full space-y-5">
                 {/* Install the portal as an app (Android, iPhone, computer). */}
-                <InstallAppButton appName="CMC Telehealth" />
+                <InstallAppButton appName="CMC Care" />
 
                 {/* Managed By Primary Account Banner */}
                 {managedBy.length > 0 && !member && (

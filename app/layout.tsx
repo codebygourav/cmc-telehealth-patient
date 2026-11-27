@@ -25,8 +25,8 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-    title: "Deploymeta Telehealth - Patients",
-    description: "A Progressive Web App for Patients in Deploymeta Telehealth",
+    title: "CMC Care - Patients",
+    description: "A Progressive Web App for Patients with CMC Care",
     manifest: "/manifest.webmanifest",
     icons: {
         icon: "/icons/icon-192x192.png",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     // iPhone / iPad: opens full screen with this name when added to the Home Screen.
     appleWebApp: {
         capable: true,
-        title: "CMC Telehealth",
+        title: "CMC Care",
         statusBarStyle: "default",
     },
 };
@@ -60,7 +60,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                         <PortalHistoryTracker />
                         <ContactFab />
                         {/* Offers to install the portal as an app. */}
-                        <InstallAppPrompt appName="CMC Telehealth" />
+                        <InstallAppPrompt appName="CMC Care" />
                     </TooltipProvider>
                 </Providers>
             </body>

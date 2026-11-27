@@ -88,7 +88,7 @@ export function HeaderNavLinks({
                     <SheetContent side="right" className="flex h-full max-h-dvh w-[340px] max-w-[92vw] flex-col gap-0 border-l border-border/60 bg-[#F7F8F9] px-0 sm:w-[380px]">
                         <SheetHeader className="flex shrink-0 flex-row items-center justify-between border-b border-border/40 bg-white px-5 pt-5 pb-4 text-left">
                             <SheetTitle className="flex items-center">
-                                <Image src={settings.logoUrl || logo} alt={settings.appName || "CMC Telehealth"} width={150} height={36}
+                                <Image src={settings.logoUrl || logo} alt={settings.appName || "CMC Care"} width={150} height={36}
                                     className="h-9 w-auto object-contain" priority unoptimized />
                             </SheetTitle>
                         </SheetHeader>

@@ -5,9 +5,9 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "CMC Telehealth",
-    short_name: "CMC Telehealth",
-    description: "Book appointments, consult doctors by video and manage your health records with CMC Telehealth.",
+    name: "CMC Care",
+    short_name: "CMC Care",
+    description: "Book appointments, consult doctors by video and manage your health records with CMC Care.",
     start_url: "/",
     scope: "/",
     display: "standalone",

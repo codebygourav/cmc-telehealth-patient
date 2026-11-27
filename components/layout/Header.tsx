@@ -109,7 +109,7 @@ export function Header() {
         <Link href={user ? "/" : "/find-doctors"} className="flex items-center shrink-0">
           <Image
             src={settings.logoUrl || logo}
-            alt={settings.appName || "Telehealth"}
+            alt={settings.appName || "CMC Care"}
             width={190}
             height={42}
             className="object-contain w-auto h-10"
